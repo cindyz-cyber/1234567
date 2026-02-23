@@ -96,7 +96,7 @@ function App() {
 
   function handleJournalComplete(content: string) {
     setJourneyData(prev => ({ ...prev, journalContent: content }));
-    setCurrentStep('transition');
+    setCurrentStep('dialogue');
   }
 
   function handleTransitionComplete() {

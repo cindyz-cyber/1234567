@@ -8,10 +8,13 @@ export const createHypnosisAudio = (): {
   const oscillator342Hz = audioContext.createOscillator();
   const oscillator171Hz = audioContext.createOscillator();
   const noiseNode = audioContext.createBufferSource();
+  const meditationTone1 = audioContext.createOscillator();
+  const meditationTone2 = audioContext.createOscillator();
 
   const masterGain = audioContext.createGain();
   const oscillatorGain = audioContext.createGain();
   const noiseGain = audioContext.createGain();
+  const meditationGain = audioContext.createGain();
 
   oscillator342Hz.type = 'sine';
   oscillator342Hz.frequency.setValueAtTime(342, audioContext.currentTime);
@@ -19,28 +22,39 @@ export const createHypnosisAudio = (): {
   oscillator171Hz.type = 'sine';
   oscillator171Hz.frequency.setValueAtTime(171, audioContext.currentTime);
 
-  const bufferSize = audioContext.sampleRate * 2;
+  meditationTone1.type = 'sine';
+  meditationTone1.frequency.setValueAtTime(528, audioContext.currentTime);
+
+  meditationTone2.type = 'triangle';
+  meditationTone2.frequency.setValueAtTime(396, audioContext.currentTime);
+
+  const bufferSize = audioContext.sampleRate * 4;
   const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
   const output = noiseBuffer.getChannelData(0);
 
   for (let i = 0; i < bufferSize; i++) {
-    const wave = Math.sin(2 * Math.PI * 0.1 * i / audioContext.sampleRate);
-    output[i] = (Math.random() * 2 - 1) * 0.015 * wave;
+    const wave1 = Math.sin(2 * Math.PI * 0.08 * i / audioContext.sampleRate);
+    const wave2 = Math.sin(2 * Math.PI * 0.13 * i / audioContext.sampleRate);
+    output[i] = (Math.random() * 2 - 1) * 0.012 * (wave1 * 0.6 + wave2 * 0.4);
   }
 
   noiseNode.buffer = noiseBuffer;
   noiseNode.loop = true;
 
-  oscillatorGain.gain.setValueAtTime(0.06, audioContext.currentTime);
-  noiseGain.gain.setValueAtTime(0.08, audioContext.currentTime);
+  oscillatorGain.gain.setValueAtTime(0.05, audioContext.currentTime);
+  noiseGain.gain.setValueAtTime(0.07, audioContext.currentTime);
+  meditationGain.gain.setValueAtTime(0.04, audioContext.currentTime);
   masterGain.gain.setValueAtTime(0, audioContext.currentTime);
 
   oscillator342Hz.connect(oscillatorGain);
   oscillator171Hz.connect(oscillatorGain);
+  meditationTone1.connect(meditationGain);
+  meditationTone2.connect(meditationGain);
   noiseNode.connect(noiseGain);
 
   oscillatorGain.connect(masterGain);
   noiseGain.connect(masterGain);
+  meditationGain.connect(masterGain);
   masterGain.connect(audioContext.destination);
 
   let started = false;
@@ -50,8 +64,10 @@ export const createHypnosisAudio = (): {
       if (!started) {
         oscillator342Hz.start();
         oscillator171Hz.start();
+        meditationTone1.start();
+        meditationTone2.start();
         noiseNode.start();
-        masterGain.gain.linearRampToValueAtTime(1, audioContext.currentTime + 2);
+        masterGain.gain.linearRampToValueAtTime(1, audioContext.currentTime + 2.5);
         started = true;
       }
     },
@@ -60,6 +76,8 @@ export const createHypnosisAudio = (): {
         try {
           oscillator342Hz.stop();
           oscillator171Hz.stop();
+          meditationTone1.stop();
+          meditationTone2.stop();
           noiseNode.stop();
         } catch (e) {
         }

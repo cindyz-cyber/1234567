@@ -28,15 +28,23 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [oscillatorNode, setOscillatorNode] = useState<OscillatorNode | null>(null);
+  const [showTransition, setShowTransition] = useState(true);
 
   useEffect(() => {
     setGuidanceMessages(getRandomGuidanceMessages(4));
 
-    const timer = setTimeout(() => {
+    const transitionTimer = setTimeout(() => {
+      setShowTransition(false);
+    }, 35000);
+
+    const readyTimer = setTimeout(() => {
       setIsReady(true);
     }, 20000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(transitionTimer);
+      clearTimeout(readyTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -98,6 +106,218 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
     }
   };
 
+  if (showTransition) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(180deg, #1A352F 0%, #0D1814 100%)',
+          opacity: 1,
+          transition: 'opacity 2s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        <div className="relative flex items-center justify-center mb-12">
+          <div className="absolute divine-aura-outer" />
+          <div className="absolute divine-aura-middle" />
+          <div className="absolute divine-logo-glow" />
+          <div className="divine-logo-core" />
+        </div>
+
+        <div
+          className="guidance-text-container"
+          style={{
+            minHeight: '120px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            padding: '0 20px',
+            position: 'relative',
+          }}
+        >
+          {guidanceMessages.length > 0 && (
+            <p
+              className="guidance-text"
+              style={{
+                color: '#D4AF37',
+                fontSize: '1.125rem',
+                fontWeight: '300',
+                letterSpacing: '0.08em',
+                lineHeight: '1.8',
+                textShadow: '0 0 20px rgba(212, 175, 55, 0.6), 0 0 35px rgba(212, 175, 55, 0.4)',
+                opacity: 1,
+                maxWidth: '400px',
+              }}
+            >
+              {guidanceMessages[currentGuidanceIndex]}
+            </p>
+          )}
+        </div>
+
+        <p
+          className="connection-subtitle"
+          style={{
+            color: '#E0E0D0',
+            fontSize: '0.875rem',
+            fontWeight: '300',
+            letterSpacing: '0.06em',
+            opacity: 0.6,
+            marginTop: '24px',
+            textAlign: 'center',
+          }}
+        >
+          正在连接你的 <span className="highlight-name">{higherSelfName}</span>
+        </p>
+
+        <style>{`
+          .divine-logo-core {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.85) 0%, rgba(212, 175, 55, 0.55) 40%, rgba(212, 175, 55, 0.25) 70%, transparent 100%);
+            animation: deepBreath 6s ease-in-out infinite;
+            position: relative;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+              0 0 40px 20px rgba(212, 175, 55, 0.5),
+              0 0 80px 40px rgba(212, 175, 55, 0.35),
+              0 0 120px 60px rgba(212, 175, 55, 0.25),
+              inset 0 0 60px rgba(212, 175, 55, 0.6);
+          }
+
+          .divine-logo-glow {
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.5) 0%, rgba(212, 175, 55, 0.25) 50%, transparent 100%);
+            animation: slowPulse 8s ease-in-out infinite, shimmer 4s ease-in-out infinite;
+            position: absolute;
+            z-index: 3;
+            filter: blur(30px);
+          }
+
+          .divine-aura-middle {
+            position: absolute;
+            width: 480px;
+            height: 480px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.4) 0%, rgba(212, 175, 55, 0.2) 30%, transparent 70%);
+            animation: auraPulse 10s ease-in-out infinite;
+            z-index: 2;
+            filter: blur(50px);
+          }
+
+          .divine-aura-outer {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, rgba(212, 175, 55, 0.15) 30%, transparent 70%);
+            animation: auraPulse 12s ease-in-out infinite reverse;
+            z-index: 1;
+            filter: blur(70px);
+          }
+
+          @keyframes deepBreath {
+            0%, 100% {
+              transform: scale(1);
+              opacity: 0.85;
+              box-shadow:
+                0 0 40px 20px rgba(212, 175, 55, 0.5),
+                0 0 80px 40px rgba(212, 175, 55, 0.35),
+                0 0 120px 60px rgba(212, 175, 55, 0.25),
+                inset 0 0 60px rgba(212, 175, 55, 0.6);
+            }
+            50% {
+              transform: scale(1.08);
+              opacity: 1;
+              box-shadow:
+                0 0 50px 25px rgba(212, 175, 55, 0.65),
+                0 0 100px 50px rgba(212, 175, 55, 0.45),
+                0 0 150px 75px rgba(212, 175, 55, 0.35),
+                inset 0 0 80px rgba(212, 175, 55, 0.75);
+            }
+          }
+
+          @keyframes slowPulse {
+            0%, 100% {
+              opacity: 0.5;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.8;
+              transform: scale(1.15);
+            }
+          }
+
+          @keyframes shimmer {
+            0%, 100% {
+              filter: blur(30px) brightness(1);
+            }
+            25% {
+              filter: blur(35px) brightness(1.15);
+            }
+            50% {
+              filter: blur(25px) brightness(0.95);
+            }
+            75% {
+              filter: blur(40px) brightness(1.1);
+            }
+          }
+
+          @keyframes auraPulse {
+            0%, 100% {
+              transform: scale(1);
+              opacity: 0.3;
+            }
+            50% {
+              transform: scale(1.2);
+              opacity: 0.6;
+            }
+          }
+
+          .guidance-text {
+            animation: textFadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          @keyframes textFadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          .highlight-name {
+            font-weight: 400;
+            color: #D4AF37;
+            text-shadow: 0 0 25px rgba(212, 175, 55, 0.7);
+            letter-spacing: 0.1em;
+          }
+
+          .connection-subtitle {
+            animation: subtlePulse 3s ease-in-out infinite;
+          }
+
+          @keyframes subtlePulse {
+            0%, 100% {
+              opacity: 0.6;
+            }
+            50% {
+              opacity: 0.8;
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade" style={{ position: 'relative' }}>
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
@@ -117,44 +337,6 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
             {journalContent}
           </p>
         </div>
-
-        {!isReady && (
-          <div className="guidance-overlay">
-            <div className="guidance-content">
-              {guidanceMessages.map((message, index) => (
-                <p
-                  key={index}
-                  className={`guidance-message ${index === currentGuidanceIndex ? 'active' : ''}`}
-                  style={{
-                    color: '#EBC862',
-                    fontSize: '1.1rem',
-                    fontWeight: '300',
-                    letterSpacing: '0.05em',
-                    textAlign: 'center',
-                    lineHeight: '1.8',
-                    textShadow: '0 0 20px rgba(235, 200, 98, 0.4)',
-                    opacity: index === currentGuidanceIndex ? 1 : 0,
-                    position: 'absolute',
-                    width: '100%',
-                    transition: 'opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                  }}
-                >
-                  {message}
-                </p>
-              ))}
-            </div>
-            <div
-              style={{
-                marginTop: '40px',
-                fontSize: '0.875rem',
-                color: 'rgba(235, 200, 98, 0.6)',
-                textAlign: 'center',
-              }}
-            >
-              准备中...
-            </div>
-          </div>
-        )}
 
         {isReady && (
           <>

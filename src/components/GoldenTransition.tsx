@@ -9,7 +9,7 @@ interface GoldenTransitionProps {
 
 export default function GoldenTransition({ userName, higherSelfName, onComplete }: GoldenTransitionProps) {
   const [currentText, setCurrentText] = useState('');
-  const [progress, setProgress] = useState(0);
+  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
     const audio = createHypnosisAudio();
@@ -22,8 +22,6 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
       const elapsed = Date.now() - startTime;
       const elapsedSeconds = elapsed / 1000;
 
-      setProgress((elapsed / duration) * 100);
-
       for (let i = guidanceTimeline.length - 1; i >= 0; i--) {
         if (elapsedSeconds >= guidanceTimeline[i].time) {
           setCurrentText(guidanceTimeline[i].text);
@@ -31,8 +29,9 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
         }
       }
 
-      if (elapsed >= duration - 3000) {
-        audio.fadeOut(3);
+      if (elapsed >= duration - 2000) {
+        setFadeOut(true);
+        audio.fadeOut(2);
       }
 
       if (elapsed >= duration) {
@@ -57,32 +56,10 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
       className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden hypnosis-container"
       style={{
         background: 'linear-gradient(180deg, #1A352F 0%, #0D1814 100%)',
-        transition: 'background 3s cubic-bezier(0.4, 0, 0.2, 1)',
+        opacity: fadeOut ? 0 : 1,
+        transition: 'opacity 2s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
-      <div className="absolute top-8 left-0 right-0 flex justify-center z-10">
-        <div
-          className="progress-bar"
-          style={{
-            width: '200px',
-            height: '2px',
-            backgroundColor: 'rgba(235, 200, 98, 0.2)',
-            borderRadius: '2px',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              width: `${progress}%`,
-              height: '100%',
-              backgroundColor: 'rgba(235, 200, 98, 0.6)',
-              transition: 'width 0.1s linear',
-              boxShadow: '0 0 10px rgba(235, 200, 98, 0.8)',
-            }}
-          />
-        </div>
-      </div>
-
       <div className="relative flex items-center justify-center mb-12">
         <div className="absolute divine-aura-outer" />
         <div className="absolute divine-aura-middle" />
@@ -135,19 +112,6 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
       </p>
 
       <style>{`
-        .hypnosis-container {
-          animation: backgroundLighten 35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        @keyframes backgroundLighten {
-          0% {
-            background: linear-gradient(180deg, #1A352F 0%, #0D1814 100%);
-          }
-          100% {
-            background: linear-gradient(180deg, #1F3E36 0%, #111E1A 100%);
-          }
-        }
-
         .divine-logo-core {
           width: 280px;
           height: 280px;
