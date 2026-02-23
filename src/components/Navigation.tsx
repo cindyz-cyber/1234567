@@ -3,16 +3,20 @@ import { Home, Sparkles, FileText, User, Settings } from 'lucide-react';
 interface NavigationProps {
   currentTab: 'breath' | 'energy' | 'archive' | 'profile' | 'admin';
   onTabChange: (tab: 'breath' | 'energy' | 'archive' | 'profile' | 'admin') => void;
+  isAdmin?: boolean;
 }
 
-export default function Navigation({ currentTab, onTabChange }: NavigationProps) {
-  const tabs = [
+export default function Navigation({ currentTab, onTabChange, isAdmin = false }: NavigationProps) {
+  const baseTabs = [
     { id: 'breath' as const, label: '呼吸', icon: Home },
     { id: 'energy' as const, label: '能量', icon: Sparkles },
     { id: 'archive' as const, label: '档案', icon: FileText },
     { id: 'profile' as const, label: '我的', icon: User },
-    { id: 'admin' as const, label: '后台', icon: Settings },
   ];
+
+  const tabs = isAdmin
+    ? [...baseTabs, { id: 'admin' as const, label: '后台', icon: Settings }]
+    : baseTabs;
 
   return (
     <nav

@@ -36,6 +36,7 @@ function App() {
   const [currentTab, setCurrentTab] = useState<TabType>('breath');
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [journeyData, setJourneyData] = useState<JourneyData>({
     emotions: [],
     bodyStates: [],
@@ -46,7 +47,7 @@ function App() {
     loadProfile();
   }, []);
 
-  function loadProfile() {
+  async function loadProfile() {
     try {
       const storedUserName = localStorage.getItem('userName');
       const storedHigherSelfName = localStorage.getItem('higherSelfName');
@@ -56,6 +57,17 @@ function App() {
           userName: storedUserName,
           higherSelfName: storedHigherSelfName,
         });
+
+        const { data } = await supabase
+          .from('user_profile')
+          .select('is_admin')
+          .eq('user_name', storedUserName)
+          .eq('higher_self_name', storedHigherSelfName)
+          .maybeSingle();
+
+        if (data?.is_admin) {
+          setIsAdmin(true);
+        }
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -225,9 +237,9 @@ function App() {
         />
       )}
 
-      {currentTab === 'admin' && <AdminPanel />}
+      {currentTab === 'admin' && isAdmin && <AdminPanel />}
 
-      <Navigation currentTab={currentTab} onTabChange={handleTabChange} />
+      <Navigation currentTab={currentTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
 
       {showPremiumModal && (
         <PremiumModal
