@@ -48,12 +48,17 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
     return () => {
       clearTimeout(transitionTimer);
-      if (backgroundMusic) {
-        backgroundMusic.pause();
-        setBackgroundMusic(null);
-      }
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (backgroundMusic) {
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+      }
+    };
+  }, [backgroundMusic]);
 
   useEffect(() => {
     if (guidanceMessages.length > 0 && showTransition) {
@@ -347,18 +352,19 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
               className="floating-prompt"
               style={{
                 textAlign: 'center',
-                marginBottom: '24px',
+                marginBottom: '32px',
+                marginTop: '20px',
                 minHeight: '32px',
               }}
             >
               <span
                 className="prompt-text"
                 style={{
-                  color: '#EBC862',
+                  color: '#D4AF37',
                   fontSize: '0.95rem',
                   fontWeight: '300',
                   letterSpacing: '0.08em',
-                  textShadow: '0 0 16px rgba(235, 200, 98, 0.5)',
+                  textShadow: '0 0 16px rgba(212, 175, 55, 0.5)',
                   display: 'inline-block',
                 }}
               >
@@ -511,12 +517,12 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
         @keyframes promptGlow {
           0%, 100% {
-            opacity: 0.8;
-            text-shadow: 0 0 16px rgba(235, 200, 98, 0.5);
+            opacity: 0.75;
+            text-shadow: 0 0 16px rgba(212, 175, 55, 0.5);
           }
           50% {
-            opacity: 1;
-            text-shadow: 0 0 24px rgba(235, 200, 98, 0.7);
+            opacity: 0.95;
+            text-shadow: 0 0 24px rgba(212, 175, 55, 0.7);
           }
         }
 
