@@ -51,12 +51,6 @@ export default function AdminPanel() {
     setUploading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        alert('请先登录');
-        return;
-      }
-
       let successCount = 0;
       let failCount = 0;
 
@@ -74,6 +68,7 @@ export default function AdminPanel() {
             });
 
           if (uploadError) {
+            console.error('Upload error:', uploadError);
             throw uploadError;
           }
 
@@ -93,11 +88,11 @@ export default function AdminPanel() {
                     file_type: 'guidance',
                     duration: duration,
                     is_active: true,
-                    uploaded_by: user.id,
                     description: null
                   });
 
                 if (dbError) {
+                  console.error('Database error:', dbError);
                   throw dbError;
                 }
 
