@@ -140,6 +140,9 @@ function App() {
       backgroundAudio.pause();
       backgroundAudio.currentTime = 0;
     }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
     setJourneyData({
       emotions: [],
       bodyStates: [],
