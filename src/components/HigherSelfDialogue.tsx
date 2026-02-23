@@ -51,14 +51,6 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
     };
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (backgroundMusic) {
-        backgroundMusic.pause();
-        backgroundMusic.currentTime = 0;
-      }
-    };
-  }, [backgroundMusic]);
 
   useEffect(() => {
     if (guidanceMessages.length > 0 && showTransition) {
