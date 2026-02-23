@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import GoldButton from './GoldButton';
 import { getRandomGuidanceMessages } from '../utils/voiceGuidance';
+import { createHypnosisAudio } from '../utils/hypnosisAudio';
+import { createGuidanceSpeaker } from '../utils/speechSynthesis';
 
 interface HigherSelfDialogueProps {
   userName: string;
@@ -33,8 +35,24 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
   useEffect(() => {
     setGuidanceMessages(getRandomGuidanceMessages(4));
 
+    const audio = createHypnosisAudio();
+    const speaker = createGuidanceSpeaker();
+
+    audio.start();
+
+    const guidanceTimeline = [
+      { time: 2, text: '别思考，去感受' },
+      { time: 8, text: '放下一切执念' },
+      { time: 15, text: '让你的意识向内沉降' },
+      { time: 22, text: '你正在连接你的内在智慧' },
+      { time: 30, text: '准备好接收高我的回应' },
+    ];
+
+    speaker.start(guidanceTimeline);
+
     const transitionTimer = setTimeout(() => {
       setShowTransition(false);
+      audio.fadeOut(2);
     }, 35000);
 
     const readyTimer = setTimeout(() => {
@@ -44,18 +62,31 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
     return () => {
       clearTimeout(transitionTimer);
       clearTimeout(readyTimer);
+      audio.stop();
+      speaker.stop();
     };
   }, []);
 
   useEffect(() => {
-    if (guidanceMessages.length > 0) {
-      const interval = setInterval(() => {
-        setCurrentGuidanceIndex((prev) => (prev + 1) % guidanceMessages.length);
-      }, 8000);
+    if (guidanceMessages.length > 0 && showTransition) {
+      const guidanceTimeline = [
+        { delay: 2000, index: 0 },
+        { delay: 8000, index: 1 },
+        { delay: 15000, index: 2 },
+        { delay: 22000, index: 3 },
+      ];
 
-      return () => clearInterval(interval);
+      const timers = guidanceTimeline.map(({ delay, index }) =>
+        setTimeout(() => {
+          if (index < guidanceMessages.length) {
+            setCurrentGuidanceIndex(index);
+          }
+        }, delay)
+      );
+
+      return () => timers.forEach(timer => clearTimeout(timer));
     }
-  }, [guidanceMessages]);
+  }, [guidanceMessages, showTransition]);
 
   useEffect(() => {
     const interval = setInterval(() => {
