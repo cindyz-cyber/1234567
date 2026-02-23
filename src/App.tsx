@@ -111,10 +111,11 @@ function App() {
 
   function handleJournalComplete(content: string) {
     setJourneyData(prev => ({ ...prev, journalContent: content }));
-    setCurrentStep('dialogue');
+    setCurrentStep('transition');
   }
 
-  function handleTransitionComplete() {
+  function handleTransitionComplete(backgroundMusic: HTMLAudioElement | null) {
+    setBackgroundAudio(backgroundMusic);
     setCurrentStep('dialogue');
   }
 
@@ -200,6 +201,7 @@ function App() {
           userName={userNames.userName}
           higherSelfName={userNames.higherSelfName}
           journalContent={journeyData.journalContent}
+          backgroundMusic={backgroundAudio}
           onComplete={handleDialogueComplete}
         />
       );

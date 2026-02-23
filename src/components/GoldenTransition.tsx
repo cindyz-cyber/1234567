@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
-import { getRandomActiveAudio, registerAudio, unregisterAudio } from '../utils/audioManager';
+import { getRandomActiveAudio, registerAudio, unregisterAudio, playBackgroundMusicLoop } from '../utils/audioManager';
 
 interface GoldenTransitionProps {
   userName: string;
   higherSelfName: string;
-  onComplete: () => void;
+  onComplete: (backgroundMusic: HTMLAudioElement | null) => void;
 }
 
 export default function GoldenTransition({ userName, higherSelfName, onComplete }: GoldenTransitionProps) {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    let audio: HTMLAudioElement | null = null;
+    let transitionAudio: HTMLAudioElement | null = null;
+    let backgroundMusic: HTMLAudioElement | null = null;
     let fadeOutTimer: number | undefined;
     let completeTimer: number | undefined;
     const transitionDuration = 30000;
@@ -21,37 +22,43 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
 
       if (audioUrl) {
         try {
-          audio = new Audio(audioUrl);
-          audio.volume = 0.5;
-          registerAudio(audio);
+          transitionAudio = new Audio(audioUrl);
+          transitionAudio.volume = 0.5;
+          registerAudio(transitionAudio);
 
-          audio.addEventListener('loadedmetadata', () => {
-            console.log('Audio loaded, duration:', audio!.duration);
+          transitionAudio.addEventListener('loadedmetadata', () => {
+            console.log('Transition audio loaded, duration:', transitionAudio!.duration);
           });
 
-          audio.addEventListener('error', (e) => {
-            console.error('Audio error:', e);
+          transitionAudio.addEventListener('error', (e) => {
+            console.error('Transition audio error:', e);
           });
 
-          await audio.play();
-          console.log('Audio playing successfully');
+          await transitionAudio.play();
+          console.log('Transition audio playing successfully');
         } catch (err) {
-          console.error('Audio play error:', err);
+          console.error('Transition audio play error:', err);
         }
       } else {
-        console.log('No audio URL available');
+        console.log('No transition audio URL available');
+      }
+
+      const bgMusic = await playBackgroundMusicLoop();
+      if (bgMusic) {
+        backgroundMusic = bgMusic;
+        console.log('Background music started');
       }
 
       fadeOutTimer = window.setTimeout(() => {
         setFadeOut(true);
-        if (audio) {
+        if (transitionAudio) {
           const fadeInterval = setInterval(() => {
-            if (audio && audio.volume > 0.05) {
-              audio.volume = Math.max(0, audio.volume - 0.05);
+            if (transitionAudio && transitionAudio.volume > 0.05) {
+              transitionAudio.volume = Math.max(0, transitionAudio.volume - 0.05);
             } else {
               clearInterval(fadeInterval);
-              if (audio) {
-                audio.volume = 0;
+              if (transitionAudio) {
+                transitionAudio.volume = 0;
               }
             }
           }, 100);
@@ -59,7 +66,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
       }, transitionDuration - 2000);
 
       completeTimer = window.setTimeout(() => {
-        onComplete();
+        onComplete(backgroundMusic);
       }, transitionDuration);
     };
 
@@ -68,14 +75,14 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
     return () => {
       if (fadeOutTimer) clearTimeout(fadeOutTimer);
       if (completeTimer) clearTimeout(completeTimer);
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.volume = 0;
-        audio.src = '';
-        audio.load();
-        unregisterAudio(audio);
-        audio = null;
+      if (transitionAudio) {
+        transitionAudio.pause();
+        transitionAudio.currentTime = 0;
+        transitionAudio.volume = 0;
+        transitionAudio.src = '';
+        transitionAudio.load();
+        unregisterAudio(transitionAudio);
+        transitionAudio = null;
       }
     };
   }, [onComplete]);

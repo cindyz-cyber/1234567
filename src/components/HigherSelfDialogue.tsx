@@ -9,6 +9,7 @@ interface HigherSelfDialogueProps {
   userName: string;
   higherSelfName: string;
   journalContent: string;
+  backgroundMusic?: HTMLAudioElement | null;
   onComplete: (response: string, audio: HTMLAudioElement | null) => void;
 }
 
@@ -21,46 +22,26 @@ const floatingPrompts = [
   '深呼吸，感受此刻',
 ];
 
-export default function HigherSelfDialogue({ userName, higherSelfName, journalContent, onComplete }: HigherSelfDialogueProps) {
+export default function HigherSelfDialogue({ userName, higherSelfName, journalContent, backgroundMusic: incomingBackgroundMusic, onComplete }: HigherSelfDialogueProps) {
   const [response, setResponse] = useState('');
   const [isReady, setIsReady] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState(floatingPrompts[0]);
   const [guidanceMessages, setGuidanceMessages] = useState<string[]>([]);
   const [currentGuidanceIndex, setCurrentGuidanceIndex] = useState(0);
   const [showTransition, setShowTransition] = useState(true);
-  const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(incomingBackgroundMusic || null);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(!!incomingBackgroundMusic);
 
   useEffect(() => {
     setGuidanceMessages(getRandomGuidanceMessages(4));
 
-    let audioInstance: HTMLAudioElement | null = null;
-
-    const initAudio = async () => {
-      const audio = await playBackgroundMusicLoop();
-      if (audio) {
-        audioInstance = audio;
-        setBackgroundMusic(audio);
-        setIsMusicPlaying(true);
-      }
-    };
-
     const transitionTimer = setTimeout(() => {
       setShowTransition(false);
       setIsReady(true);
-      initAudio();
     }, 35000);
 
     return () => {
       clearTimeout(transitionTimer);
-      if (audioInstance) {
-        audioInstance.loop = false;
-        audioInstance.pause();
-        audioInstance.currentTime = 0;
-        audioInstance.volume = 0;
-        audioInstance.src = '';
-        audioInstance.load();
-      }
     };
   }, []);
 
