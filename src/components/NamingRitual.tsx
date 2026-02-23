@@ -33,7 +33,7 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
               <p
                 className="text-base text-center leading-loose font-light fade-in-text"
                 style={{
-                  color: '#D4AF37',
+                  color: '#F5F5E8',
                   letterSpacing: '0.08em',
                   lineHeight: '2',
                   animation: 'fadeInGlow 2s ease-in-out'
@@ -46,7 +46,7 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
               <p
                 className="text-sm text-center leading-loose font-light fade-in-text-delayed"
                 style={{
-                  color: '#D4AF37',
+                  color: '#F5F5E8',
                   letterSpacing: '0.08em',
                   opacity: 0.9,
                   lineHeight: '1.9',
@@ -127,7 +127,7 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
         }
 
         .soulful-intro p {
-          text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+          text-shadow: 0 0 15px rgba(245, 245, 232, 0.2);
         }
 
         .golden-input {
