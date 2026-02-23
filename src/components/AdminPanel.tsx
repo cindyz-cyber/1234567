@@ -76,11 +76,17 @@ export default function AdminPanel() {
           audio.src = URL.createObjectURL(file);
 
           await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              reject(new Error('Audio metadata loading timeout'));
+            }, 10000);
+
             audio.onloadedmetadata = async () => {
+              clearTimeout(timeout);
               try {
                 const duration = Math.round(audio.duration);
+                console.log('Audio duration:', duration, 'for file:', file.name);
 
-                const { error: dbError } = await supabase
+                const { data, error: dbError } = await supabase
                   .from('audio_files')
                   .insert({
                     file_name: file.name,
@@ -89,20 +95,31 @@ export default function AdminPanel() {
                     duration: duration,
                     is_active: true,
                     description: null
-                  });
+                  })
+                  .select();
 
                 if (dbError) {
-                  console.error('Database error:', dbError);
+                  console.error('Database insert error:', dbError);
                   throw dbError;
                 }
 
+                console.log('Successfully inserted into database:', data);
                 successCount++;
+                URL.revokeObjectURL(audio.src);
                 resolve(null);
               } catch (err) {
+                console.error('Error in metadata handler:', err);
+                URL.revokeObjectURL(audio.src);
                 reject(err);
               }
             };
-            audio.onerror = reject;
+
+            audio.onerror = (err) => {
+              clearTimeout(timeout);
+              console.error('Audio loading error:', err);
+              URL.revokeObjectURL(audio.src);
+              reject(err);
+            };
           });
         } catch (error) {
           console.error('Upload error for file:', file.name, error);

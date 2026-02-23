@@ -44,7 +44,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           setIsMusicPlaying(true);
         }
       });
-    }, 1000);
+    }, 35000);
 
     return () => {
       clearTimeout(transitionTimer);
