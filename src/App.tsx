@@ -137,8 +137,12 @@ function App() {
 
   function handleAnswersComplete() {
     if (backgroundAudio) {
+      backgroundAudio.loop = false;
       backgroundAudio.pause();
       backgroundAudio.currentTime = 0;
+      backgroundAudio.volume = 0;
+      backgroundAudio.src = '';
+      backgroundAudio.load();
     }
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();

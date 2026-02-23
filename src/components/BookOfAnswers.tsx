@@ -29,9 +29,12 @@ export default function BookOfAnswers({ onComplete, backgroundAudio }: BookOfAns
 
   const handleComplete = () => {
     if (backgroundAudio) {
+      backgroundAudio.loop = false;
       backgroundAudio.pause();
       backgroundAudio.currentTime = 0;
       backgroundAudio.volume = 0;
+      backgroundAudio.src = '';
+      backgroundAudio.load();
     }
     onComplete();
   };
