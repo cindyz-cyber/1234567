@@ -39,6 +39,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio }: BookOfAns
         } else {
           backgroundAudio.volume = 0;
           backgroundAudio.pause();
+          backgroundAudio.currentTime = 0;
           clearInterval(fadeInterval);
         }
       }, 50);

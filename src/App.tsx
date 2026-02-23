@@ -136,6 +136,10 @@ function App() {
   }
 
   function handleAnswersComplete() {
+    if (backgroundAudio) {
+      backgroundAudio.pause();
+      backgroundAudio.currentTime = 0;
+    }
     setJourneyData({
       emotions: [],
       bodyStates: [],
