@@ -142,23 +142,21 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
             position: 'relative',
           }}
         >
-          {guidanceMessages.length > 0 && (
-            <p
-              className="guidance-text"
-              style={{
-                color: '#D4AF37',
-                fontSize: '1.125rem',
-                fontWeight: '300',
-                letterSpacing: '0.08em',
-                lineHeight: '1.8',
-                textShadow: '0 0 20px rgba(212, 175, 55, 0.6), 0 0 35px rgba(212, 175, 55, 0.4)',
-                opacity: 1,
-                maxWidth: '400px',
-              }}
-            >
-              {guidanceMessages[currentGuidanceIndex]}
-            </p>
-          )}
+          <p
+            className="guidance-text"
+            style={{
+              color: '#D4AF37',
+              fontSize: '1.125rem',
+              fontWeight: '300',
+              letterSpacing: '0.08em',
+              lineHeight: '1.8',
+              textShadow: '0 0 20px rgba(212, 175, 55, 0.6), 0 0 35px rgba(212, 175, 55, 0.4)',
+              opacity: 1,
+              maxWidth: '400px',
+            }}
+          >
+            闭上眼，打开心，智慧自显。。。
+          </p>
         </div>
 
         <p
