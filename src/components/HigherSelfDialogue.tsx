@@ -34,8 +34,11 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
   useEffect(() => {
     setGuidanceMessages(getRandomGuidanceMessages(4));
 
+    let audioInstance: HTMLAudioElement | null = null;
+
     playBackgroundMusicLoop().then(audio => {
       if (audio) {
+        audioInstance = audio;
         setBackgroundMusic(audio);
         setIsMusicPlaying(true);
       }
@@ -48,6 +51,14 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
     return () => {
       clearTimeout(transitionTimer);
+      if (audioInstance) {
+        audioInstance.loop = false;
+        audioInstance.pause();
+        audioInstance.currentTime = 0;
+        audioInstance.volume = 0;
+        audioInstance.src = '';
+        audioInstance.load();
+      }
     };
   }, []);
 

@@ -11,6 +11,36 @@ interface AudioFile {
   description: string | null;
 }
 
+const activeAudioInstances = new Set<HTMLAudioElement>();
+
+export const registerAudio = (audio: HTMLAudioElement) => {
+  activeAudioInstances.add(audio);
+};
+
+export const unregisterAudio = (audio: HTMLAudioElement) => {
+  activeAudioInstances.delete(audio);
+};
+
+export const stopAllAudio = () => {
+  activeAudioInstances.forEach(audio => {
+    try {
+      audio.loop = false;
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = 0;
+      audio.src = '';
+      audio.load();
+    } catch (error) {
+      console.error('Error stopping audio:', error);
+    }
+  });
+  activeAudioInstances.clear();
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+};
+
 export const getRandomActiveAudio = async (): Promise<string | null> => {
   try {
     const { data, error } = await supabase
@@ -71,6 +101,7 @@ export const playBackgroundMusicLoop = async (): Promise<HTMLAudioElement | null
     const audio = new Audio(urlData.publicUrl);
     audio.volume = 0.3;
     audio.loop = true;
+    registerAudio(audio);
     audio.play().catch(err => console.error('Audio play error:', err));
 
     return audio;

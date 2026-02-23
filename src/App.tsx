@@ -14,6 +14,7 @@ import BookOfAnswers from './components/BookOfAnswers';
 import PremiumModal from './components/PremiumModal';
 import AdminPanel from './components/AdminPanel';
 import { supabase } from './lib/supabase';
+import { stopAllAudio } from './utils/audioManager';
 
 type FlowStep = 'home' | 'emotion' | 'journal' | 'transition' | 'dialogue' | 'answers';
 type TabType = 'breath' | 'energy' | 'archive' | 'profile' | 'admin';
@@ -136,17 +137,7 @@ function App() {
   }
 
   function handleAnswersComplete() {
-    if (backgroundAudio) {
-      backgroundAudio.loop = false;
-      backgroundAudio.pause();
-      backgroundAudio.currentTime = 0;
-      backgroundAudio.volume = 0;
-      backgroundAudio.src = '';
-      backgroundAudio.load();
-    }
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
+    stopAllAudio();
     setJourneyData({
       emotions: [],
       bodyStates: [],
