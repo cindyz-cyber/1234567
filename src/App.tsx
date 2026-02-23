@@ -163,7 +163,7 @@ function App() {
     }
 
     if (currentStep === 'journal') {
-      return <JournalEntry onNext={handleJournalComplete} />;
+      return <JournalEntry onNext={handleJournalComplete} userName={userNames.userName} />;
     }
 
     if (currentStep === 'transition') {

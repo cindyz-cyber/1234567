@@ -3,9 +3,10 @@ import GoldButton from './GoldButton';
 
 interface JournalEntryProps {
   onNext: (content: string) => void;
+  userName?: string;
 }
 
-export default function JournalEntry({ onNext }: JournalEntryProps) {
+export default function JournalEntry({ onNext, userName = '朋友' }: JournalEntryProps) {
   const [content, setContent] = useState('');
 
   const handleSubmit = () => {
@@ -36,7 +37,7 @@ export default function JournalEntry({ onNext }: JournalEntryProps) {
             letterSpacing: '0.02em',
             lineHeight: '1.7',
           }}
-          placeholder="写下你此刻的感受..."
+          placeholder={`亲爱的 ${userName}，我想告诉你：`}
           autoFocus
         />
       </div>

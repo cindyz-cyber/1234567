@@ -28,8 +28,8 @@ export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'linear-gradient(180deg, #1A352F 0%, #0D1814 100%)' }}>
-      <div className="w-full max-w-md space-y-8 text-center">
-        <div className="space-y-2">
+      <div className="w-full max-w-md flex flex-col" style={{ height: '100vh', justifyContent: 'space-between', paddingTop: '80px', paddingBottom: '40px' }}>
+        <div className="space-y-2 text-center">
           <h2 className="text-3xl font-light" style={{ color: '#EBC862', letterSpacing: '0.1em' }}>
             答案之书
           </h2>
@@ -38,7 +38,7 @@ export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
           </p>
         </div>
 
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4" style={{ marginTop: '40px' }}>
           {[0, 1, 2].map((index) => (
             <button
               key={index}
@@ -137,19 +137,22 @@ export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
         </div>
 
         {flippedCard !== null && (
-          <button
-            onClick={onComplete}
-            className="mt-8 px-8 py-3 rounded-full font-light transition-all hover:scale-105"
-            style={{
-              border: '1px solid #EBC862',
-              color: '#EBC862',
-              backgroundColor: 'transparent',
-              letterSpacing: '0.05em',
-              boxShadow: '0 0 20px rgba(235, 200, 98, 0.2)',
-            }}
-          >
-            我已接收
-          </button>
+          <div className="text-center">
+            <button
+              onClick={onComplete}
+              className="px-8 py-3 rounded-full font-light transition-all hover:scale-105"
+              style={{
+                border: '1px solid #EBC862',
+                color: '#EBC862',
+                backgroundColor: 'transparent',
+                letterSpacing: '0.05em',
+                boxShadow: '0 0 20px rgba(235, 200, 98, 0.2)',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+            >
+              我已接收
+            </button>
+          </div>
         )}
       </div>
 
