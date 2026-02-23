@@ -9,7 +9,7 @@ interface HigherSelfDialogueProps {
   userName: string;
   higherSelfName: string;
   journalContent: string;
-  onComplete: (response: string) => void;
+  onComplete: (response: string, audio: HTMLAudioElement | null) => void;
 }
 
 const floatingPrompts = [
@@ -106,11 +106,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
   const handleSubmit = () => {
     if (response.trim()) {
-      if (backgroundMusic) {
-        backgroundMusic.pause();
-        setBackgroundMusic(null);
-      }
-      onComplete(response.trim());
+      onComplete(response.trim(), backgroundMusic);
     }
   };
 

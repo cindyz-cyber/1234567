@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface BookOfAnswersProps {
   onComplete: () => void;
+  backgroundAudio?: HTMLAudioElement | null;
 }
 
 const WISDOMS = [
@@ -16,7 +17,7 @@ const WISDOMS = [
   '转变始于觉察',
 ];
 
-export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
+export default function BookOfAnswers({ onComplete, backgroundAudio }: BookOfAnswersProps) {
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
   const [selectedWisdom] = useState(WISDOMS[Math.floor(Math.random() * WISDOMS.length)]);
 
@@ -24,6 +25,30 @@ export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
     if (flippedCard === null) {
       setFlippedCard(index);
     }
+  };
+
+  const handleComplete = async () => {
+    if (backgroundAudio) {
+      const fadeOutPromise = new Promise<void>((resolve) => {
+        const startVolume = backgroundAudio.volume;
+        const duration = 2000;
+        const fadeStep = startVolume / (duration / 50);
+
+        const fadeInterval = setInterval(() => {
+          if (backgroundAudio.volume > fadeStep) {
+            backgroundAudio.volume = Math.max(0, backgroundAudio.volume - fadeStep);
+          } else {
+            backgroundAudio.volume = 0;
+            backgroundAudio.pause();
+            clearInterval(fadeInterval);
+            resolve();
+          }
+        }, 50);
+      });
+
+      await fadeOutPromise;
+    }
+    onComplete();
   };
 
   return (
@@ -139,7 +164,7 @@ export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
         {flippedCard !== null && (
           <div className="text-center">
             <button
-              onClick={onComplete}
+              onClick={handleComplete}
               className="px-8 py-3 rounded-full font-light transition-all hover:scale-105"
               style={{
                 border: '1px solid #EBC862',

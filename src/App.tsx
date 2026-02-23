@@ -37,6 +37,7 @@ function App() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
   const [journeyData, setJourneyData] = useState<JourneyData>({
     emotions: [],
     bodyStates: [],
@@ -116,7 +117,7 @@ function App() {
     setCurrentStep('dialogue');
   }
 
-  async function handleDialogueComplete(response: string) {
+  async function handleDialogueComplete(response: string, audio: HTMLAudioElement | null) {
     try {
       await supabase
         .from('journal_entries')
@@ -127,6 +128,7 @@ function App() {
           higher_self_response: response,
         });
 
+      setBackgroundAudio(audio);
       setCurrentStep('answers');
     } catch (error) {
       console.error('Error saving journal entry:', error);
@@ -139,6 +141,7 @@ function App() {
       bodyStates: [],
       journalContent: '',
     });
+    setBackgroundAudio(null);
     setCurrentStep('home');
   }
 
@@ -201,7 +204,7 @@ function App() {
     }
 
     if (currentStep === 'answers') {
-      return <BookOfAnswers onComplete={handleAnswersComplete} />;
+      return <BookOfAnswers onComplete={handleAnswersComplete} backgroundAudio={backgroundAudio} />;
     }
   }
 

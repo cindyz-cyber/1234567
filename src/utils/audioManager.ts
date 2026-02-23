@@ -79,3 +79,21 @@ export const playBackgroundMusicLoop = async (): Promise<HTMLAudioElement | null
     return null;
   }
 };
+
+export const fadeOutAudio = (audio: HTMLAudioElement, duration: number = 2000): Promise<void> => {
+  return new Promise((resolve) => {
+    const startVolume = audio.volume;
+    const fadeStep = startVolume / (duration / 50);
+
+    const fadeInterval = setInterval(() => {
+      if (audio.volume > fadeStep) {
+        audio.volume = Math.max(0, audio.volume - fadeStep);
+      } else {
+        audio.volume = 0;
+        audio.pause();
+        clearInterval(fadeInterval);
+        resolve();
+      }
+    }, 50);
+  });
+};
