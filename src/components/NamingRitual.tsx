@@ -28,7 +28,37 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
     <div className="min-h-screen flex items-center justify-center px-6 breathing-fade">
       <div className="w-full max-w-md">
         {step === 1 ? (
-          <form onSubmit={handleFirstSubmit} className="space-y-16">
+          <form onSubmit={handleFirstSubmit} className="space-y-12">
+            <div className="space-y-8 mb-12 soulful-intro">
+              <p
+                className="text-base text-center leading-loose font-light fade-in-text"
+                style={{
+                  color: '#D4AF37',
+                  letterSpacing: '0.08em',
+                  lineHeight: '2',
+                  animation: 'fadeInGlow 2s ease-in-out'
+                }}
+              >
+                万物生长，皆有逻辑。<br />
+                在开启这段向内生长的旅程前，<br />
+                我们需要建立连接。
+              </p>
+              <p
+                className="text-sm text-center leading-loose font-light fade-in-text-delayed"
+                style={{
+                  color: '#D4AF37',
+                  letterSpacing: '0.08em',
+                  opacity: 0.9,
+                  lineHeight: '1.9',
+                  animation: 'fadeInGlow 2s ease-in-out 0.8s both'
+                }}
+              >
+                请赋予"自己"一个名字，<br />
+                那是你当下的存在；<br />
+                再赋予你的"高我"（老师）一个名字，<br />
+                那是你智慧的指引。
+              </p>
+            </div>
             <h1
               className="text-2xl text-center leading-loose font-light"
               style={{ color: '#EBC862', letterSpacing: '0.06em' }}
@@ -76,13 +106,30 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
               />
             </div>
             <GoldButton type="submit" disabled={!userName.trim()} className="w-full">
-              开启植本之旅
+              开启植本人之旅
             </GoldButton>
           </form>
         )}
       </div>
 
       <style>{`
+        @keyframes fadeInGlow {
+          0% {
+            opacity: 0;
+            transform: translateY(10px);
+            filter: blur(5px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+          }
+        }
+
+        .soulful-intro p {
+          text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
         .golden-input {
           transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }

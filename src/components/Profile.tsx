@@ -13,6 +13,20 @@ export default function Profile({ userName, higherSelfName, isPremium, onShowPre
   return (
     <div className="min-h-screen pb-24 pt-20 px-6">
       <div className="max-w-md mx-auto space-y-6">
+        <div className="mb-6 text-center privacy-notice" style={{ animation: 'fadeInPrivacy 1.5s ease-in-out' }}>
+          <p
+            className="text-sm font-light leading-relaxed"
+            style={{
+              color: '#D4AF37',
+              letterSpacing: '0.06em',
+              textShadow: '0 0 15px rgba(212, 175, 55, 0.3)',
+              lineHeight: '1.8',
+            }}
+          >
+            植本人 <span style={{ color: '#EBC862', fontWeight: 400 }}>{userName}</span>，<br />
+            这是你的私人能量信道，仅你可见。
+          </p>
+        </div>
         <div
           className="p-8 rounded-3xl text-center glassmorphic-profile"
           style={{
@@ -153,6 +167,24 @@ export default function Profile({ userName, higherSelfName, isPremium, onShowPre
       </div>
 
       <style>{`
+        @keyframes fadeInPrivacy {
+          0% {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .privacy-notice {
+          padding: 12px 20px;
+          border-radius: 16px;
+          background: rgba(212, 175, 55, 0.05);
+          border: 0.5px solid rgba(212, 175, 55, 0.2);
+        }
+
         .glassmorphic-profile {
           transition: all 0.3s ease;
         }
