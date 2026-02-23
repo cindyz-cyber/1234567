@@ -36,17 +36,19 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
     let audioInstance: HTMLAudioElement | null = null;
 
-    playBackgroundMusicLoop().then(audio => {
+    const initAudio = async () => {
+      const audio = await playBackgroundMusicLoop();
       if (audio) {
         audioInstance = audio;
         setBackgroundMusic(audio);
         setIsMusicPlaying(true);
       }
-    });
+    };
 
     const transitionTimer = setTimeout(() => {
       setShowTransition(false);
       setIsReady(true);
+      initAudio();
     }, 35000);
 
     return () => {

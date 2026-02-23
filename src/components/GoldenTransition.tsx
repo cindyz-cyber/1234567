@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getRandomActiveAudio } from '../utils/audioManager';
+import { getRandomActiveAudio, registerAudio, unregisterAudio } from '../utils/audioManager';
 
 interface GoldenTransitionProps {
   userName: string;
@@ -21,6 +21,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
       if (audioUrl) {
         audio = new Audio(audioUrl);
         audio.volume = 0.7;
+        registerAudio(audio);
 
         audio.addEventListener('loadedmetadata', () => {
           const duration = audio!.duration * 1000;
@@ -58,6 +59,11 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
       if (completeTimer) clearTimeout(completeTimer);
       if (audio) {
         audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 0;
+        audio.src = '';
+        audio.load();
+        unregisterAudio(audio);
         audio = null;
       }
     };
