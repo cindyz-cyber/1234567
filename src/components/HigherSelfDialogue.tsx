@@ -34,16 +34,16 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
   useEffect(() => {
     setGuidanceMessages(getRandomGuidanceMessages(4));
 
+    playBackgroundMusicLoop().then(audio => {
+      if (audio) {
+        setBackgroundMusic(audio);
+        setIsMusicPlaying(true);
+      }
+    });
+
     const transitionTimer = setTimeout(() => {
       setShowTransition(false);
       setIsReady(true);
-
-      playBackgroundMusicLoop().then(audio => {
-        if (audio) {
-          setBackgroundMusic(audio);
-          setIsMusicPlaying(true);
-        }
-      });
     }, 35000);
 
     return () => {
