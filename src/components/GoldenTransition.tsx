@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getRandomActiveAudio, registerAudio, unregisterAudio, playBackgroundMusicLoop } from '../utils/audioManager';
+import { playBackgroundMusicLoop } from '../utils/audioManager';
 
 interface GoldenTransitionProps {
   userName: string;
@@ -11,38 +11,12 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    let transitionAudio: HTMLAudioElement | null = null;
     let backgroundMusic: HTMLAudioElement | null = null;
     let fadeOutTimer: number | undefined;
     let completeTimer: number | undefined;
     const transitionDuration = 30000;
 
     const initializeAudio = async () => {
-      const audioUrl = await getRandomActiveAudio();
-
-      if (audioUrl) {
-        try {
-          transitionAudio = new Audio(audioUrl);
-          transitionAudio.volume = 0.5;
-          registerAudio(transitionAudio);
-
-          transitionAudio.addEventListener('loadedmetadata', () => {
-            console.log('Transition audio loaded, duration:', transitionAudio!.duration);
-          });
-
-          transitionAudio.addEventListener('error', (e) => {
-            console.error('Transition audio error:', e);
-          });
-
-          await transitionAudio.play();
-          console.log('Transition audio playing successfully');
-        } catch (err) {
-          console.error('Transition audio play error:', err);
-        }
-      } else {
-        console.log('No transition audio URL available');
-      }
-
       const bgMusic = await playBackgroundMusicLoop();
       if (bgMusic) {
         backgroundMusic = bgMusic;
@@ -51,18 +25,6 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
 
       fadeOutTimer = window.setTimeout(() => {
         setFadeOut(true);
-        if (transitionAudio) {
-          const fadeInterval = setInterval(() => {
-            if (transitionAudio && transitionAudio.volume > 0.05) {
-              transitionAudio.volume = Math.max(0, transitionAudio.volume - 0.05);
-            } else {
-              clearInterval(fadeInterval);
-              if (transitionAudio) {
-                transitionAudio.volume = 0;
-              }
-            }
-          }, 100);
-        }
       }, transitionDuration - 2000);
 
       completeTimer = window.setTimeout(() => {
@@ -75,15 +37,6 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
     return () => {
       if (fadeOutTimer) clearTimeout(fadeOutTimer);
       if (completeTimer) clearTimeout(completeTimer);
-      if (transitionAudio) {
-        transitionAudio.pause();
-        transitionAudio.currentTime = 0;
-        transitionAudio.volume = 0;
-        transitionAudio.src = '';
-        transitionAudio.load();
-        unregisterAudio(transitionAudio);
-        transitionAudio = null;
-      }
     };
   }, [onComplete]);
 
