@@ -352,19 +352,19 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
               className="floating-prompt"
               style={{
                 textAlign: 'center',
-                marginBottom: '32px',
-                marginTop: '20px',
+                marginBottom: '40px',
+                marginTop: '32px',
                 minHeight: '32px',
               }}
             >
               <span
                 className="prompt-text"
                 style={{
-                  color: '#D4AF37',
+                  color: '#C9A85F',
                   fontSize: '0.95rem',
                   fontWeight: '300',
                   letterSpacing: '0.08em',
-                  textShadow: '0 0 16px rgba(212, 175, 55, 0.5)',
+                  textShadow: '0 0 14px rgba(201, 168, 95, 0.4)',
                   display: 'inline-block',
                 }}
               >
@@ -517,12 +517,12 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
         @keyframes promptGlow {
           0%, 100% {
-            opacity: 0.75;
-            text-shadow: 0 0 16px rgba(212, 175, 55, 0.5);
+            opacity: 0.7;
+            text-shadow: 0 0 14px rgba(201, 168, 95, 0.4);
           }
           50% {
-            opacity: 0.95;
-            text-shadow: 0 0 24px rgba(212, 175, 55, 0.7);
+            opacity: 0.9;
+            text-shadow: 0 0 20px rgba(201, 168, 95, 0.6);
           }
         }
 
