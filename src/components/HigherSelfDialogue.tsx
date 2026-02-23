@@ -3,7 +3,7 @@ import { Volume2, VolumeX } from 'lucide-react';
 import GoldButton from './GoldButton';
 import { getRandomGuidanceMessages } from '../utils/voiceGuidance';
 import { createHypnosisAudio } from '../utils/hypnosisAudio';
-import { createGuidanceSpeaker } from '../utils/speechSynthesis';
+import { supabase } from '../lib/supabase';
 
 interface HigherSelfDialogueProps {
   userName: string;
@@ -35,24 +35,44 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
   useEffect(() => {
     setGuidanceMessages(getRandomGuidanceMessages(4));
 
-    const audio = createHypnosisAudio();
-    const speaker = createGuidanceSpeaker();
+    const backgroundAudio = createHypnosisAudio();
+    let guidanceAudio: HTMLAudioElement | null = null;
 
-    audio.start();
+    const loadAndPlayGuidanceAudio = async () => {
+      const { data, error } = await supabase
+        .from('audio_files')
+        .select('file_path')
+        .eq('file_type', 'guidance')
+        .eq('is_active', true)
+        .maybeSingle();
 
-    const guidanceTimeline = [
-      { time: 2, text: '别思考，去感受' },
-      { time: 8, text: '放下一切执念' },
-      { time: 15, text: '让你的意识向内沉降' },
-      { time: 22, text: '你正在连接你的内在智慧' },
-      { time: 30, text: '准备好接收高我的回应' },
-    ];
+      if (data && !error) {
+        const { data: urlData } = await supabase.storage
+          .from('audio-files')
+          .getPublicUrl(data.file_path);
 
-    speaker.start(guidanceTimeline);
+        guidanceAudio = new Audio(urlData.publicUrl);
+        guidanceAudio.volume = 0.85;
+        guidanceAudio.play().catch(err => console.warn('Audio play failed:', err));
+      }
+    };
+
+    backgroundAudio.start();
+    loadAndPlayGuidanceAudio();
 
     const transitionTimer = setTimeout(() => {
       setShowTransition(false);
-      audio.fadeOut(2);
+      backgroundAudio.fadeOut(2);
+      if (guidanceAudio) {
+        const fadeOut = setInterval(() => {
+          if (guidanceAudio && guidanceAudio.volume > 0.05) {
+            guidanceAudio.volume = Math.max(0, guidanceAudio.volume - 0.05);
+          } else {
+            clearInterval(fadeOut);
+            if (guidanceAudio) guidanceAudio.pause();
+          }
+        }, 100);
+      }
     }, 35000);
 
     const readyTimer = setTimeout(() => {
@@ -62,8 +82,11 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
     return () => {
       clearTimeout(transitionTimer);
       clearTimeout(readyTimer);
-      audio.stop();
-      speaker.stop();
+      backgroundAudio.stop();
+      if (guidanceAudio) {
+        guidanceAudio.pause();
+        guidanceAudio = null;
+      }
     };
   }, []);
 

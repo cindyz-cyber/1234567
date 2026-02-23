@@ -12,10 +12,11 @@ import Archive from './components/Archive';
 import Profile from './components/Profile';
 import BookOfAnswers from './components/BookOfAnswers';
 import PremiumModal from './components/PremiumModal';
+import AdminPanel from './components/AdminPanel';
 import { supabase } from './lib/supabase';
 
 type FlowStep = 'home' | 'emotion' | 'journal' | 'transition' | 'dialogue' | 'answers';
-type TabType = 'breath' | 'energy' | 'archive' | 'profile';
+type TabType = 'breath' | 'energy' | 'archive' | 'profile' | 'admin';
 
 interface JourneyData {
   emotions: string[];
@@ -223,6 +224,8 @@ function App() {
           onResetIdentity={handleResetIdentity}
         />
       )}
+
+      {currentTab === 'admin' && <AdminPanel />}
 
       <Navigation currentTab={currentTab} onTabChange={handleTabChange} />
 

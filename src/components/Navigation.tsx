@@ -1,8 +1,8 @@
-import { Home, Sparkles, FileText, User } from 'lucide-react';
+import { Home, Sparkles, FileText, User, Settings } from 'lucide-react';
 
 interface NavigationProps {
-  currentTab: 'breath' | 'energy' | 'archive' | 'profile';
-  onTabChange: (tab: 'breath' | 'energy' | 'archive' | 'profile') => void;
+  currentTab: 'breath' | 'energy' | 'archive' | 'profile' | 'admin';
+  onTabChange: (tab: 'breath' | 'energy' | 'archive' | 'profile' | 'admin') => void;
 }
 
 export default function Navigation({ currentTab, onTabChange }: NavigationProps) {
@@ -11,6 +11,7 @@ export default function Navigation({ currentTab, onTabChange }: NavigationProps)
     { id: 'energy' as const, label: '能量', icon: Sparkles },
     { id: 'archive' as const, label: '档案', icon: FileText },
     { id: 'profile' as const, label: '我的', icon: User },
+    { id: 'admin' as const, label: '后台', icon: Settings },
   ];
 
   return (
