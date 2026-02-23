@@ -14,42 +14,53 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
     let audio: HTMLAudioElement | null = null;
     let fadeOutTimer: number | undefined;
     let completeTimer: number | undefined;
+    const transitionDuration = 30000;
 
     const initializeAudio = async () => {
       const audioUrl = await getRandomActiveAudio();
 
       if (audioUrl) {
-        audio = new Audio(audioUrl);
-        audio.volume = 0.7;
-        registerAudio(audio);
+        try {
+          audio = new Audio(audioUrl);
+          audio.volume = 0.5;
+          registerAudio(audio);
 
-        audio.addEventListener('loadedmetadata', () => {
-          const duration = audio!.duration * 1000;
+          audio.addEventListener('loadedmetadata', () => {
+            console.log('Audio loaded, duration:', audio!.duration);
+          });
 
-          fadeOutTimer = window.setTimeout(() => {
-            setFadeOut(true);
-            if (audio) {
-              const fadeInterval = setInterval(() => {
-                if (audio && audio.volume > 0.1) {
-                  audio.volume = Math.max(0, audio.volume - 0.1);
-                } else {
-                  clearInterval(fadeInterval);
-                }
-              }, 200);
-            }
-          }, duration - 2000);
+          audio.addEventListener('error', (e) => {
+            console.error('Audio error:', e);
+          });
 
-          completeTimer = window.setTimeout(() => {
-            onComplete();
-          }, duration);
-        });
-
-        audio.play().catch(err => console.error('Audio play error:', err));
+          await audio.play();
+          console.log('Audio playing successfully');
+        } catch (err) {
+          console.error('Audio play error:', err);
+        }
       } else {
-        completeTimer = window.setTimeout(() => {
-          onComplete();
-        }, 3000);
+        console.log('No audio URL available');
       }
+
+      fadeOutTimer = window.setTimeout(() => {
+        setFadeOut(true);
+        if (audio) {
+          const fadeInterval = setInterval(() => {
+            if (audio && audio.volume > 0.05) {
+              audio.volume = Math.max(0, audio.volume - 0.05);
+            } else {
+              clearInterval(fadeInterval);
+              if (audio) {
+                audio.volume = 0;
+              }
+            }
+          }, 100);
+        }
+      }, transitionDuration - 2000);
+
+      completeTimer = window.setTimeout(() => {
+        onComplete();
+      }, transitionDuration);
     };
 
     initializeAudio();
