@@ -29,20 +29,9 @@ export default function BookOfAnswers({ onComplete, backgroundAudio }: BookOfAns
 
   const handleComplete = () => {
     if (backgroundAudio) {
-      const startVolume = backgroundAudio.volume;
-      const duration = 2000;
-      const fadeStep = startVolume / (duration / 50);
-
-      const fadeInterval = setInterval(() => {
-        if (backgroundAudio.volume > fadeStep) {
-          backgroundAudio.volume = Math.max(0, backgroundAudio.volume - fadeStep);
-        } else {
-          backgroundAudio.volume = 0;
-          backgroundAudio.pause();
-          backgroundAudio.currentTime = 0;
-          clearInterval(fadeInterval);
-        }
-      }, 50);
+      backgroundAudio.pause();
+      backgroundAudio.currentTime = 0;
+      backgroundAudio.volume = 0;
     }
     onComplete();
   };
