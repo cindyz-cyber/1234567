@@ -38,10 +38,12 @@ export default function AdminPanel() {
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    if (!file.type.startsWith('audio/')) {
+    const audioFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
+
+    if (audioFiles.length === 0) {
       alert('请上传音频文件');
       return;
     }
@@ -55,45 +57,71 @@ export default function AdminPanel() {
         return;
       }
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `guidance/${fileName}`;
+      let successCount = 0;
+      let failCount = 0;
 
-      const { error: uploadError } = await supabase.storage
-        .from('audio-files')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      for (const file of audioFiles) {
+        try {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const filePath = `guidance/${fileName}`;
 
-      if (uploadError) {
-        throw uploadError;
+          const { error: uploadError } = await supabase.storage
+            .from('audio-files')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (uploadError) {
+            throw uploadError;
+          }
+
+          const audio = new Audio();
+          audio.src = URL.createObjectURL(file);
+
+          await new Promise((resolve, reject) => {
+            audio.onloadedmetadata = async () => {
+              try {
+                const duration = Math.round(audio.duration);
+
+                const { error: dbError } = await supabase
+                  .from('audio_files')
+                  .insert({
+                    file_name: file.name,
+                    file_path: filePath,
+                    file_type: 'guidance',
+                    duration: duration,
+                    is_active: true,
+                    uploaded_by: user.id,
+                    description: null
+                  });
+
+                if (dbError) {
+                  throw dbError;
+                }
+
+                successCount++;
+                resolve(null);
+              } catch (err) {
+                reject(err);
+              }
+            };
+            audio.onerror = reject;
+          });
+        } catch (error) {
+          console.error('Upload error for file:', file.name, error);
+          failCount++;
+        }
       }
 
-      const audio = new Audio();
-      audio.src = URL.createObjectURL(file);
-      audio.onloadedmetadata = async () => {
-        const duration = Math.round(audio.duration);
+      await loadAudioFiles();
 
-        const { error: dbError } = await supabase
-          .from('audio_files')
-          .insert({
-            file_name: file.name,
-            file_path: filePath,
-            file_type: 'guidance',
-            duration: duration,
-            is_active: false,
-            uploaded_by: user.id,
-            description: null
-          });
-
-        if (dbError) {
-          throw dbError;
-        }
-
-        await loadAudioFiles();
-        alert('上传成功！');
-      };
+      if (failCount === 0) {
+        alert(`成功上传 ${successCount} 个音频文件！`);
+      } else {
+        alert(`上传完成：成功 ${successCount} 个，失败 ${failCount} 个`);
+      }
     } catch (error) {
       console.error('Upload error:', error);
       alert('上传失败，请重试');
@@ -104,31 +132,14 @@ export default function AdminPanel() {
   };
 
   const toggleActive = async (file: AudioFile) => {
-    if (file.is_active) {
-      const { error } = await supabase
-        .from('audio_files')
-        .update({ is_active: false })
-        .eq('id', file.id);
+    const { error } = await supabase
+      .from('audio_files')
+      .update({ is_active: !file.is_active })
+      .eq('id', file.id);
 
-      if (error) {
-        console.error('Error updating:', error);
-        return;
-      }
-    } else {
-      await supabase
-        .from('audio_files')
-        .update({ is_active: false })
-        .eq('file_type', 'guidance');
-
-      const { error } = await supabase
-        .from('audio_files')
-        .update({ is_active: true })
-        .eq('id', file.id);
-
-      if (error) {
-        console.error('Error updating:', error);
-        return;
-      }
+    if (error) {
+      console.error('Error updating:', error);
+      return;
     }
 
     await loadAudioFiles();
@@ -197,19 +208,20 @@ export default function AdminPanel() {
             <div className="flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border-2 border-amber-500/50 rounded-xl cursor-pointer hover:from-amber-500/30 hover:to-yellow-500/30 transition-all">
               <Upload size={24} className="text-amber-400" />
               <span className="text-lg font-medium">
-                {uploading ? '上传中...' : '点击上传音频文件'}
+                {uploading ? '批量上传中...' : '点击批量上传音频文件'}
               </span>
             </div>
             <input
               type="file"
               accept="audio/*"
+              multiple
               onChange={handleFileUpload}
               disabled={uploading}
               className="hidden"
             />
           </label>
           <p className="text-sm text-slate-400 mt-3 text-center">
-            支持 MP3, WAV, OGG 等音频格式，建议时长35秒
+            支持批量上传（可选择多个文件），格式：MP3, WAV, OGG，建议时长35秒-1分钟
           </p>
         </div>
 
@@ -224,7 +236,7 @@ export default function AdminPanel() {
                 key={file.id}
                 className={`bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border transition-all ${
                   file.is_active
-                    ? 'border-amber-500/50 bg-amber-500/5'
+                    ? 'border-green-500/50 bg-green-500/5'
                     : 'border-slate-700 hover:border-slate-600'
                 }`}
               >
@@ -233,8 +245,8 @@ export default function AdminPanel() {
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-xl font-medium">{file.file_name}</h3>
                       {file.is_active && (
-                        <span className="px-3 py-1 bg-amber-500/20 text-amber-400 text-sm rounded-full border border-amber-500/30">
-                          当前使用
+                        <span className="px-3 py-1 bg-green-500/20 text-green-400 text-sm rounded-full border border-green-500/30">
+                          已启用
                         </span>
                       )}
                     </div>
@@ -260,12 +272,12 @@ export default function AdminPanel() {
                     <button
                       onClick={() => toggleActive(file)}
                       className="p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
-                      title={file.is_active ? '取消使用' : '设为当前使用'}
+                      title={file.is_active ? '禁用音频' : '启用音频'}
                     >
                       {file.is_active ? (
-                        <CheckCircle size={20} className="text-amber-400" />
+                        <CheckCircle size={20} className="text-green-400" />
                       ) : (
-                        <Circle size={20} />
+                        <Circle size={20} className="text-slate-500" />
                       )}
                     </button>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createHypnosisAudio, guidanceTimeline } from '../utils/hypnosisAudio';
+import { getRandomActiveAudio } from '../utils/audioManager';
 
 interface GoldenTransitionProps {
   userName: string;
@@ -8,46 +8,58 @@ interface GoldenTransitionProps {
 }
 
 export default function GoldenTransition({ userName, higherSelfName, onComplete }: GoldenTransitionProps) {
-  const [currentText, setCurrentText] = useState('');
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    const audio = createHypnosisAudio();
-    audio.start();
+    let audio: HTMLAudioElement | null = null;
+    let fadeOutTimer: number | undefined;
+    let completeTimer: number | undefined;
 
-    const startTime = Date.now();
-    const duration = 35000;
+    const initializeAudio = async () => {
+      const audioUrl = await getRandomActiveAudio();
 
-    const textInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const elapsedSeconds = elapsed / 1000;
+      if (audioUrl) {
+        audio = new Audio(audioUrl);
+        audio.volume = 0.7;
 
-      for (let i = guidanceTimeline.length - 1; i >= 0; i--) {
-        if (elapsedSeconds >= guidanceTimeline[i].time) {
-          setCurrentText(guidanceTimeline[i].text);
-          break;
-        }
+        audio.addEventListener('loadedmetadata', () => {
+          const duration = audio!.duration * 1000;
+
+          fadeOutTimer = window.setTimeout(() => {
+            setFadeOut(true);
+            if (audio) {
+              const fadeInterval = setInterval(() => {
+                if (audio && audio.volume > 0.1) {
+                  audio.volume = Math.max(0, audio.volume - 0.1);
+                } else {
+                  clearInterval(fadeInterval);
+                }
+              }, 200);
+            }
+          }, duration - 2000);
+
+          completeTimer = window.setTimeout(() => {
+            onComplete();
+          }, duration);
+        });
+
+        audio.play().catch(err => console.error('Audio play error:', err));
+      } else {
+        completeTimer = window.setTimeout(() => {
+          onComplete();
+        }, 3000);
       }
+    };
 
-      if (elapsed >= duration - 2000) {
-        setFadeOut(true);
-        audio.fadeOut(2);
-      }
-
-      if (elapsed >= duration) {
-        clearInterval(textInterval);
-      }
-    }, 100);
-
-    const timer = setTimeout(() => {
-      audio.stop();
-      onComplete();
-    }, duration);
+    initializeAudio();
 
     return () => {
-      clearInterval(textInterval);
-      clearTimeout(timer);
-      audio.stop();
+      if (fadeOutTimer) clearTimeout(fadeOutTimer);
+      if (completeTimer) clearTimeout(completeTimer);
+      if (audio) {
+        audio.pause();
+        audio = null;
+      }
     };
   }, [onComplete]);
 
@@ -92,7 +104,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
             maxWidth: '400px',
           }}
         >
-          {currentText}
+          深呼吸，感受内在的宁静
         </p>
       </div>
 
