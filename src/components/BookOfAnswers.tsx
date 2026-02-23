@@ -34,7 +34,7 @@ export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
             答案之书
           </h2>
           <p className="text-sm font-light" style={{ color: '#E0E0D0', opacity: 0.8, letterSpacing: '0.04em' }}>
-            {flippedCard === null ? '选择一张卡片，接收智慧的指引' : ''}
+            {flippedCard === null ? '植本人，选择一张卡片，接收智慧的指引' : '植本人，请接收你的智慧回响'}
           </p>
         </div>
 
@@ -78,15 +78,17 @@ export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       zIndex: 0,
-                      filter: 'brightness(0.9) contrast(1.1)',
+                      filter: 'brightness(0.85) contrast(1.15)',
                     }}
                   />
                   <div
+                    className="golden-glow-overlay"
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      background: 'radial-gradient(circle at center, transparent 30%, rgba(2, 10, 9, 0.3) 100%)',
+                      background: 'radial-gradient(circle at center, transparent 25%, rgba(2, 10, 9, 0.4) 100%)',
                       zIndex: 1,
+                      boxShadow: 'inset 0 0 40px rgba(235, 200, 98, 0.15), inset 0 0 60px rgba(235, 200, 98, 0.1)',
                     }}
                   />
                 </div>
@@ -100,18 +102,30 @@ export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
                     borderRadius: '12px',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    padding: '16px 12px 12px 12px',
-                    boxShadow: '0 0 30px rgba(235, 200, 98, 0.4)',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '20px 16px',
+                    boxShadow: '0 0 40px rgba(235, 200, 98, 0.5), 0 0 60px rgba(235, 200, 98, 0.3), 0 0 80px rgba(235, 200, 98, 0.2)',
+                    position: 'relative',
                   }}
                 >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      borderRadius: '12px',
+                      background: 'radial-gradient(circle at center, transparent 40%, rgba(235, 200, 98, 0.05) 100%)',
+                      pointerEvents: 'none',
+                    }}
+                  />
                   <p
-                    className="text-xs font-light leading-relaxed text-center flex-1 flex items-center justify-center"
+                    className="text-xs font-light leading-relaxed text-center wisdom-text"
                     style={{
                       color: '#EBC862',
-                      letterSpacing: '0.03em',
-                      textShadow: '0 0 10px rgba(235, 200, 98, 0.5)',
-                      paddingBottom: '8px',
+                      letterSpacing: '0.04em',
+                      textShadow: '0 0 15px rgba(235, 200, 98, 0.6), 0 0 25px rgba(235, 200, 98, 0.4)',
+                      position: 'relative',
+                      zIndex: 1,
                     }}
                   >
                     {selectedWisdom}
@@ -150,11 +164,12 @@ export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
           width: 100%;
           height: 100%;
           transform-style: preserve-3d;
-          transition: transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .card-container.flipped .card {
           transform: rotateY(180deg);
+          transition: transform 1.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .card-face {
@@ -173,15 +188,41 @@ export default function BookOfAnswers({ onComplete }: BookOfAnswersProps) {
         }
 
         .card-back-image {
-          animation: subtleGlow 4s ease-in-out infinite;
+          animation: goldenPulseGlow 3.42s ease-in-out infinite;
         }
 
-        @keyframes subtleGlow {
+        @keyframes goldenPulseGlow {
           0%, 100% {
-            filter: brightness(0.9) contrast(1.1);
+            filter: brightness(0.85) contrast(1.15) drop-shadow(0 0 8px rgba(235, 200, 98, 0.2));
           }
           50% {
-            filter: brightness(1) contrast(1.15) drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+            filter: brightness(0.95) contrast(1.2) drop-shadow(0 0 16px rgba(235, 200, 98, 0.4));
+          }
+        }
+
+        .golden-glow-overlay {
+          animation: glowPulse 3.42s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+          0%, 100% {
+            box-shadow: inset 0 0 40px rgba(235, 200, 98, 0.15), inset 0 0 60px rgba(235, 200, 98, 0.1);
+          }
+          50% {
+            box-shadow: inset 0 0 50px rgba(235, 200, 98, 0.2), inset 0 0 70px rgba(235, 200, 98, 0.15);
+          }
+        }
+
+        .wisdom-text {
+          animation: wisdomGlow 2.5s ease-in-out infinite;
+        }
+
+        @keyframes wisdomGlow {
+          0%, 100% {
+            text-shadow: 0 0 15px rgba(235, 200, 98, 0.6), 0 0 25px rgba(235, 200, 98, 0.4);
+          }
+          50% {
+            text-shadow: 0 0 20px rgba(235, 200, 98, 0.8), 0 0 35px rgba(235, 200, 98, 0.5), 0 0 45px rgba(235, 200, 98, 0.3);
           }
         }
       `}</style>

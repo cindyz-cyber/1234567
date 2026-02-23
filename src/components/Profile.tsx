@@ -186,7 +186,7 @@ export default function Profile({ userName, higherSelfName, isPremium, onShowPre
         }
 
         .glassmorphic-profile {
-          transition: all 0.3s ease;
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .glassmorphic-profile:hover {
@@ -194,16 +194,24 @@ export default function Profile({ userName, higherSelfName, isPremium, onShowPre
         }
 
         .profile-avatar {
-          transition: all 0.3s ease;
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .profile-avatar:hover {
           box-shadow: 0 0 50px rgba(235, 200, 98, 0.5);
         }
 
+        .glassmorphic-button {
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         .glassmorphic-button:hover {
           box-shadow: 0 6px 20px rgba(235, 200, 98, 0.15);
           transform: translateY(-1px);
+        }
+
+        .premium-button {
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .premium-button:hover {

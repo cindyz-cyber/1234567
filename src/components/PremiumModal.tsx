@@ -62,13 +62,14 @@ export default function PremiumModal({ onClose, onSubscribe }: PremiumModalProps
           <div className="space-y-3 pt-4">
             <button
               onClick={onSubscribe}
-              className="w-full py-4 rounded-full font-light transition-all hover:scale-105"
+              className="w-full py-4 rounded-full font-light subscribe-button"
               style={{
                 backgroundColor: 'rgba(235, 200, 98, 0.15)',
                 border: '1.5px solid #EBC862',
                 color: '#EBC862',
                 letterSpacing: '0.08em',
                 boxShadow: '0 0 30px rgba(235, 200, 98, 0.3), inset 0 0 20px rgba(235, 200, 98, 0.1)',
+                transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
               立即订阅
@@ -76,17 +77,27 @@ export default function PremiumModal({ onClose, onSubscribe }: PremiumModalProps
 
             <button
               onClick={onClose}
-              className="w-full py-3 rounded-full font-light transition-all hover:opacity-100"
+              className="w-full py-3 rounded-full font-light later-button"
               style={{
                 border: '0.5px solid rgba(235, 200, 98, 0.3)',
                 color: '#E0E0D0',
                 opacity: 0.6,
                 letterSpacing: '0.04em',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
               稍后再说
             </button>
           </div>
+          <style>{`
+            .subscribe-button:hover {
+              transform: scale(1.05);
+            }
+
+            .later-button:hover {
+              opacity: 1 !important;
+            }
+          `}</style>
         </div>
       </div>
     </div>

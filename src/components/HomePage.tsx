@@ -93,7 +93,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
 
         .ripple-effect {
           background: radial-gradient(circle, rgba(235, 200, 98, 0.8) 0%, rgba(235, 200, 98, 0.4) 50%, transparent 100%);
-          animation: ripple 1s cubic-bezier(0.4, 0, 0.2, 1) forwards, particleSpread 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          animation: ripple 1s cubic-bezier(0.4, 0, 0.2, 1) forwards, particleSpread 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
           box-shadow: 0 0 30px rgba(235, 200, 98, 0.6);
           filter: blur(2px);
         }
@@ -114,6 +114,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
               0 0 80px 40px rgba(235, 200, 98, 0.3),
               0 0 120px 60px rgba(235, 200, 98, 0.2),
               inset 0 0 60px rgba(235, 200, 98, 0.5);
+            transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1);
           }
           50% {
             transform: scale(1.12);
@@ -123,6 +124,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
               0 0 120px 60px rgba(235, 200, 98, 0.4),
               0 0 180px 90px rgba(235, 200, 98, 0.3),
               inset 0 0 80px rgba(235, 200, 98, 0.7);
+            transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1);
           }
         }
 
