@@ -27,26 +27,21 @@ export default function BookOfAnswers({ onComplete, backgroundAudio }: BookOfAns
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = () => {
     if (backgroundAudio) {
-      const fadeOutPromise = new Promise<void>((resolve) => {
-        const startVolume = backgroundAudio.volume;
-        const duration = 2000;
-        const fadeStep = startVolume / (duration / 50);
+      const startVolume = backgroundAudio.volume;
+      const duration = 2000;
+      const fadeStep = startVolume / (duration / 50);
 
-        const fadeInterval = setInterval(() => {
-          if (backgroundAudio.volume > fadeStep) {
-            backgroundAudio.volume = Math.max(0, backgroundAudio.volume - fadeStep);
-          } else {
-            backgroundAudio.volume = 0;
-            backgroundAudio.pause();
-            clearInterval(fadeInterval);
-            resolve();
-          }
-        }, 50);
-      });
-
-      await fadeOutPromise;
+      const fadeInterval = setInterval(() => {
+        if (backgroundAudio.volume > fadeStep) {
+          backgroundAudio.volume = Math.max(0, backgroundAudio.volume - fadeStep);
+        } else {
+          backgroundAudio.volume = 0;
+          backgroundAudio.pause();
+          clearInterval(fadeInterval);
+        }
+      }, 50);
     }
     onComplete();
   };
