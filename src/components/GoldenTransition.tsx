@@ -79,49 +79,6 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
         <div className="divine-logo-core" />
       </div>
 
-      <div
-        className="guidance-text-container"
-        style={{
-          minHeight: '120px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          padding: '0 20px',
-          position: 'relative',
-        }}
-      >
-        <p
-          className="guidance-text"
-          style={{
-            color: '#D4AF37',
-            fontSize: '1.125rem',
-            fontWeight: '300',
-            letterSpacing: '0.08em',
-            lineHeight: '1.8',
-            textShadow: '0 0 20px rgba(212, 175, 55, 0.6), 0 0 35px rgba(212, 175, 55, 0.4)',
-            opacity: 1,
-            maxWidth: '400px',
-          }}
-        >
-          深呼吸，感受内在的宁静
-        </p>
-      </div>
-
-      <p
-        className="connection-subtitle"
-        style={{
-          color: '#E0E0D0',
-          fontSize: '0.875rem',
-          fontWeight: '300',
-          letterSpacing: '0.06em',
-          opacity: 0.6,
-          marginTop: '24px',
-          textAlign: 'center',
-        }}
-      >
-        正在连接你的 <span className="highlight-name">{higherSelfName}</span>
-      </p>
 
       <style>{`
         .divine-logo-core {

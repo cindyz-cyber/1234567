@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import GoldButton from './GoldButton';
 import { getRandomGuidanceMessages } from '../utils/voiceGuidance';
-import { createHypnosisAudio } from '../utils/hypnosisAudio';
+import { playBackgroundMusicLoop } from '../utils/audioManager';
 import { supabase } from '../lib/supabase';
 
 interface HigherSelfDialogueProps {
@@ -27,65 +27,30 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
   const [currentPrompt, setCurrentPrompt] = useState(floatingPrompts[0]);
   const [guidanceMessages, setGuidanceMessages] = useState<string[]>([]);
   const [currentGuidanceIndex, setCurrentGuidanceIndex] = useState(0);
-  const [audioEnabled, setAudioEnabled] = useState(false);
-  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
-  const [oscillatorNode, setOscillatorNode] = useState<OscillatorNode | null>(null);
   const [showTransition, setShowTransition] = useState(true);
+  const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
 
   useEffect(() => {
     setGuidanceMessages(getRandomGuidanceMessages(4));
 
-    const backgroundAudio = createHypnosisAudio();
-    let guidanceAudio: HTMLAudioElement | null = null;
-
-    const loadAndPlayGuidanceAudio = async () => {
-      const { data, error } = await supabase
-        .from('audio_files')
-        .select('file_path')
-        .eq('file_type', 'guidance')
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (data && !error) {
-        const { data: urlData } = await supabase.storage
-          .from('audio-files')
-          .getPublicUrl(data.file_path);
-
-        guidanceAudio = new Audio(urlData.publicUrl);
-        guidanceAudio.volume = 0.85;
-        guidanceAudio.play().catch(err => console.warn('Audio play failed:', err));
-      }
-    };
-
-    backgroundAudio.start();
-    loadAndPlayGuidanceAudio();
-
     const transitionTimer = setTimeout(() => {
       setShowTransition(false);
-      backgroundAudio.fadeOut(2);
-      if (guidanceAudio) {
-        const fadeOut = setInterval(() => {
-          if (guidanceAudio && guidanceAudio.volume > 0.05) {
-            guidanceAudio.volume = Math.max(0, guidanceAudio.volume - 0.05);
-          } else {
-            clearInterval(fadeOut);
-            if (guidanceAudio) guidanceAudio.pause();
-          }
-        }, 100);
-      }
-    }, 35000);
-
-    const readyTimer = setTimeout(() => {
       setIsReady(true);
-    }, 20000);
+
+      playBackgroundMusicLoop().then(audio => {
+        if (audio) {
+          setBackgroundMusic(audio);
+          setIsMusicPlaying(true);
+        }
+      });
+    }, 1000);
 
     return () => {
       clearTimeout(transitionTimer);
-      clearTimeout(readyTimer);
-      backgroundAudio.stop();
-      if (guidanceAudio) {
-        guidanceAudio.pause();
-        guidanceAudio = null;
+      if (backgroundMusic) {
+        backgroundMusic.pause();
+        setBackgroundMusic(null);
       }
     };
   }, []);
@@ -122,40 +87,24 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
     return () => clearInterval(interval);
   }, []);
 
-  const toggle342HzAudio = () => {
-    if (!audioEnabled) {
-      const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = context.createOscillator();
-      const gainNode = context.createGain();
-
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(342, context.currentTime);
-      gainNode.gain.setValueAtTime(0.08, context.currentTime);
-
-      oscillator.connect(gainNode);
-      gainNode.connect(context.destination);
-      oscillator.start();
-
-      setAudioContext(context);
-      setOscillatorNode(oscillator);
-      setAudioEnabled(true);
-    } else {
-      if (oscillatorNode) {
-        oscillatorNode.stop();
+  const toggleBackgroundMusic = () => {
+    if (backgroundMusic) {
+      if (isMusicPlaying) {
+        backgroundMusic.pause();
+        setIsMusicPlaying(false);
+      } else {
+        backgroundMusic.play().catch(err => console.error('Audio play error:', err));
+        setIsMusicPlaying(true);
       }
-      if (audioContext) {
-        audioContext.close();
-      }
-      setAudioContext(null);
-      setOscillatorNode(null);
-      setAudioEnabled(false);
     }
   };
 
   const handleSubmit = () => {
     if (response.trim()) {
-      if (oscillatorNode) oscillatorNode.stop();
-      if (audioContext) audioContext.close();
+      if (backgroundMusic) {
+        backgroundMusic.pause();
+        setBackgroundMusic(null);
+      }
       onComplete(response.trim());
     }
   };
@@ -454,34 +403,36 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
         </div>
       )}
 
-      <button
-        onClick={toggle342HzAudio}
-        className="audio-toggle"
-        style={{
-          position: 'fixed',
-          bottom: '32px',
-          right: '32px',
-          width: '56px',
-          height: '56px',
-          borderRadius: '50%',
-          backgroundColor: audioEnabled ? 'rgba(235, 200, 98, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-          border: `1px solid ${audioEnabled ? 'rgba(235, 200, 98, 0.4)' : 'rgba(255, 255, 255, 0.2)'}`,
-          backdropFilter: 'blur(10px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: audioEnabled ? '0 0 24px rgba(235, 200, 98, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
-        }}
-        title={audioEnabled ? '关闭342Hz疗愈频率' : '开启342Hz疗愈频率'}
-      >
-        {audioEnabled ? (
-          <Volume2 size={24} color="#EBC862" />
-        ) : (
-          <VolumeX size={24} color="rgba(224, 224, 208, 0.6)" />
-        )}
-      </button>
+      {!showTransition && (
+        <button
+          onClick={toggleBackgroundMusic}
+          className="audio-toggle"
+          style={{
+            position: 'fixed',
+            bottom: '32px',
+            right: '32px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            backgroundColor: isMusicPlaying ? 'rgba(235, 200, 98, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+            border: `1px solid ${isMusicPlaying ? 'rgba(235, 200, 98, 0.4)' : 'rgba(255, 255, 255, 0.2)'}`,
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: isMusicPlaying ? '0 0 24px rgba(235, 200, 98, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
+          }}
+          title={isMusicPlaying ? '关闭背景音乐' : '开启背景音乐'}
+        >
+          {isMusicPlaying ? (
+            <Volume2 size={24} color="#EBC862" />
+          ) : (
+            <VolumeX size={24} color="rgba(224, 224, 208, 0.6)" />
+          )}
+        </button>
+      )}
 
       <style>{`
         .glassmorphic-card {

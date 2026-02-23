@@ -48,3 +48,34 @@ export const playAudioFromUrl = (url: string): HTMLAudioElement => {
   audio.play().catch(err => console.error('Audio play error:', err));
   return audio;
 };
+
+export const playBackgroundMusicLoop = async (): Promise<HTMLAudioElement | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('audio_files')
+      .select('*')
+      .eq('file_type', 'guidance')
+      .eq('is_active', true);
+
+    if (error || !data || data.length === 0) {
+      return null;
+    }
+
+    const randomIndex = Math.floor(Math.random() * data.length);
+    const selectedAudio = data[randomIndex] as AudioFile;
+
+    const { data: urlData } = await supabase.storage
+      .from('audio-files')
+      .getPublicUrl(selectedAudio.file_path);
+
+    const audio = new Audio(urlData.publicUrl);
+    audio.volume = 0.3;
+    audio.loop = true;
+    audio.play().catch(err => console.error('Audio play error:', err));
+
+    return audio;
+  } catch (error) {
+    console.error('Error in playBackgroundMusicLoop:', error);
+    return null;
+  }
+};
