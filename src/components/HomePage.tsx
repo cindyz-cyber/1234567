@@ -72,8 +72,8 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           width: 280px;
           height: 280px;
           border-radius: 50%;
-          background: none !important;
-          backdrop-filter: blur(15px);
+          background: transparent !important;
+          backdrop-filter: none;
           border: 1.5px solid rgba(247, 231, 206, 0.6);
           animation: crystalBreathe 7s ease-in-out infinite;
           position: relative;
