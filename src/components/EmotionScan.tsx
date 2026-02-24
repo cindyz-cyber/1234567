@@ -126,7 +126,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           </div>
 
           <div className="mb-6 text-center">
-            <p className="text-xs" style={{
+            <p className="text-base" style={{
               color: '#FFFFFF',
               fontWeight: 400,
               letterSpacing: '0.25em',
@@ -313,12 +313,13 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         .bubble-content {
           font-family: 'Georgia', 'Times New Roman', serif;
           font-size: 15px;
-          font-weight: 400;
+          font-weight: 500;
           letter-spacing: 0.25em;
           color: #FFFFFF;
           text-shadow:
-            0 2px 8px rgba(255, 255, 255, 0.6),
-            0 0 20px rgba(247, 231, 206, 0.5);
+            0 2px 10px rgba(255, 255, 255, 0.9),
+            0 0 25px rgba(255, 255, 255, 0.7),
+            0 0 35px rgba(247, 231, 206, 0.6);
           position: relative;
           z-index: 10;
           transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -327,7 +328,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
         .body-bubble .bubble-content {
           font-size: 13px;
-          font-weight: 400;
+          font-weight: 500;
         }
 
         @keyframes haloBreath {

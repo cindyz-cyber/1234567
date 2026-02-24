@@ -15,14 +15,14 @@ export default function GoldButton({ onClick, disabled, children, className = ''
         padding: '16px 32px',
         background: 'transparent',
         border: 'none',
-        color: '#F7E7CE',
+        color: '#FFF9E5',
         fontSize: '16px',
-        fontWeight: '300',
+        fontWeight: '400',
         letterSpacing: '0.25em',
         cursor: disabled ? 'not-allowed' : 'pointer',
         transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        opacity: disabled ? 0.3 : 0.9,
-        textShadow: '0 0 20px rgba(247, 231, 206, 0.4)',
+        opacity: disabled ? 0.3 : 1,
+        textShadow: '0 2px 10px rgba(255, 255, 255, 0.8), 0 0 30px rgba(247, 231, 206, 0.6)',
       }}
     >
       {children}
