@@ -218,7 +218,7 @@ function App() {
     <>
       <VideoBackground />
       <GoldenDust />
-      <Header />
+      {currentTab !== 'breath' && <Header />}
 
       {currentTab === 'breath' && (
         <HomePage
