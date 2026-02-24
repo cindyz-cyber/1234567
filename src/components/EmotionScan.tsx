@@ -117,7 +117,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
                 }}
               >
                 <div className="golden-halo" />
-                <div className="core-light" />
                 <div className="bubble-content">
                   {emotion.label}
                 </div>
@@ -153,7 +152,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
                 }}
               >
                 <div className="golden-halo" />
-                <div className="core-light" />
                 <div className="bubble-content">
                   {state.label}
                 </div>
@@ -246,19 +244,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             0 0 40px rgba(247, 231, 206, 0.3);
         }
 
-        .core-light {
-          position: absolute;
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(247, 231, 206, 0.9) 40%, rgba(235, 200, 98, 0.6) 70%, transparent 100%);
-          box-shadow:
-            0 0 12px rgba(255, 255, 255, 0.9),
-            0 0 20px rgba(247, 231, 206, 0.8);
-          animation: corePulse 3s ease-in-out infinite;
-          pointer-events: none;
-          opacity: 0.8;
-        }
 
         .glass-bubble:hover .golden-halo {
           border-color: rgba(247, 231, 206, 0.8);
@@ -303,12 +288,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             0 0 70px rgba(247, 231, 206, 0.5);
         }
 
-        .glass-bubble.selected .core-light {
-          box-shadow:
-            0 0 20px rgba(255, 255, 255, 1),
-            0 0 35px rgba(247, 231, 206, 1);
-          opacity: 1;
-        }
 
         .bubble-content {
           font-family: 'Georgia', 'Times New Roman', serif;
@@ -342,16 +321,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           }
         }
 
-        @keyframes corePulse {
-          0%, 100% {
-            opacity: 0.8;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.4);
-          }
-        }
 
         @keyframes selectedGlow {
           0%, 100% {
