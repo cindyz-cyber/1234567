@@ -27,6 +27,29 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 breathing-fade relative">
+      <div
+        className="fixed inset-0 w-full h-full"
+        style={{
+          zIndex: -1,
+          background: 'transparent'
+        }}
+      >
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ filter: 'contrast(1.2) brightness(1.1) saturate(1.1)' }}
+        >
+          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
+        </video>
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{ backgroundColor: 'rgba(2, 13, 10, 0.15)' }}
+        />
+      </div>
+
       <div className="absolute top-0 left-0 w-full h-[30vh] z-20 pointer-events-none top-vignette" />
 
       <div className="absolute top-[8vh] left-0 w-full z-30 flex justify-center pointer-events-none">
