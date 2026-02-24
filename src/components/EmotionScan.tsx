@@ -375,15 +375,15 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
       <style>{`
         .forest-background-layer {
           position: fixed;
-          top: 0;
+          bottom: 0;
           left: 0;
           width: 100%;
-          height: 100%;
+          height: 33.33%;
           background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
           background-size: cover;
           background-position: center;
           filter: blur(0px);
-          opacity: 0.25;
+          opacity: 0.5;
           z-index: 1;
           pointer-events: none;
           animation: forestBreath 8s ease-in-out infinite;
