@@ -125,10 +125,10 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         <div className="flex-1 flex flex-col justify-center items-center max-w-4xl mx-auto w-full relative" style={{ paddingTop: '60px', paddingBottom: '40px' }}>
           <div className="mb-8 text-center">
             <p className="text-sm title-text" style={{
-              color: '#FFF9E5',
-              fontWeight: 400,
+              color: '#FFFFFF',
+              fontWeight: 500,
               letterSpacing: '0.25em',
-              textShadow: '0 0 10px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(255, 255, 255, 0.6)',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.95), 0 4px 12px rgba(0, 0, 0, 0.8)',
               position: 'relative',
               zIndex: 100
             }}>
@@ -230,10 +230,10 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
           <div className="mb-6 text-center body-section-title">
             <p className="text-base" style={{
-              color: '#FFF9E5',
-              fontWeight: 400,
+              color: '#FFFFFF',
+              fontWeight: 500,
               letterSpacing: '0.25em',
-              textShadow: '0 0 10px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(255, 255, 255, 0.6)',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.95), 0 4px 12px rgba(0, 0, 0, 0.8)',
               position: 'relative',
               zIndex: 100
             }}>
@@ -378,28 +378,26 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           top: 0;
           left: 0;
           width: 100%;
-          height: 66vh;
+          height: 100vh;
           background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
-          filter: blur(25px);
-          opacity: 0.5;
+          filter: blur(13px);
+          opacity: 0.65;
           z-index: 1;
           pointer-events: none;
           animation: forestBreath 8s ease-in-out infinite;
-          mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-          -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
         }
 
         @keyframes forestBreath {
           0%, 100% {
             transform: scale(1);
-            opacity: 0.5;
+            opacity: 0.65;
           }
           50% {
             transform: scale(1.02);
-            opacity: 0.6;
+            opacity: 0.75;
           }
         }
 
@@ -414,7 +412,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           border-radius: 50%;
           background: transparent;
           backdrop-filter: none;
-          border: 0.5px solid rgba(255, 255, 255, 0.5);
+          border: 0.5px solid rgba(255, 255, 255, 0.6);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -423,9 +421,9 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           opacity: 0;
           animation: bubbleFloat 1.2s ease-out forwards, subtleFloat 6s ease-in-out infinite;
           box-shadow:
-            0 0 20px rgba(247, 231, 206, 0.4),
-            0 0 40px rgba(247, 231, 206, 0.15),
-            inset 0 0 30px rgba(255, 255, 255, 0.08);
+            0 0 20px rgba(255, 255, 255, 0.5),
+            0 0 40px rgba(247, 231, 206, 0.2),
+            inset 0 0 10px rgba(255, 255, 255, 0.3);
           position: relative;
           overflow: hidden;
         }
@@ -497,11 +495,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
         .glass-bubble:hover .bubble-content {
           transform: scale(1.08);
-          color: #FFF9E5;
+          color: #FFFFFF;
           text-shadow:
-            0 0 10px rgba(0, 0, 0, 0.9),
-            0 2px 15px rgba(255, 255, 255, 0.8),
-            0 0 30px rgba(247, 231, 206, 0.7);
+            0 1px 3px rgba(0, 0, 0, 1),
+            0 2px 10px rgba(0, 0, 0, 0.8),
+            0 0 20px rgba(255, 255, 255, 0.6);
         }
 
         .glass-bubble:hover {
@@ -521,7 +519,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             0 0 65px rgba(247, 231, 206, 0.5),
             0 0 95px rgba(235, 200, 98, 0.3),
             inset 0 0 50px rgba(255, 255, 255, 0.15);
-          animation: bubbleFloat 1.2s ease-out forwards, selectedGlow 2s ease-in-out infinite, subtleFloat 6s ease-in-out infinite;
+          animation: bubbleFloat 1.2s ease-out forwards, selectedGlow 2s ease-in-out infinite, subtleFloat 6s ease-in-out infinite, bubbleExpand 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
         .glass-bubble.selected .golden-halo {
@@ -538,11 +536,10 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           font-size: 15px;
           font-weight: 500;
           letter-spacing: 0.25em;
-          color: #FFF9E5;
+          color: #FFFFFF;
           text-shadow:
-            0 0 10px rgba(0, 0, 0, 0.8),
-            0 2px 12px rgba(255, 255, 255, 0.9),
-            0 0 25px rgba(247, 231, 206, 0.6);
+            0 1px 2px rgba(0, 0, 0, 0.9),
+            0 2px 8px rgba(0, 0, 0, 0.7);
           position: relative;
           z-index: 10;
           transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease, text-shadow 0.3s ease;
@@ -703,6 +700,18 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           }
         }
 
+        @keyframes bubbleExpand {
+          0% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.1);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+
         video {
           transition: filter 2s ease-in-out;
         }
@@ -724,9 +733,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         .body-section-title p {
           color: #FFFFFF !important;
           text-shadow:
-            0 0 15px rgba(0, 0, 0, 0.9),
-            0 2px 15px rgba(255, 255, 255, 0.9),
-            0 0 30px rgba(247, 231, 206, 0.7) !important;
+            0 2px 4px rgba(0, 0, 0, 0.95),
+            0 4px 12px rgba(0, 0, 0, 0.8) !important;
         }
 
         .continue-button-wrapper {

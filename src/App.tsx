@@ -203,12 +203,7 @@ function App() {
 
   if (currentStep === 'emotion' || currentStep === 'journal' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
     if (currentStep === 'emotion') {
-      return (
-        <>
-          <VideoBackground />
-          <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />
-        </>
-      );
+      return <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />;
     }
 
     if (currentStep === 'journal') {
