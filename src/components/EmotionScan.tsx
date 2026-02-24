@@ -375,16 +375,16 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
       <style>{`
         .forest-background-layer {
           position: fixed;
-          bottom: 0;
+          top: 0;
           left: 0;
           width: 100%;
-          height: 33.33%;
+          height: 100%;
           background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
           background-size: cover;
           background-position: center;
-          filter: blur(0px);
-          opacity: 0.5;
-          z-index: 1;
+          filter: blur(8px);
+          opacity: 0.25;
+          z-index: 10;
           pointer-events: none;
           animation: forestBreath 8s ease-in-out infinite;
         }
@@ -392,17 +392,17 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         @keyframes forestBreath {
           0%, 100% {
             transform: scale(1);
-            opacity: 0.85;
+            opacity: 0.25;
           }
           50% {
             transform: scale(1.02);
-            opacity: 0.9;
+            opacity: 0.3;
           }
         }
 
         .bubble-universe {
           position: relative;
-          z-index: 10;
+          z-index: 20;
         }
 
         .glass-bubble {
@@ -432,10 +432,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
-          background-size: 300%;
-          background-position: center;
-          opacity: 0.85;
+          background: transparent;
           pointer-events: none;
           z-index: -1;
         }
