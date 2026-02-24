@@ -27,6 +27,17 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 breathing-fade relative">
+      <div className="absolute top-0 left-0 w-full h-[30vh] z-20 pointer-events-none top-vignette" />
+
+      <div className="absolute top-[8vh] left-0 w-full z-30 flex justify-center pointer-events-none">
+        <h1 className="brand-title">
+          <span className="brand-letter" style={{ animationDelay: '0s' }}>植</span>
+          <span className="brand-letter" style={{ animationDelay: '0.5s' }}>本</span>
+          <span className="brand-letter" style={{ animationDelay: '1s' }}>觉</span>
+          <span className="brand-letter" style={{ animationDelay: '1.5s' }}>察</span>
+        </h1>
+      </div>
+
       <div className="flex flex-col items-center gap-12">
         <button
           onClick={handleCircleClick}
@@ -79,6 +90,44 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
       </div>
 
       <style>{`
+        .top-vignette {
+          background: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 0.95) 25%,
+            rgba(0, 0, 0, 0.8) 50%,
+            rgba(0, 0, 0, 0.4) 75%,
+            transparent 100%
+          );
+        }
+
+        .brand-title {
+          font-family: 'Georgia', 'Times New Roman', serif;
+          font-size: 28px;
+          font-weight: 300;
+          letter-spacing: 0.6em;
+          color: #F7E7CE;
+          display: flex;
+          padding-left: 0.6em;
+        }
+
+        .brand-letter {
+          display: inline-block;
+          opacity: 0;
+          animation: letterFadeIn 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+        }
+
+        @keyframes letterFadeIn {
+          0% {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         .divine-golden-tree {
           width: 280px;
           height: 280px;
