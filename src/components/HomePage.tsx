@@ -87,28 +87,28 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
             radial-gradient(
               circle at center,
               rgba(255, 255, 255, 1) 0%,
-              rgba(255, 255, 255, 0.95) 8%,
-              rgba(255, 240, 180, 0.4) 15%,
-              rgba(255, 215, 100, 0.25) 35%,
-              rgba(240, 200, 80, 0.15) 55%,
-              rgba(220, 180, 60, 0.08) 75%,
+              rgba(255, 255, 255, 0.98) 10%,
+              rgba(255, 245, 200, 0.5) 18%,
+              rgba(255, 225, 120, 0.35) 35%,
+              rgba(250, 210, 100, 0.2) 55%,
+              rgba(240, 195, 80, 0.1) 75%,
               transparent 100%
             );
-          backdrop-filter: blur(1px);
-          border: 2px solid rgba(255, 220, 100, 0.6);
-          animation: crystalBreathe 7s ease-in-out infinite, energyPulse 3s ease-in-out infinite;
+          backdrop-filter: blur(0.5px);
+          border: 2.5px solid rgba(255, 230, 120, 0.8);
+          animation: crystalBreathe 4s ease-in-out infinite, energyPulse 2s ease-in-out infinite;
           position: relative;
           z-index: 2;
           display: flex;
           align-items: center;
           justify-content: center;
           box-shadow:
-            0 0 40px rgba(255, 220, 100, 0.8),
-            0 0 80px rgba(255, 200, 80, 0.6),
-            0 0 120px rgba(255, 180, 60, 0.4),
-            0 0 160px rgba(240, 160, 40, 0.3),
-            inset 0 0 60px rgba(255, 240, 180, 0.3),
-            inset 0 0 30px rgba(255, 255, 255, 0.4);
+            0 0 30px rgba(255, 240, 150, 0.9),
+            0 0 50px rgba(255, 220, 100, 0.7),
+            0 0 80px rgba(255, 200, 80, 0.5),
+            0 0 120px rgba(240, 180, 60, 0.3),
+            inset 0 0 50px rgba(255, 245, 200, 0.4),
+            inset 0 0 25px rgba(255, 255, 255, 0.6);
           transition: all 0.5s ease;
           overflow: hidden;
         }
@@ -121,10 +121,11 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           border-radius: 50%;
           background: radial-gradient(
             circle at center,
-            transparent 60%,
-            rgba(255, 220, 100, 0.1) 70%,
-            rgba(255, 200, 80, 0.15) 80%,
-            rgba(255, 180, 60, 0.1) 90%,
+            transparent 55%,
+            rgba(255, 230, 120, 0.15) 65%,
+            rgba(255, 215, 100, 0.25) 75%,
+            rgba(255, 200, 85, 0.2) 85%,
+            rgba(255, 185, 70, 0.12) 92%,
             transparent 100%
           );
           animation: innerGlow 4s ease-in-out infinite;
@@ -148,24 +149,25 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
         .divine-golden-tree:hover {
           transform: scale(1.05);
           box-shadow:
-            0 0 50px rgba(255, 220, 100, 0.9),
-            0 0 100px rgba(255, 200, 80, 0.7),
-            0 0 150px rgba(255, 180, 60, 0.5),
-            0 0 200px rgba(240, 160, 40, 0.4),
-            inset 0 0 70px rgba(255, 240, 180, 0.4),
-            inset 0 0 40px rgba(255, 255, 255, 0.5);
-          border-color: rgba(255, 220, 100, 0.8);
+            0 0 40px rgba(255, 245, 180, 1),
+            0 0 70px rgba(255, 225, 110, 0.8),
+            0 0 110px rgba(255, 205, 90, 0.6),
+            0 0 150px rgba(245, 185, 70, 0.4),
+            inset 0 0 60px rgba(255, 250, 220, 0.5),
+            inset 0 0 35px rgba(255, 255, 255, 0.7);
+          border-color: rgba(255, 235, 130, 1);
         }
 
         .golden-particle {
           position: absolute;
-          width: 3px;
-          height: 3px;
+          width: 4px;
+          height: 4px;
           border-radius: 50%;
-          background: rgba(255, 240, 180, 0.9);
+          background: rgba(255, 250, 220, 1);
           box-shadow:
-            0 0 8px rgba(255, 220, 100, 0.8),
-            0 0 15px rgba(255, 200, 80, 0.5);
+            0 0 10px rgba(255, 235, 140, 1),
+            0 0 20px rgba(255, 215, 100, 0.7),
+            0 0 30px rgba(255, 195, 80, 0.4);
           animation: particleFloat 8s ease-in-out infinite;
           top: 50%;
           left: 50%;
@@ -177,20 +179,20 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
 
         .divine-aura {
           position: absolute;
-          width: 450px;
-          height: 450px;
+          width: 420px;
+          height: 420px;
           border-radius: 50%;
           background: radial-gradient(
             circle,
-            rgba(255, 240, 180, 0.4) 0%,
-            rgba(255, 220, 100, 0.35) 20%,
-            rgba(255, 200, 80, 0.25) 40%,
-            rgba(240, 180, 60, 0.15) 60%,
-            transparent 80%
+            rgba(255, 245, 200, 0.5) 0%,
+            rgba(255, 230, 130, 0.4) 20%,
+            rgba(255, 215, 100, 0.3) 40%,
+            rgba(245, 195, 80, 0.2) 60%,
+            transparent 75%
           );
-          animation: auraPulse 7s ease-in-out infinite, auraRotate 20s linear infinite;
+          animation: auraPulse 4s ease-in-out infinite, auraRotate 20s linear infinite;
           z-index: 1;
-          filter: blur(80px);
+          filter: blur(60px);
         }
 
         .ripple-effect {
@@ -211,31 +213,31 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           0%, 100% {
             transform: scale(1);
             box-shadow:
-              0 0 40px rgba(255, 220, 100, 0.8),
-              0 0 80px rgba(255, 200, 80, 0.6),
-              0 0 120px rgba(255, 180, 60, 0.4),
-              0 0 160px rgba(240, 160, 40, 0.3),
-              inset 0 0 60px rgba(255, 240, 180, 0.3),
-              inset 0 0 30px rgba(255, 255, 255, 0.4);
+              0 0 30px rgba(255, 240, 150, 0.9),
+              0 0 50px rgba(255, 220, 100, 0.7),
+              0 0 80px rgba(255, 200, 80, 0.5),
+              0 0 120px rgba(240, 180, 60, 0.3),
+              inset 0 0 50px rgba(255, 245, 200, 0.4),
+              inset 0 0 25px rgba(255, 255, 255, 0.6);
           }
           50% {
-            transform: scale(1.02);
+            transform: scale(1.08);
             box-shadow:
-              0 0 50px rgba(255, 220, 100, 0.9),
-              0 0 100px rgba(255, 200, 80, 0.7),
-              0 0 150px rgba(255, 180, 60, 0.5),
-              0 0 200px rgba(240, 160, 40, 0.4),
-              inset 0 0 70px rgba(255, 240, 180, 0.4),
-              inset 0 0 40px rgba(255, 255, 255, 0.5);
+              0 0 45px rgba(255, 245, 180, 1),
+              0 0 75px rgba(255, 230, 120, 0.85),
+              0 0 110px rgba(255, 210, 95, 0.65),
+              0 0 160px rgba(245, 190, 75, 0.45),
+              inset 0 0 65px rgba(255, 250, 220, 0.55),
+              inset 0 0 35px rgba(255, 255, 255, 0.75);
           }
         }
 
         @keyframes energyPulse {
           0%, 100% {
-            filter: brightness(1);
+            filter: brightness(1.05);
           }
           50% {
-            filter: brightness(1.2);
+            filter: brightness(1.3);
           }
         }
 
@@ -300,11 +302,11 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
         @keyframes auraPulse {
           0%, 100% {
             transform: scale(1);
-            opacity: 0.5;
+            opacity: 0.6;
           }
           50% {
-            transform: scale(1.2);
-            opacity: 0.8;
+            transform: scale(1.15);
+            opacity: 0.9;
           }
         }
 
