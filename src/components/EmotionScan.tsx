@@ -375,19 +375,17 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
       <style>{`
         .forest-background-layer {
           position: fixed;
-          top: 0;
+          bottom: 0;
           left: 0;
           width: 100%;
-          height: 100%;
+          height: 33.33%;
           background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
           background-size: cover;
           background-position: center;
-          filter: blur(8px);
-          opacity: 0.85;
+          filter: blur(0px);
+          opacity: 0.5;
           z-index: 1;
           pointer-events: none;
-          mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.3) 85%, rgba(0,0,0,0) 100%);
-          -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.3) 85%, rgba(0,0,0,0) 100%);
           animation: forestBreath 8s ease-in-out infinite;
         }
 
@@ -412,7 +410,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           height: 100px;
           border-radius: 50%;
           background: transparent;
-          backdrop-filter: blur(0px);
+          backdrop-filter: none;
           border: 0.5px solid rgba(255, 255, 255, 0.5);
           display: flex;
           align-items: center;
@@ -435,9 +433,9 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           inset: 0;
           border-radius: 50%;
           background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
-          background-size: 400%;
+          background-size: 300%;
           background-position: center;
-          opacity: 0.6;
+          opacity: 0.85;
           pointer-events: none;
           z-index: -1;
         }
@@ -447,7 +445,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 60%);
+          background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), transparent 50%);
           pointer-events: none;
         }
 
