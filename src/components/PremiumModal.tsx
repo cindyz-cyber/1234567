@@ -9,11 +9,10 @@ export default function PremiumModal({ onClose, onSubscribe }: PremiumModalProps
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}>
       <div
-        className="relative w-full max-w-md p-8 rounded-3xl"
+        className="relative w-full max-w-md p-8 rounded-3xl glassmorphism"
         style={{
-          backgroundColor: 'rgba(2, 10, 9, 0.95)',
-          border: '1px solid #EBC862',
-          boxShadow: '0 20px 60px rgba(235, 200, 98, 0.3)',
+          border: '1px solid rgba(247, 231, 206, 0.3)',
+          boxShadow: '0 20px 60px rgba(247, 231, 206, 0.4), inset 0 0 40px rgba(247, 231, 206, 0.1)',
         }}
       >
         <button
@@ -29,10 +28,20 @@ export default function PremiumModal({ onClose, onSubscribe }: PremiumModalProps
 
         <div className="text-center space-y-6">
           <div className="space-y-2">
-            <h2 className="text-3xl font-light" style={{ color: '#EBC862', letterSpacing: '0.1em' }}>
+            <h2
+              className="text-3xl font-light"
+              style={{
+                background: 'linear-gradient(135deg, #F7E7CE 0%, #EBC862 50%, #D4AF37 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '0.1em',
+                filter: 'drop-shadow(0 2px 12px rgba(247, 231, 206, 0.5))',
+              }}
+            >
               植本人专属能量空间
             </h2>
-            <p className="text-sm font-light" style={{ color: '#E0E0D0', opacity: 0.8, letterSpacing: '0.04em' }}>
+            <p className="text-sm font-light" style={{ color: '#E0E0D0', opacity: 0.9, letterSpacing: '0.04em' }}>
               成为核心植本人，开启深层疗愈之旅
             </p>
           </div>

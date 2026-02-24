@@ -17,21 +17,54 @@ export default function BreathingOrb({ label, onClick, size = 'large' }: Breathi
       aria-label={label}
     >
       <div className={`${orbSize} relative`}>
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-200/20 via-amber-300/30 to-yellow-500/20 blur-2xl animate-pulse-slow group-hover:blur-3xl transition-all duration-1000" />
+        <div
+          className="absolute inset-0 rounded-full blur-3xl animate-pulse-slow group-hover:blur-[60px] transition-all duration-1000"
+          style={{
+            background: 'radial-gradient(circle, rgba(247, 231, 206, 0.5) 0%, rgba(235, 200, 98, 0.3) 40%, transparent 70%)',
+            transform: 'scale(1.4)',
+          }}
+        />
 
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-300/30 via-amber-400/40 to-yellow-600/30 blur-xl animate-pulse-slow-delayed group-hover:scale-110 transition-transform duration-1000" />
+        <div
+          className="absolute inset-0 rounded-full blur-2xl animate-pulse-slow-delayed group-hover:scale-125 transition-transform duration-1000"
+          style={{
+            background: 'radial-gradient(circle, rgba(247, 231, 206, 0.4) 0%, rgba(235, 200, 98, 0.3) 50%, transparent 80%)',
+            transform: 'scale(1.2)',
+          }}
+        />
 
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400/40 via-amber-500/50 to-yellow-700/40 blur-lg animate-breath group-hover:scale-105 transition-all duration-700" />
+        <div
+          className="absolute inset-0 rounded-full blur-xl animate-breath group-hover:scale-110 transition-all duration-700"
+          style={{
+            background: 'radial-gradient(circle, rgba(247, 231, 206, 0.6) 0%, rgba(235, 200, 98, 0.4) 60%, transparent 90%)',
+          }}
+        />
 
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative z-10 rounded-full bg-gradient-to-br from-yellow-200/60 via-amber-300/70 to-yellow-500/60 backdrop-blur-sm border border-yellow-300/30 shadow-2xl w-4/5 h-4/5 flex items-center justify-center group-hover:border-yellow-200/50 transition-colors duration-500">
-            <span className={`${labelSize} font-light tracking-wider text-yellow-50/90 drop-shadow-lg`}>
+          <div
+            className="relative z-10 rounded-full backdrop-blur-sm w-4/5 h-4/5 flex items-center justify-center transition-all duration-500 group-hover:scale-105"
+            style={{
+              background: 'radial-gradient(circle, rgba(247, 231, 206, 0.7) 0%, rgba(235, 200, 98, 0.5) 60%, rgba(212, 175, 55, 0.4) 100%)',
+              border: '1px solid rgba(247, 231, 206, 0.4)',
+              boxShadow: '0 0 40px rgba(247, 231, 206, 0.6), inset 0 0 30px rgba(247, 231, 206, 0.3)',
+            }}
+          >
+            <span
+              className={`${labelSize} font-light tracking-wider`}
+              style={{
+                background: 'linear-gradient(135deg, #FFFFFF 0%, #F7E7CE 50%, #EBC862 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                filter: 'drop-shadow(0 2px 8px rgba(247, 231, 206, 0.6))',
+              }}
+            >
               {label}
             </span>
           </div>
         </div>
 
-        <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent via-yellow-200/10 to-yellow-100/20 animate-shimmer pointer-events-none" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent via-yellow-100/10 to-yellow-50/20 animate-shimmer pointer-events-none" />
       </div>
     </button>
   );

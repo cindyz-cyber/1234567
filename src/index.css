@@ -3,12 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --bg-gradient-top: #1A352F;
-  --bg-gradient-bottom: #0D1814;
+  --bg-gradient-top: #0A1F1C;
+  --bg-gradient-bottom: #041412;
   --color-amber-gold: #EBC862;
+  --color-champagne-gold: #F7E7CE;
   --color-soft-white: #E0E0D0;
-  --color-aux-gray: rgba(224, 224, 208, 0.5);
+  --color-aux-gray: rgba(224, 224, 208, 0.7);
   --color-glass: rgba(255, 255, 255, 0.05);
+  --gold-gradient: linear-gradient(135deg, #F7E7CE 0%, #EBC862 50%, #D4AF37 100%);
 }
 
 * {
@@ -111,6 +113,23 @@ body {
   }
 }
 
+@keyframes floatingParticles {
+  0% {
+    transform: translateY(100vh) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.3;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(50px);
+    opacity: 0;
+  }
+}
+
 .animate-pulse-slow {
   animation: pulse-slow 4s ease-in-out infinite;
 }
@@ -126,4 +145,40 @@ body {
 
 .animate-shimmer {
   animation: shimmer 3s ease-in-out infinite;
+}
+
+.golden-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.golden-particles::before,
+.golden-particles::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: radial-gradient(circle, rgba(247, 231, 206, 0.6) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: floatingParticles 20s linear infinite;
+}
+
+.golden-particles::before {
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.golden-particles::after {
+  left: 70%;
+  animation-delay: 10s;
+}
+
+.glassmorphism {
+  background: rgba(10, 31, 28, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(247, 231, 206, 0.1);
 }

@@ -29,15 +29,16 @@ export default function IntentSeeds({ onSelectIntent, onBack }: IntentSeedsProps
         opacity: fadeIn ? 1 : 0,
       }}
     >
+      <div className="golden-particles" />
       <button
         onClick={onBack}
-        className="absolute top-8 left-8 text-xs font-light tracking-widest transition-all duration-300 hover:opacity-100"
-        style={{ color: '#EBC862', opacity: 0.6 }}
+        className="absolute top-8 left-8 text-xs font-light tracking-widest transition-all duration-300 hover:opacity-100 hover:scale-110 z-20"
+        style={{ color: '#EBC862', opacity: 0.7 }}
       >
         返回
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-5xl w-full items-center justify-items-center">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-20 max-w-5xl w-full items-center justify-items-center">
         {INTENT_SEEDS.slice(0, 2).map((seed, index) => (
           <div
             key={seed.id}
@@ -54,7 +55,7 @@ export default function IntentSeeds({ onSelectIntent, onBack }: IntentSeedsProps
               />
               <p
                 className="text-xs font-light tracking-widest text-center"
-                style={{ color: '#EBC862', opacity: 0.5 }}
+                style={{ color: '#EBC862', opacity: 0.7 }}
               >
                 {seed.subtitle}
               </p>
@@ -63,7 +64,7 @@ export default function IntentSeeds({ onSelectIntent, onBack }: IntentSeedsProps
         ))}
       </div>
 
-      <div className="mt-16 mb-16">
+      <div className="mt-20 mb-20">
         <div
           style={{
             opacity: fadeIn ? 1 : 0,
@@ -103,7 +104,7 @@ export default function IntentSeeds({ onSelectIntent, onBack }: IntentSeedsProps
               />
               <p
                 className="text-xs font-light tracking-widest text-center"
-                style={{ color: '#EBC862', opacity: 0.5 }}
+                style={{ color: '#EBC862', opacity: 0.7 }}
               >
                 {seed.subtitle}
               </p>

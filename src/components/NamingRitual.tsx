@@ -25,8 +25,19 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 breathing-fade">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center px-6 breathing-fade relative overflow-hidden">
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
+        style={{
+          width: '600px',
+          height: '400px',
+          background: 'radial-gradient(ellipse at center, rgba(247, 231, 206, 0.15) 0%, rgba(235, 200, 98, 0.08) 40%, transparent 70%)',
+          filter: 'blur(60px)',
+          zIndex: 0,
+        }}
+      />
+      <div className="golden-particles" />
+      <div className="w-full max-w-md relative z-10">
         {step === 1 ? (
           <form onSubmit={handleFirstSubmit} className="space-y-12">
             <div className="space-y-8 mb-12 soulful-intro">
@@ -61,7 +72,15 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
             </div>
             <h1
               className="text-2xl text-center leading-loose font-light"
-              style={{ color: '#EBC862', letterSpacing: '0.06em' }}
+              style={{
+                background: 'linear-gradient(135deg, #F7E7CE 0%, #EBC862 50%, #D4AF37 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '0.06em',
+                textShadow: '0 0 30px rgba(247, 231, 206, 0.3)',
+                filter: 'drop-shadow(0 2px 12px rgba(247, 231, 206, 0.4))',
+              }}
             >
               那个智慧的内在自我，<br />你如何称呼它？
             </h1>

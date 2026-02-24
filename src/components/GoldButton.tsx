@@ -30,13 +30,16 @@ export default function GoldButton({ onClick, disabled, children, className = ''
       <style>{`
         .gold-outline-btn:not(:disabled):hover {
           box-shadow:
-            0 0 20px rgba(235, 200, 98, 0.3),
-            inset 0 0 20px rgba(235, 200, 98, 0.1);
-          transform: translateY(-2px);
+            0 0 30px rgba(247, 231, 206, 0.5),
+            0 0 60px rgba(235, 200, 98, 0.3),
+            inset 0 0 25px rgba(247, 231, 206, 0.2);
+          transform: translateY(-2px) scale(1.02);
+          border-color: #F7E7CE;
+          color: #F7E7CE;
         }
 
         .gold-outline-btn:not(:disabled):active {
-          transform: translateY(0);
+          transform: translateY(0) scale(1);
         }
       `}</style>
     </button>

@@ -27,6 +27,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 breathing-fade">
+      <div className="golden-particles" />
       <button
         onClick={handleCircleClick}
         className="relative flex items-center justify-center mb-16 cursor-pointer outline-none border-none bg-transparent p-0 touch-manipulation"
@@ -52,7 +53,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
 
       <p
         className="text-xl text-center font-light leading-loose"
-        style={{ color: '#E0E0D0', letterSpacing: '0.05em', opacity: 0.9 }}
+        style={{ color: '#E0E0D0', letterSpacing: '0.05em', opacity: 0.95 }}
       >
         <span className="golden-name">{userName}</span>，想和 <span className="golden-name">{higherSelfName}</span> 聊聊吗？
       </p>
@@ -62,7 +63,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           width: 280px;
           height: 280px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(235, 200, 98, 0.9) 0%, rgba(235, 200, 98, 0.6) 40%, rgba(235, 200, 98, 0.3) 70%, transparent 100%);
+          background: radial-gradient(circle, rgba(247, 231, 206, 0.9) 0%, rgba(235, 200, 98, 0.7) 40%, rgba(235, 200, 98, 0.4) 70%, transparent 100%);
           animation: breathe 10s ease-in-out infinite;
           position: relative;
           z-index: 2;
@@ -70,10 +71,20 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           align-items: center;
           justify-content: center;
           box-shadow:
-            0 0 40px 20px rgba(235, 200, 98, 0.4),
-            0 0 80px 40px rgba(235, 200, 98, 0.3),
-            0 0 120px 60px rgba(235, 200, 98, 0.2),
-            inset 0 0 60px rgba(235, 200, 98, 0.5);
+            0 0 50px 25px rgba(247, 231, 206, 0.5),
+            0 0 100px 50px rgba(235, 200, 98, 0.4),
+            0 0 150px 75px rgba(235, 200, 98, 0.3),
+            inset 0 0 60px rgba(247, 231, 206, 0.6);
+          transition: all 0.5s ease;
+        }
+
+        .divine-golden-tree:hover {
+          transform: scale(1.05);
+          box-shadow:
+            0 0 60px 30px rgba(247, 231, 206, 0.6),
+            0 0 120px 60px rgba(235, 200, 98, 0.5),
+            0 0 180px 90px rgba(235, 200, 98, 0.4),
+            inset 0 0 80px rgba(247, 231, 206, 0.7);
         }
 
         .tree-icon {
