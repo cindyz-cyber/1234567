@@ -16,6 +16,7 @@ const EMOTIONS = [
   { label: '悲伤', hue: 200, x: 85, y: 60 },
   { label: '恐惧', hue: 280, x: 10, y: 80 },
   { label: '丰盛', hue: 50, x: 50, y: 85 },
+  { label: '其他', hue: 180, x: 85, y: 15 },
 ];
 
 const BODY_STATES = [
@@ -25,6 +26,7 @@ const BODY_STATES = [
   { label: '空洞', x: 35, y: 70 },
   { label: '沉重', x: 70, y: 75 },
   { label: '轻盈', x: 90, y: 85 },
+  { label: '其他', x: 15, y: 15 },
 ];
 
 export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
