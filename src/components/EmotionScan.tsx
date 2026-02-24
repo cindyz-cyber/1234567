@@ -434,7 +434,20 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), transparent 60%);
+          background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
+          background-size: 400%;
+          background-position: center;
+          opacity: 0.6;
+          pointer-events: none;
+          z-index: -1;
+        }
+
+        .glass-bubble::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 60%);
           pointer-events: none;
         }
 
