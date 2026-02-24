@@ -26,11 +26,10 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 breathing-fade">
-      <div className="golden-particles" />
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 breathing-fade relative">
       <button
         onClick={handleCircleClick}
-        className="relative flex items-center justify-center mb-16 cursor-pointer outline-none border-none bg-transparent p-0 touch-manipulation"
+        className="relative flex items-center justify-center cursor-pointer outline-none border-none bg-transparent p-0 touch-manipulation z-10"
         aria-label="开始对话"
       >
         <div className="absolute divine-aura pointer-events-none" />
@@ -50,13 +49,6 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           />
         ))}
       </button>
-
-      <p
-        className="text-xl text-center font-light leading-loose"
-        style={{ color: '#E0E0D0', letterSpacing: '0.05em', opacity: 0.95 }}
-      >
-        <span className="golden-name">{userName}</span>，想和 <span className="golden-name">{higherSelfName}</span> 聊聊吗？
-      </p>
 
       <style>{`
         .divine-golden-tree {

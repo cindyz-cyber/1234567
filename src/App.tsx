@@ -13,6 +13,7 @@ import Profile from './components/Profile';
 import BookOfAnswers from './components/BookOfAnswers';
 import PremiumModal from './components/PremiumModal';
 import AdminPanel from './components/AdminPanel';
+import GoldenDust from './components/GoldenDust';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
@@ -214,6 +215,7 @@ function App() {
 
   return (
     <>
+      <GoldenDust />
       <Header />
 
       {currentTab === 'breath' && (

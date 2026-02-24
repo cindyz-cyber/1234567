@@ -20,13 +20,18 @@ export default function Navigation({ currentTab, onTabChange, isAdmin = false }:
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 border-t ethereal-transition transparent-nav"
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 rounded-full ethereal-transition floating-dock"
       style={{
-        backgroundColor: 'transparent',
-        borderTopColor: 'rgba(235, 200, 98, 0.1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+        backdropFilter: 'blur(40px)',
+        WebkitBackdropFilter: 'blur(40px)',
+        border: '0.5px solid rgba(247, 231, 206, 0.12)',
+        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(247, 231, 206, 0.05) inset',
+        padding: '12px 24px',
+        zIndex: 50,
       }}
     >
-      <div className="flex items-center justify-around max-w-md mx-auto px-6 py-4">
+      <div className="flex items-center justify-center gap-8">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = currentTab === tab.id;
@@ -34,58 +39,53 @@ export default function Navigation({ currentTab, onTabChange, isAdmin = false }:
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className="flex flex-col items-center gap-1 py-2 px-4 ethereal-transition nav-tab"
+              className="flex flex-col items-center gap-1.5 ethereal-transition nav-tab"
               style={{
-                color: '#EBC862',
-                opacity: isActive ? 1 : 0.5,
+                color: '#F7E7CE',
+                opacity: isActive ? 1 : 0.4,
                 position: 'relative',
+                padding: '8px',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
-              <Icon size={22} strokeWidth={1} />
-              <span className="text-xs font-light" style={{ letterSpacing: '0.04em' }}>{tab.label}</span>
-              {isActive && <div className="golden-glow" />}
+              <Icon size={20} strokeWidth={1.5} />
+              {isActive && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    width: '4px',
+                    height: '4px',
+                    borderRadius: '50%',
+                    background: '#F7E7CE',
+                    bottom: '0',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    boxShadow: '0 0 12px 3px rgba(247, 231, 206, 0.8), 0 0 24px 6px rgba(247, 231, 206, 0.4)',
+                  }}
+                />
+              )}
             </button>
           );
         })}
       </div>
 
       <style>{`
-        .transparent-nav {
-          backdrop-filter: none;
+        .floating-dock {
+          animation: dockFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes dockFloat {
+          0%, 100% {
+            transform: translate(-50%, 0);
+          }
+          50% {
+            transform: translate(-50%, -4px);
+          }
         }
 
         .nav-tab:hover {
           opacity: 1 !important;
-        }
-
-        .golden-glow {
-          position: absolute;
-          bottom: 0;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 4px;
-          height: 4px;
-          border-radius: 50%;
-          background: #EBC862;
-          box-shadow:
-            0 0 8px 2px rgba(235, 200, 98, 0.8),
-            0 0 16px 4px rgba(235, 200, 98, 0.4);
-          animation: glowPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes glowPulse {
-          0%, 100% {
-            opacity: 0.8;
-            box-shadow:
-              0 0 8px 2px rgba(235, 200, 98, 0.8),
-              0 0 16px 4px rgba(235, 200, 98, 0.4);
-          }
-          50% {
-            opacity: 1;
-            box-shadow:
-              0 0 12px 3px rgba(235, 200, 98, 1),
-              0 0 24px 6px rgba(235, 200, 98, 0.6);
-          }
+          transform: scale(1.1);
         }
       `}</style>
     </nav>

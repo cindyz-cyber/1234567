@@ -44,9 +44,9 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
               <p
                 className="text-base text-center leading-loose font-light fade-in-text"
                 style={{
-                  color: '#F5F5E8',
-                  letterSpacing: '0.08em',
-                  lineHeight: '2',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  letterSpacing: '0.15em',
+                  lineHeight: '2.2',
                   animation: 'fadeInGlow 2s ease-in-out'
                 }}
               >
@@ -57,10 +57,9 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
               <p
                 className="text-sm text-center leading-loose font-light fade-in-text-delayed"
                 style={{
-                  color: '#F5F5E8',
-                  letterSpacing: '0.08em',
-                  opacity: 0.9,
-                  lineHeight: '1.9',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  letterSpacing: '0.15em',
+                  lineHeight: '2',
                   animation: 'fadeInGlow 2s ease-in-out 0.8s both'
                 }}
               >
@@ -106,7 +105,15 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
           <form onSubmit={handleSecondSubmit} className="space-y-16">
             <h1
               className="text-2xl text-center leading-loose font-light"
-              style={{ color: '#EBC862', letterSpacing: '0.06em' }}
+              style={{
+                background: 'linear-gradient(135deg, #F7E7CE 0%, #EBC862 50%, #D4AF37 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '0.15em',
+                textShadow: '0 0 30px rgba(247, 231, 206, 0.3)',
+                filter: 'drop-shadow(0 2px 12px rgba(247, 231, 206, 0.4))',
+              }}
             >
               它该如何称呼你？
             </h1>

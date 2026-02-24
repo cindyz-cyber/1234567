@@ -7,14 +7,8 @@ interface PremiumModalProps {
 
 export default function PremiumModal({ onClose, onSubscribe }: PremiumModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}>
-      <div
-        className="relative w-full max-w-md p-8 rounded-3xl glassmorphism"
-        style={{
-          border: '1px solid rgba(247, 231, 206, 0.3)',
-          boxShadow: '0 20px 60px rgba(247, 231, 206, 0.4), inset 0 0 40px rgba(247, 231, 206, 0.1)',
-        }}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)' }}>
+      <div className="relative w-full max-w-md p-10 rounded-3xl ultra-glass">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full transition-all hover:scale-110"
@@ -41,7 +35,7 @@ export default function PremiumModal({ onClose, onSubscribe }: PremiumModalProps
             >
               植本人专属能量空间
             </h2>
-            <p className="text-sm font-light" style={{ color: '#E0E0D0', opacity: 0.9, letterSpacing: '0.04em' }}>
+            <p className="text-sm font-light" style={{ color: 'rgba(255, 255, 255, 0.6)', letterSpacing: '0.12em' }}>
               成为核心植本人，开启深层疗愈之旅
             </p>
           </div>
@@ -54,14 +48,14 @@ export default function PremiumModal({ onClose, onSubscribe }: PremiumModalProps
             ].map((feature, index) => (
               <div
                 key={index}
-                className="flex items-center gap-4 p-4 rounded-2xl"
+                className="flex items-center gap-4 p-5 rounded-2xl"
                 style={{
-                  backgroundColor: 'rgba(235, 200, 98, 0.05)',
-                  border: '0.5px solid rgba(235, 200, 98, 0.2)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  border: '0.5px solid rgba(255, 255, 255, 0.08)',
                 }}
               >
-                <feature.icon size={20} style={{ color: '#EBC862' }} />
-                <p className="font-light" style={{ color: '#E0E0D0', letterSpacing: '0.03em' }}>
+                <feature.icon size={20} style={{ color: '#F7E7CE' }} />
+                <p className="font-light" style={{ color: 'rgba(255, 255, 255, 0.7)', letterSpacing: '0.12em' }}>
                   {feature.text}
                 </p>
               </div>
@@ -73,11 +67,11 @@ export default function PremiumModal({ onClose, onSubscribe }: PremiumModalProps
               onClick={onSubscribe}
               className="w-full py-4 rounded-full font-light subscribe-button"
               style={{
-                backgroundColor: 'rgba(235, 200, 98, 0.15)',
-                border: '1.5px solid #EBC862',
-                color: '#EBC862',
-                letterSpacing: '0.08em',
-                boxShadow: '0 0 30px rgba(235, 200, 98, 0.3), inset 0 0 20px rgba(235, 200, 98, 0.1)',
+                backgroundColor: 'rgba(247, 231, 206, 0.1)',
+                border: '1px solid rgba(247, 231, 206, 0.3)',
+                color: '#F7E7CE',
+                letterSpacing: '0.15em',
+                boxShadow: '0 0 30px rgba(247, 231, 206, 0.3)',
                 transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
@@ -88,10 +82,9 @@ export default function PremiumModal({ onClose, onSubscribe }: PremiumModalProps
               onClick={onClose}
               className="w-full py-3 rounded-full font-light later-button"
               style={{
-                border: '0.5px solid rgba(235, 200, 98, 0.3)',
-                color: '#E0E0D0',
-                opacity: 0.6,
-                letterSpacing: '0.04em',
+                border: '0.5px solid rgba(255, 255, 255, 0.1)',
+                color: 'rgba(255, 255, 255, 0.5)',
+                letterSpacing: '0.12em',
                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
@@ -100,11 +93,14 @@ export default function PremiumModal({ onClose, onSubscribe }: PremiumModalProps
           </div>
           <style>{`
             .subscribe-button:hover {
-              transform: scale(1.05);
+              transform: scale(1.02);
+              box-shadow: 0 0 50px rgba(247, 231, 206, 0.5);
+              background-color: rgba(247, 231, 206, 0.15);
             }
 
             .later-button:hover {
-              opacity: 1 !important;
+              color: rgba(255, 255, 255, 0.8) !important;
+              border-color: rgba(255, 255, 255, 0.2);
             }
           `}</style>
         </div>
