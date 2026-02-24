@@ -55,14 +55,15 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           className="text-center serif-text"
           style={{
             color: '#F7E7CE',
-            fontSize: '16px',
-            fontWeight: 300,
-            letterSpacing: '0.3em',
+            fontSize: '15px',
+            fontWeight: 200,
+            letterSpacing: '0.4em',
             textShadow: '0 2px 12px rgba(247, 231, 206, 0.3)',
             fontFamily: 'Georgia, "Times New Roman", serif',
+            opacity: 0.8,
           }}
         >
-          想和你的"高我"聊一下吗
+          想和「{higherSelfName}」聊一聊吗
         </p>
       </div>
 
@@ -71,9 +72,9 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           width: 280px;
           height: 280px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(25px);
-          border: 0.8px solid rgba(247, 231, 206, 0.2);
+          background: transparent !important;
+          backdrop-filter: blur(15px);
+          border: 1.5px solid rgba(247, 231, 206, 0.6);
           animation: crystalBreathe 7s ease-in-out infinite;
           position: relative;
           z-index: 2;
@@ -81,16 +82,44 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           align-items: center;
           justify-content: center;
           box-shadow:
-            0 0 50px rgba(247, 231, 206, 0.15),
-            inset 0 0 30px rgba(247, 231, 206, 0.1);
+            0 0 20px rgba(247, 231, 206, 0.4),
+            0 0 60px rgba(247, 231, 206, 0.2),
+            inset 0 0 40px rgba(247, 231, 206, 0.15);
           transition: all 0.5s ease;
+        }
+
+        .divine-golden-tree::before,
+        .divine-golden-tree::after {
+          content: '';
+          position: absolute;
+          width: 40px;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(247, 231, 206, 0.8), transparent);
+          border-radius: 50%;
+          animation: electricArc 2s ease-in-out infinite;
+          opacity: 0;
+        }
+
+        .divine-golden-tree::before {
+          top: 15%;
+          right: -5px;
+          transform: rotate(45deg);
+          animation-delay: 0.3s;
+        }
+
+        .divine-golden-tree::after {
+          bottom: 20%;
+          left: -5px;
+          transform: rotate(-30deg);
+          animation-delay: 1.2s;
         }
 
         .divine-golden-tree:hover {
           transform: scale(1.05);
           box-shadow:
-            0 0 80px rgba(247, 231, 206, 0.25),
-            inset 0 0 40px rgba(247, 231, 206, 0.15);
+            0 0 30px rgba(247, 231, 206, 0.5),
+            0 0 80px rgba(247, 231, 206, 0.3),
+            inset 0 0 50px rgba(247, 231, 206, 0.2);
         }
 
         .tree-icon {
@@ -126,14 +155,31 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           0%, 100% {
             transform: scale(1);
             box-shadow:
-              0 0 50px rgba(247, 231, 206, 0.15),
-              inset 0 0 30px rgba(247, 231, 206, 0.1);
+              0 0 20px rgba(247, 231, 206, 0.4),
+              0 0 60px rgba(247, 231, 206, 0.2),
+              inset 0 0 40px rgba(247, 231, 206, 0.15);
           }
           50% {
             transform: scale(1.05);
             box-shadow:
-              0 0 100px rgba(247, 231, 206, 0.3),
-              inset 0 0 40px rgba(247, 231, 206, 0.15);
+              0 0 30px rgba(247, 231, 206, 0.5),
+              0 0 80px rgba(247, 231, 206, 0.3),
+              inset 0 0 50px rgba(247, 231, 206, 0.2);
+          }
+        }
+
+        @keyframes electricArc {
+          0%, 100% {
+            opacity: 0;
+            transform: scale(0.8);
+          }
+          5%, 15% {
+            opacity: 0.9;
+            transform: scale(1);
+          }
+          20% {
+            opacity: 0;
+            transform: scale(0.8);
           }
         }
 
