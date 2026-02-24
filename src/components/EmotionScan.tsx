@@ -379,7 +379,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           left: 0;
           width: 100%;
           height: 100%;
-          background-image: url('https://images.pexels.com/photos/1287075/pexels-photo-1287075.jpeg?auto=compress&cs=tinysrgb&w=1920');
+          background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
           background-size: cover;
           background-position: center;
           filter: blur(8px);
