@@ -378,28 +378,28 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           top: 0;
           left: 0;
           width: 100%;
-          height: 66.66%;
+          height: 66vh;
           background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
           filter: blur(25px);
-          opacity: 0.35;
+          opacity: 0.5;
           z-index: 1;
           pointer-events: none;
           animation: forestBreath 8s ease-in-out infinite;
-          mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-          -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+          mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+          -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
         }
 
         @keyframes forestBreath {
           0%, 100% {
             transform: scale(1);
-            opacity: 0.35;
+            opacity: 0.5;
           }
           50% {
             transform: scale(1.02);
-            opacity: 0.4;
+            opacity: 0.6;
           }
         }
 
