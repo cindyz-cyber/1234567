@@ -14,6 +14,7 @@ import BookOfAnswers from './components/BookOfAnswers';
 import PremiumModal from './components/PremiumModal';
 import AdminPanel from './components/AdminPanel';
 import GoldenDust from './components/GoldenDust';
+import VideoBackground from './components/VideoBackground';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
@@ -215,6 +216,7 @@ function App() {
 
   return (
     <>
+      <VideoBackground />
       <GoldenDust />
       <Header />
 

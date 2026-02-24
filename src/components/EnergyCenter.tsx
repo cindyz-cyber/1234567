@@ -106,7 +106,7 @@ export default function EnergyCenter({ isPremium = false, onPremiumRequired }: E
     <div
       className="fixed inset-0 flex flex-col items-center justify-center px-6 transition-opacity duration-1000"
       style={{
-        backgroundColor: '#020A09',
+        backgroundColor: 'transparent',
         opacity: fadeIn ? 1 : 0,
       }}
     >

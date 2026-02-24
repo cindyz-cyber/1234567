@@ -24,18 +24,25 @@ export default function DeepASMR({ onBack }: DeepASMRProps) {
     <div
       className="fixed inset-0 flex items-center justify-center transition-opacity duration-800"
       style={{
-        background: 'linear-gradient(180deg, #020a09 0%, #0a0f0e 100%)',
+        background: 'transparent',
         opacity: fadeIn ? 1 : 0,
       }}
     >
       <div className="relative w-full h-full flex flex-col items-center justify-center">
-        <div
-          className="absolute top-8 left-8 text-xs font-light tracking-widest cursor-pointer transition-opacity duration-300 hover:opacity-100"
-          style={{ color: '#EBC862', opacity: 0.4 }}
+        <button
+          className="absolute top-8 left-8 text-xs font-light cursor-pointer transition-all duration-300 hover:opacity-100 hover:scale-110"
+          style={{
+            color: '#F7E7CE',
+            opacity: 0.6,
+            letterSpacing: '0.25em',
+            background: 'transparent',
+            border: 'none',
+            textShadow: '0 0 20px rgba(247, 231, 206, 0.4)',
+          }}
           onClick={onBack}
         >
           返回
-        </div>
+        </button>
 
         <div
           className="text-center space-y-12 transition-all duration-1000"

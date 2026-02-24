@@ -25,15 +25,21 @@ export default function IntentSeeds({ onSelectIntent, onBack }: IntentSeedsProps
     <div
       className="fixed inset-0 flex flex-col items-center justify-center px-6 py-8 transition-opacity duration-1000"
       style={{
-        backgroundColor: '#020A09',
+        backgroundColor: 'transparent',
         opacity: fadeIn ? 1 : 0,
       }}
     >
-      <div className="golden-particles" />
       <button
         onClick={onBack}
-        className="absolute top-8 left-8 text-xs font-light tracking-widest transition-all duration-300 hover:opacity-100 hover:scale-110 z-20"
-        style={{ color: '#EBC862', opacity: 0.7 }}
+        className="absolute top-8 left-8 text-xs font-light transition-all duration-300 hover:opacity-100 hover:scale-110 z-20"
+        style={{
+          color: '#F7E7CE',
+          opacity: 0.6,
+          letterSpacing: '0.25em',
+          background: 'transparent',
+          border: 'none',
+          textShadow: '0 0 20px rgba(247, 231, 206, 0.4)',
+        }}
       >
         返回
       </button>
@@ -48,14 +54,14 @@ export default function IntentSeeds({ onSelectIntent, onBack }: IntentSeedsProps
               transition: `all 1s ease-out ${(index + 1) * 150}ms`,
             }}
           >
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-3">
               <BreathingOrb
                 label={seed.name}
                 onClick={() => onSelectIntent(seed.id)}
               />
               <p
-                className="text-xs font-light tracking-widest text-center"
-                style={{ color: '#EBC862', opacity: 0.7 }}
+                className="text-xs font-light text-center"
+                style={{ color: 'rgba(255, 255, 255, 0.5)', letterSpacing: '0.25em' }}
               >
                 {seed.subtitle}
               </p>
@@ -97,14 +103,14 @@ export default function IntentSeeds({ onSelectIntent, onBack }: IntentSeedsProps
               transition: `all 1s ease-out ${(index + 4) * 150}ms`,
             }}
           >
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-3">
               <BreathingOrb
                 label={seed.name}
                 onClick={() => onSelectIntent(seed.id)}
               />
               <p
-                className="text-xs font-light tracking-widest text-center"
-                style={{ color: '#EBC862', opacity: 0.7 }}
+                className="text-xs font-light text-center"
+                style={{ color: 'rgba(255, 255, 255, 0.5)', letterSpacing: '0.25em' }}
               >
                 {seed.subtitle}
               </p>
