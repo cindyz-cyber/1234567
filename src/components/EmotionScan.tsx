@@ -106,6 +106,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative">
+      <div className="forest-background-layer" />
+
       {onBack && (
         <button
           onClick={onBack}
@@ -123,10 +125,10 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         <div className="flex-1 flex flex-col justify-center items-center max-w-4xl mx-auto w-full relative" style={{ paddingTop: '60px', paddingBottom: '40px' }}>
           <div className="mb-8 text-center">
             <p className="text-sm" style={{
-              color: '#FFFFFF',
+              color: '#FFF9E5',
               fontWeight: 400,
               letterSpacing: '0.25em',
-              textShadow: '0 2px 8px rgba(255, 255, 255, 0.6), 0 0 20px rgba(247, 231, 206, 0.4)',
+              textShadow: '0 0 10px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(255, 255, 255, 0.6)',
               position: 'relative',
               zIndex: 100
             }}>
@@ -165,11 +167,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
                 boxShadow: '0 0 30px rgba(247, 231, 206, 0.5), 0 0 60px rgba(247, 231, 206, 0.2)'
               }}>
                 <p className="text-center mb-6" style={{
-                  color: '#FFFFFF',
+                  color: '#FFF9E5',
                   fontWeight: 400,
                   letterSpacing: '0.25em',
                   fontSize: '16px',
-                  textShadow: '0 2px 8px rgba(255, 255, 255, 0.6)'
+                  textShadow: '0 0 10px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(255, 255, 255, 0.6)'
                 }}>
                   请输入你的情绪
                 </p>
@@ -228,10 +230,10 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
           <div className="mb-6 text-center">
             <p className="text-base" style={{
-              color: '#FFFFFF',
+              color: '#FFF9E5',
               fontWeight: 400,
               letterSpacing: '0.25em',
-              textShadow: '0 2px 8px rgba(255, 255, 255, 0.6), 0 0 20px rgba(247, 231, 206, 0.4)',
+              textShadow: '0 0 10px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(255, 255, 255, 0.6)',
               position: 'relative',
               zIndex: 100
             }}>
@@ -270,11 +272,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
                 boxShadow: '0 0 30px rgba(247, 231, 206, 0.5), 0 0 60px rgba(247, 231, 206, 0.2)'
               }}>
                 <p className="text-center mb-6" style={{
-                  color: '#FFFFFF',
+                  color: '#FFF9E5',
                   fontWeight: 400,
                   letterSpacing: '0.25em',
                   fontSize: '16px',
-                  textShadow: '0 2px 8px rgba(255, 255, 255, 0.6)'
+                  textShadow: '0 0 10px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(255, 255, 255, 0.6)'
                 }}>
                   请输入你的身体感受
                 </p>
@@ -371,30 +373,78 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
       )}
 
       <style>{`
+        .forest-background-layer {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-image: url('https://images.pexels.com/photos/1287075/pexels-photo-1287075.jpeg?auto=compress&cs=tinysrgb&w=1920');
+          background-size: cover;
+          background-position: center;
+          filter: blur(8px);
+          opacity: 0.85;
+          z-index: 1;
+          pointer-events: none;
+          mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.3) 85%, rgba(0,0,0,0) 100%);
+          -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.3) 85%, rgba(0,0,0,0) 100%);
+          animation: forestBreath 8s ease-in-out infinite;
+        }
+
+        @keyframes forestBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.85;
+          }
+          50% {
+            transform: scale(1.02);
+            opacity: 0.9;
+          }
+        }
+
         .bubble-universe {
           position: relative;
+          z-index: 10;
         }
 
         .glass-bubble {
           width: 100px;
           height: 100px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.4);
+          background: transparent;
+          backdrop-filter: blur(0px);
+          border: 0.5px solid rgba(255, 255, 255, 0.5);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           opacity: 0;
-          animation: bubbleFloat 1.2s ease-out forwards;
+          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat 6s ease-in-out infinite;
           box-shadow:
-            0 0 15px rgba(247, 231, 206, 0.6),
-            0 0 40px rgba(247, 231, 206, 0.2),
-            0 4px 16px rgba(0, 0, 0, 0.2),
-            inset 0 1px 2px rgba(255, 255, 255, 0.2);
+            0 0 20px rgba(247, 231, 206, 0.4),
+            0 0 40px rgba(247, 231, 206, 0.15),
+            inset 0 0 30px rgba(255, 255, 255, 0.08);
           position: relative;
+          overflow: hidden;
+        }
+
+        .glass-bubble::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), transparent 60%);
+          pointer-events: none;
+        }
+
+        @keyframes subtleFloat {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-3px);
+          }
         }
 
         .body-bubble {
@@ -404,60 +454,62 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
         .golden-halo {
           position: absolute;
-          inset: -10px;
+          inset: -12px;
           border-radius: 50%;
           background: transparent;
-          border: 2px solid rgba(247, 231, 206, 0.5);
-          opacity: 0.8;
+          border: 1.5px solid rgba(247, 231, 206, 0.4);
+          opacity: 0.7;
           animation: haloBreath 4s ease-in-out infinite;
           pointer-events: none;
           box-shadow:
-            0 0 20px rgba(247, 231, 206, 0.6),
-            0 0 40px rgba(247, 231, 206, 0.3);
+            0 0 25px rgba(247, 231, 206, 0.5),
+            0 0 45px rgba(247, 231, 206, 0.25);
         }
 
-
         .glass-bubble:hover .golden-halo {
-          border-color: rgba(247, 231, 206, 0.8);
+          border-color: rgba(247, 231, 206, 0.7);
           opacity: 1;
-          transform: scale(1.12);
+          transform: scale(1.1);
           box-shadow:
-            0 0 30px rgba(247, 231, 206, 0.8),
+            0 0 35px rgba(247, 231, 206, 0.7),
             0 0 60px rgba(247, 231, 206, 0.4);
         }
 
         .glass-bubble:hover .bubble-content {
           transform: scale(1.08);
-          color: #FFFFFF;
+          color: #FFF9E5;
+          text-shadow:
+            0 0 10px rgba(0, 0, 0, 0.9),
+            0 2px 15px rgba(255, 255, 255, 0.8),
+            0 0 30px rgba(247, 231, 206, 0.7);
         }
 
         .glass-bubble:hover {
-          background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(247, 231, 206, 0.6);
+          background: transparent;
+          border-color: rgba(255, 255, 255, 0.7);
           box-shadow:
-            0 0 20px rgba(247, 231, 206, 0.8),
-            0 0 50px rgba(247, 231, 206, 0.4),
-            0 8px 32px rgba(235, 200, 98, 0.3),
-            inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            0 0 25px rgba(247, 231, 206, 0.6),
+            0 0 50px rgba(247, 231, 206, 0.3),
+            inset 0 0 40px rgba(255, 255, 255, 0.1);
         }
 
         .glass-bubble.selected {
-          background: rgba(247, 231, 206, 0.2);
-          border-color: rgba(247, 231, 206, 0.8);
+          background: rgba(247, 231, 206, 0.08);
+          border-color: rgba(247, 231, 206, 0.9);
           box-shadow:
-            0 0 30px rgba(247, 231, 206, 0.9),
-            0 0 60px rgba(247, 231, 206, 0.5),
-            0 0 90px rgba(235, 200, 98, 0.3),
-            inset 0 2px 8px rgba(255, 255, 255, 0.3);
-          animation: bubbleFloat 1.2s ease-out forwards, selectedGlow 2s ease-in-out infinite;
+            0 0 35px rgba(247, 231, 206, 0.8),
+            0 0 65px rgba(247, 231, 206, 0.5),
+            0 0 95px rgba(235, 200, 98, 0.3),
+            inset 0 0 50px rgba(255, 255, 255, 0.15);
+          animation: bubbleFloat 1.2s ease-out forwards, selectedGlow 2s ease-in-out infinite, subtleFloat 6s ease-in-out infinite;
         }
 
         .glass-bubble.selected .golden-halo {
-          border-color: rgba(247, 231, 206, 1);
+          border-color: rgba(247, 231, 206, 0.95);
           opacity: 1;
           box-shadow:
-            0 0 35px rgba(247, 231, 206, 0.9),
-            0 0 70px rgba(247, 231, 206, 0.5);
+            0 0 40px rgba(247, 231, 206, 0.9),
+            0 0 75px rgba(247, 231, 206, 0.5);
         }
 
 
@@ -466,14 +518,14 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           font-size: 15px;
           font-weight: 500;
           letter-spacing: 0.25em;
-          color: #FFFFFF;
+          color: #FFF9E5;
           text-shadow:
-            0 2px 10px rgba(255, 255, 255, 0.9),
-            0 0 25px rgba(255, 255, 255, 0.7),
-            0 0 35px rgba(247, 231, 206, 0.6);
+            0 0 10px rgba(0, 0, 0, 0.8),
+            0 2px 12px rgba(255, 255, 255, 0.9),
+            0 0 25px rgba(247, 231, 206, 0.6);
           position: relative;
           z-index: 10;
-          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease, text-shadow 0.3s ease;
           filter: none;
         }
 
@@ -497,17 +549,17 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         @keyframes selectedGlow {
           0%, 100% {
             box-shadow:
-              0 0 30px rgba(247, 231, 206, 0.9),
-              0 0 60px rgba(247, 231, 206, 0.5),
-              0 0 90px rgba(235, 200, 98, 0.3),
-              inset 0 2px 8px rgba(255, 255, 255, 0.3);
+              0 0 35px rgba(247, 231, 206, 0.8),
+              0 0 65px rgba(247, 231, 206, 0.5),
+              0 0 95px rgba(235, 200, 98, 0.3),
+              inset 0 0 50px rgba(255, 255, 255, 0.15);
           }
           50% {
             box-shadow:
-              0 0 40px rgba(247, 231, 206, 1),
-              0 0 80px rgba(247, 231, 206, 0.6),
-              0 0 120px rgba(235, 200, 98, 0.4),
-              inset 0 2px 10px rgba(255, 255, 255, 0.4);
+              0 0 45px rgba(247, 231, 206, 1),
+              0 0 85px rgba(247, 231, 206, 0.6),
+              0 0 125px rgba(235, 200, 98, 0.4),
+              inset 0 0 60px rgba(255, 255, 255, 0.2);
           }
         }
 
