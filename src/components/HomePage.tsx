@@ -72,7 +72,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           width: 280px;
           height: 280px;
           border-radius: 50%;
-          background: transparent !important;
+          background: none !important;
           backdrop-filter: blur(15px);
           border: 1.5px solid rgba(247, 231, 206, 0.6);
           animation: crystalBreathe 7s ease-in-out infinite;
@@ -83,8 +83,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           justify-content: center;
           box-shadow:
             0 0 20px rgba(247, 231, 206, 0.4),
-            0 0 60px rgba(247, 231, 206, 0.2),
-            inset 0 0 40px rgba(247, 231, 206, 0.15);
+            0 0 60px rgba(247, 231, 206, 0.2);
           transition: all 0.5s ease;
         }
 
@@ -118,8 +117,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           transform: scale(1.05);
           box-shadow:
             0 0 30px rgba(247, 231, 206, 0.5),
-            0 0 80px rgba(247, 231, 206, 0.3),
-            inset 0 0 50px rgba(247, 231, 206, 0.2);
+            0 0 80px rgba(247, 231, 206, 0.3);
         }
 
         .tree-icon {
@@ -156,15 +154,13 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
             transform: scale(1);
             box-shadow:
               0 0 20px rgba(247, 231, 206, 0.4),
-              0 0 60px rgba(247, 231, 206, 0.2),
-              inset 0 0 40px rgba(247, 231, 206, 0.15);
+              0 0 60px rgba(247, 231, 206, 0.2);
           }
           50% {
             transform: scale(1.05);
             box-shadow:
               0 0 30px rgba(247, 231, 206, 0.5),
-              0 0 80px rgba(247, 231, 206, 0.3),
-              inset 0 0 50px rgba(247, 231, 206, 0.2);
+              0 0 80px rgba(247, 231, 206, 0.3);
           }
         }
 
