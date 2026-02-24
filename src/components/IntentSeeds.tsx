@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import BreathingOrb from './BreathingOrb';
 
 interface IntentSeedsProps {
   onSelectIntent: (intent: string) => void;
@@ -6,11 +7,11 @@ interface IntentSeedsProps {
 }
 
 const INTENT_SEEDS = [
-  { id: 'uplift', name: '当下提频', color: 'rgba(255, 215, 0, 0.15)' },
-  { id: 'abundance', name: '丰盛显化', color: 'rgba(255, 200, 0, 0.15)' },
-  { id: 'joy', name: '喜悦关系', color: 'rgba(255, 190, 0, 0.15)' },
-  { id: 'healing', name: '深层修复', color: 'rgba(255, 180, 0, 0.15)' },
-  { id: 'connection', name: '高维连接', color: 'rgba(255, 170, 0, 0.15)' },
+  { id: 'instant_elevation', name: '当下提频', subtitle: '去烦恼 · 清负' },
+  { id: 'abundance', name: '丰盛显化', subtitle: '钱 · 事业' },
+  { id: 'relationships', name: '情绪修复', subtitle: '情感 · 社交' },
+  { id: 'deep_healing', name: '身体修复', subtitle: '脉轮 · 脏腑' },
+  { id: 'high_self', name: '高维连接', subtitle: '高我 · 直觉' },
 ];
 
 export default function IntentSeeds({ onSelectIntent, onBack }: IntentSeedsProps) {
@@ -22,93 +23,94 @@ export default function IntentSeeds({ onSelectIntent, onBack }: IntentSeedsProps
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center px-6 transition-opacity duration-800"
+      className="fixed inset-0 flex flex-col items-center justify-center px-6 py-8 transition-opacity duration-1000"
       style={{
-        background: 'linear-gradient(180deg, #0a0f0e 0%, #020a09 100%)',
+        backgroundColor: '#020A09',
         opacity: fadeIn ? 1 : 0,
       }}
     >
-      <div className="max-w-md w-full space-y-8">
-        <div
-          className="text-center space-y-4 transition-all duration-800"
-          style={{
-            transform: fadeIn ? 'translateY(0)' : 'translateY(20px)',
-            opacity: fadeIn ? 1 : 0,
-          }}
-        >
-          <h2
-            className="text-2xl font-light tracking-widest"
-            style={{ color: '#EBC862' }}
-          >
-            意图种子
-          </h2>
-          <p
-            className="text-sm font-light tracking-wide"
-            style={{ color: '#E0E0D0', opacity: 0.7 }}
-          >
-            选择一个意图，开启能量流动
-          </p>
-        </div>
+      <button
+        onClick={onBack}
+        className="absolute top-8 left-8 text-xs font-light tracking-widest transition-all duration-300 hover:opacity-100"
+        style={{ color: '#EBC862', opacity: 0.6 }}
+      >
+        返回
+      </button>
 
-        <div className="grid grid-cols-1 gap-6 py-8">
-          {INTENT_SEEDS.map((seed, index) => (
-            <button
-              key={seed.id}
-              onClick={() => onSelectIntent(seed.id)}
-              className="intent-seed-sphere relative h-24 rounded-3xl backdrop-blur-xl transition-all duration-500 hover:scale-105"
-              style={{
-                backgroundColor: seed.color,
-                border: '1px solid rgba(235, 200, 98, 0.3)',
-                boxShadow: '0 8px 32px rgba(235, 200, 98, 0.1)',
-                transitionDelay: `${index * 100}ms`,
-                opacity: fadeIn ? 1 : 0,
-                transform: fadeIn ? 'scale(1)' : 'scale(0.9)',
-              }}
-            >
-              <div className="breathing-glow absolute inset-0 rounded-3xl" style={{
-                boxShadow: '0 0 40px rgba(235, 200, 98, 0.3)',
-              }} />
-              <div className="relative h-full flex items-center justify-center">
-                <span
-                  className="text-xl font-light tracking-widest"
-                  style={{ color: '#EBC862' }}
-                >
-                  {seed.name}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <button
-          onClick={onBack}
-          className="w-full py-3 text-sm font-light tracking-widest transition-all duration-300 hover:opacity-80"
-          style={{ color: '#EBC862', opacity: 0.6 }}
-        >
-          返回
-        </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-5xl w-full items-center justify-items-center">
+        {INTENT_SEEDS.slice(0, 2).map((seed, index) => (
+          <div
+            key={seed.id}
+            style={{
+              opacity: fadeIn ? 1 : 0,
+              transform: fadeIn ? 'scale(1)' : 'scale(0.85)',
+              transition: `all 1s ease-out ${(index + 1) * 150}ms`,
+            }}
+          >
+            <div className="flex flex-col items-center gap-4">
+              <BreathingOrb
+                label={seed.name}
+                onClick={() => onSelectIntent(seed.id)}
+              />
+              <p
+                className="text-xs font-light tracking-widest text-center"
+                style={{ color: '#EBC862', opacity: 0.5 }}
+              >
+                {seed.subtitle}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <style>{`
-        @keyframes breathe {
-          0%, 100% {
-            opacity: 0.3;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.6;
-            transform: scale(1.05);
-          }
-        }
+      <div className="mt-16 mb-16">
+        <div
+          style={{
+            opacity: fadeIn ? 1 : 0,
+            transform: fadeIn ? 'scale(1)' : 'scale(0.85)',
+            transition: 'all 1s ease-out 450ms',
+          }}
+        >
+          <div className="flex flex-col items-center gap-4">
+            <BreathingOrb
+              label={INTENT_SEEDS[2].name}
+              onClick={() => onSelectIntent(INTENT_SEEDS[2].id)}
+            />
+            <p
+              className="text-xs font-light tracking-widest text-center"
+              style={{ color: '#EBC862', opacity: 0.5 }}
+            >
+              {INTENT_SEEDS[2].subtitle}
+            </p>
+          </div>
+        </div>
+      </div>
 
-        .breathing-glow {
-          animation: breathe 4s ease-in-out infinite;
-        }
-
-        .intent-seed-sphere:hover .breathing-glow {
-          animation: breathe 2s ease-in-out infinite;
-        }
-      `}</style>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-5xl w-full items-center justify-items-center">
+        {INTENT_SEEDS.slice(3).map((seed, index) => (
+          <div
+            key={seed.id}
+            style={{
+              opacity: fadeIn ? 1 : 0,
+              transform: fadeIn ? 'scale(1)' : 'scale(0.85)',
+              transition: `all 1s ease-out ${(index + 4) * 150}ms`,
+            }}
+          >
+            <div className="flex flex-col items-center gap-4">
+              <BreathingOrb
+                label={seed.name}
+                onClick={() => onSelectIntent(seed.id)}
+              />
+              <p
+                className="text-xs font-light tracking-widest text-center"
+                style={{ color: '#EBC862', opacity: 0.5 }}
+              >
+                {seed.subtitle}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

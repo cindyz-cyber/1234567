@@ -37,13 +37,14 @@ export default function EnergyCenter({ isPremium = false, onPremiumRequired }: E
   };
 
   const handleOrbClick = (type: 'intent' | 'asmr') => {
+    setFadeIn(false);
     setTimeout(() => {
       if (type === 'intent') {
         setView('intent-seeds');
       } else {
         setView('deep-asmr');
       }
-    }, 300);
+    }, 500);
   };
 
   const handleTodayClick = () => {
