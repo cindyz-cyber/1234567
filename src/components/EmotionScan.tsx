@@ -124,7 +124,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
       {step === 'emotion' ? (
         <div className="flex-1 flex flex-col justify-center items-center max-w-4xl mx-auto w-full relative" style={{ paddingTop: '60px', paddingBottom: '40px' }}>
           <div className="mb-8 text-center">
-            <p className="text-sm" style={{
+            <p className="text-sm title-text" style={{
               color: '#FFF9E5',
               fontWeight: 400,
               letterSpacing: '0.25em',
@@ -228,7 +228,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             </div>
           )}
 
-          <div className="mb-6 text-center">
+          <div className="mb-6 text-center body-section-title">
             <p className="text-base" style={{
               color: '#FFF9E5',
               fontWeight: 400,
@@ -333,7 +333,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             </div>
           )}
 
-          <div className="w-full max-w-md mx-auto">
+          <div className="w-full max-w-md mx-auto continue-button-wrapper">
             <GoldButton
               onClick={handleContinueToWriting}
               disabled={selectedEmotions.length === 0 && selectedBodyStates.length === 0}
@@ -378,25 +378,28 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           top: 0;
           left: 0;
           width: 100%;
-          height: 100%;
+          height: 66.66%;
           background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
           background-size: cover;
           background-position: center;
-          filter: blur(8px);
-          opacity: 0.25;
-          z-index: 10;
+          background-attachment: fixed;
+          filter: blur(25px);
+          opacity: 0.35;
+          z-index: 1;
           pointer-events: none;
           animation: forestBreath 8s ease-in-out infinite;
+          mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+          -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
         }
 
         @keyframes forestBreath {
           0%, 100% {
             transform: scale(1);
-            opacity: 0.25;
+            opacity: 0.35;
           }
           50% {
             transform: scale(1.02);
-            opacity: 0.3;
+            opacity: 0.4;
           }
         }
 
@@ -429,12 +432,20 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
         .glass-bubble::before {
           content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
-          background: transparent;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
+          filter: none;
+          opacity: 1;
           pointer-events: none;
-          z-index: -1;
+          z-index: -2;
         }
 
         .glass-bubble::after {
@@ -444,6 +455,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           border-radius: 50%;
           background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), transparent 50%);
           pointer-events: none;
+          z-index: 1;
         }
 
         @keyframes subtleFloat {
@@ -697,6 +709,29 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
         video.hue-shifted {
           filter: hue-rotate(${activeHue}deg) contrast(1.2) brightness(1.1) saturate(1.1);
+        }
+
+        .title-text {
+          position: relative;
+          z-index: 100;
+        }
+
+        .body-section-title {
+          position: relative;
+          z-index: 100;
+        }
+
+        .body-section-title p {
+          color: #FFFFFF !important;
+          text-shadow:
+            0 0 15px rgba(0, 0, 0, 0.9),
+            0 2px 15px rgba(255, 255, 255, 0.9),
+            0 0 30px rgba(247, 231, 206, 0.7) !important;
+        }
+
+        .continue-button-wrapper {
+          position: relative;
+          z-index: 100;
         }
       `}</style>
     </div>
