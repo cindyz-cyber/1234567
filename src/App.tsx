@@ -180,7 +180,12 @@ function App() {
 
   if (currentStep === 'emotion' || currentStep === 'journal' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
     if (currentStep === 'emotion') {
-      return <EmotionScan onNext={handleEmotionComplete} />;
+      return (
+        <>
+          <VideoBackground />
+          <EmotionScan onNext={handleEmotionComplete} />
+        </>
+      );
     }
 
     if (currentStep === 'journal') {
