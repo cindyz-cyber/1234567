@@ -22,13 +22,14 @@ export default function Navigation({ currentTab, onTabChange, isAdmin = false }:
     <nav
       className="fixed bottom-6 left-1/2 -translate-x-1/2 rounded-full ethereal-transition floating-dock"
       style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-        backdropFilter: 'blur(40px)',
-        WebkitBackdropFilter: 'blur(40px)',
-        border: '0.5px solid rgba(247, 231, 206, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(247, 231, 206, 0.05) inset',
+        backgroundColor: 'rgba(255, 255, 255, 0.01)',
+        backdropFilter: 'blur(30px)',
+        WebkitBackdropFilter: 'blur(30px)',
+        border: '0.5px solid rgba(247, 231, 206, 0.08)',
+        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(247, 231, 206, 0.03) inset',
         padding: '12px 24px',
         zIndex: 50,
+        opacity: 0.9,
       }}
     >
       <div className="flex items-center justify-center gap-8">
