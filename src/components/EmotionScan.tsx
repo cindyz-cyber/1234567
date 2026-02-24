@@ -8,15 +8,28 @@ interface EmotionScanProps {
 }
 
 const EMOTIONS = [
-  { label: '焦虑', hue: 210 },
-  { label: '平和', hue: 120 },
-  { label: '愤怒', hue: 0 },
-  { label: '喜悦', hue: 45 },
-  { label: '迷茫', hue: 270 },
+  { label: '喜悦', hue: 45, x: 15, y: 20 },
+  { label: '平和', hue: 120, x: 45, y: 10 },
+  { label: '焦虑', hue: 210, x: 75, y: 25 },
+  { label: '迷茫', hue: 270, x: 25, y: 55 },
+  { label: '愤怒', hue: 0, x: 60, y: 50 },
+  { label: '悲伤', hue: 200, x: 85, y: 60 },
+  { label: '恐惧', hue: 280, x: 10, y: 80 },
+  { label: '丰盛', hue: 50, x: 50, y: 85 },
+];
+
+const BODY_STATES = [
+  { label: '紧绷', x: 20, y: 35 },
+  { label: '松弛', x: 55, y: 30 },
+  { label: '温热', x: 80, y: 45 },
+  { label: '空洞', x: 35, y: 70 },
+  { label: '沉重', x: 70, y: 75 },
+  { label: '轻盈', x: 90, y: 85 },
 ];
 
 export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
+  const [selectedBodyStates, setSelectedBodyStates] = useState<string[]>([]);
   const [journalContent, setJournalContent] = useState('');
   const [step, setStep] = useState<'emotion' | 'writing'>('emotion');
   const [activeHue, setActiveHue] = useState(0);
@@ -34,8 +47,18 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
     }
   };
 
+  const toggleBodyState = (state: string) => {
+    const isSelected = selectedBodyStates.includes(state);
+
+    if (isSelected) {
+      setSelectedBodyStates(prev => prev.filter(s => s !== state));
+    } else {
+      setSelectedBodyStates(prev => [...prev, state]);
+    }
+  };
+
   const handleContinueToWriting = () => {
-    if (selectedEmotions.length > 0) {
+    if (selectedEmotions.length > 0 || selectedBodyStates.length > 0) {
       setStep('writing');
     }
   };
@@ -44,7 +67,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
     if (journalContent.trim()) {
       setIsSubmitting(true);
       setTimeout(() => {
-        onNext(selectedEmotions, [journalContent]);
+        onNext(selectedEmotions, selectedBodyStates);
       }, 1200);
     }
   };
@@ -76,17 +99,29 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
       </div>
 
       {step === 'emotion' ? (
-        <div className="flex-1 flex flex-col justify-center items-center max-w-lg mx-auto w-full">
-          <div className="flex flex-wrap justify-center gap-8 mb-16">
+        <div className="flex-1 flex flex-col justify-center items-center max-w-4xl mx-auto w-full relative" style={{ paddingTop: '60px', paddingBottom: '40px' }}>
+          <div className="mb-8 text-center">
+            <p className="text-sm font-light" style={{ color: '#FFF5E1', letterSpacing: '0.25em', textShadow: '0 1px 4px rgba(255, 245, 225, 0.3)' }}>
+              此刻，你的情绪是
+            </p>
+          </div>
+
+          <div className="bubble-universe relative w-full" style={{ height: '350px', marginBottom: '40px' }}>
             {EMOTIONS.map((emotion, index) => (
               <button
                 key={emotion.label}
                 onClick={() => toggleEmotion(emotion.label, emotion.hue)}
-                className="glass-bubble"
+                className={`glass-bubble ${selectedEmotions.includes(emotion.label) ? 'selected' : ''}`}
                 style={{
-                  animationDelay: `${index * 0.15}s`,
+                  position: 'absolute',
+                  left: `${emotion.x}%`,
+                  top: `${emotion.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  animationDelay: `${index * 0.1}s`,
                 }}
               >
+                <div className="golden-halo" />
+                <div className="core-light" />
                 <div className="bubble-content">
                   {emotion.label}
                 </div>
@@ -94,10 +129,39 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             ))}
           </div>
 
-          <div className="w-full">
+          <div className="mb-6 text-center">
+            <p className="text-xs font-light" style={{ color: '#FFF5E1', opacity: 0.7, letterSpacing: '0.25em', textShadow: '0 1px 4px rgba(255, 245, 225, 0.3)' }}>
+              你的身体感受到
+            </p>
+          </div>
+
+          <div className="bubble-universe relative w-full" style={{ height: '240px', marginBottom: '50px' }}>
+            {BODY_STATES.map((state, index) => (
+              <button
+                key={state.label}
+                onClick={() => toggleBodyState(state.label)}
+                className={`glass-bubble body-bubble ${selectedBodyStates.includes(state.label) ? 'selected' : ''}`}
+                style={{
+                  position: 'absolute',
+                  left: `${state.x}%`,
+                  top: `${state.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  animationDelay: `${(index + EMOTIONS.length) * 0.1}s`,
+                }}
+              >
+                <div className="golden-halo" />
+                <div className="core-light" />
+                <div className="bubble-content">
+                  {state.label}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="w-full max-w-md mx-auto">
             <GoldButton
               onClick={handleContinueToWriting}
-              disabled={selectedEmotions.length === 0}
+              disabled={selectedEmotions.length === 0 && selectedBodyStates.length === 0}
               className="w-full"
             >
               继续
@@ -182,44 +246,147 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           }
         }
 
+        .bubble-universe {
+          position: relative;
+        }
+
         .glass-bubble {
-          width: 140px;
-          height: 140px;
+          width: 100px;
+          height: 100px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(15px);
-          border: 0.5px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(20px);
+          border: 0.5px solid rgba(255, 255, 255, 0.1);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           opacity: 0;
-          animation: bubbleFloat 1s ease-out forwards;
+          animation: bubbleFloat 1.2s ease-out forwards;
           box-shadow:
-            0 8px 32px rgba(0, 0, 0, 0.1),
-            inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            0 4px 16px rgba(0, 0, 0, 0.2),
+            inset 0 1px 1px rgba(255, 255, 255, 0.03);
+          position: relative;
+        }
+
+        .body-bubble {
+          width: 80px;
+          height: 80px;
+        }
+
+        .golden-halo {
+          position: absolute;
+          inset: -8px;
+          border-radius: 50%;
+          background: transparent;
+          border: 1px solid rgba(235, 200, 98, 0.25);
+          opacity: 0.5;
+          animation: haloBreath 4s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        .core-light {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(255, 245, 225, 0.9) 0%, rgba(235, 200, 98, 0.6) 50%, transparent 100%);
+          box-shadow: 0 0 8px rgba(255, 245, 225, 0.8);
+          animation: corePulse 3s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        .glass-bubble:hover .golden-halo {
+          border-color: rgba(235, 200, 98, 0.6);
+          opacity: 1;
+          transform: scale(1.1);
+          box-shadow: 0 0 20px rgba(235, 200, 98, 0.4);
+        }
+
+        .glass-bubble:hover .bubble-content {
+          transform: scale(1.08);
         }
 
         .glass-bubble:hover {
-          background: rgba(255, 255, 255, 0.08);
-          transform: translateY(-5px) scale(1.05);
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(235, 200, 98, 0.3);
           box-shadow:
-            0 12px 48px rgba(235, 200, 98, 0.15),
-            inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            0 8px 32px rgba(235, 200, 98, 0.2),
+            inset 0 2px 4px rgba(255, 255, 255, 0.1);
         }
 
-        .glass-bubble:active {
-          animation: hueShift 2s ease-in-out forwards;
+        .glass-bubble.selected {
+          background: rgba(235, 200, 98, 0.08);
+          border-color: rgba(235, 200, 98, 0.5);
+          box-shadow:
+            0 0 40px rgba(235, 200, 98, 0.4),
+            0 0 60px rgba(235, 200, 98, 0.2),
+            inset 0 2px 6px rgba(255, 255, 255, 0.15);
+          animation: bubbleFloat 1.2s ease-out forwards, selectedGlow 2s ease-in-out infinite;
+        }
+
+        .glass-bubble.selected .golden-halo {
+          border-color: rgba(235, 200, 98, 0.8);
+          opacity: 1;
+          box-shadow: 0 0 30px rgba(235, 200, 98, 0.6);
+        }
+
+        .glass-bubble.selected .core-light {
+          box-shadow: 0 0 16px rgba(255, 245, 225, 1);
         }
 
         .bubble-content {
           font-family: 'Georgia', 'Times New Roman', serif;
-          font-size: 18px;
+          font-size: 15px;
           font-weight: 300;
-          letter-spacing: 0.15em;
-          color: rgba(247, 231, 206, 0.9);
-          text-shadow: 0 2px 8px rgba(247, 231, 206, 0.2);
+          letter-spacing: 0.25em;
+          color: #FFF5E1;
+          text-shadow: 0 1px 6px rgba(255, 245, 225, 0.4);
+          position: relative;
+          z-index: 1;
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .body-bubble .bubble-content {
+          font-size: 13px;
+        }
+
+        @keyframes haloBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.5;
+          }
+          50% {
+            transform: scale(1.08);
+            opacity: 0.8;
+          }
+        }
+
+        @keyframes corePulse {
+          0%, 100% {
+            opacity: 0.7;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.3);
+          }
+        }
+
+        @keyframes selectedGlow {
+          0%, 100% {
+            box-shadow:
+              0 0 40px rgba(235, 200, 98, 0.4),
+              0 0 60px rgba(235, 200, 98, 0.2),
+              inset 0 2px 6px rgba(255, 255, 255, 0.15);
+          }
+          50% {
+            box-shadow:
+              0 0 50px rgba(235, 200, 98, 0.5),
+              0 0 80px rgba(235, 200, 98, 0.3),
+              inset 0 2px 8px rgba(255, 255, 255, 0.2);
+          }
         }
 
         .consciousness-line {
