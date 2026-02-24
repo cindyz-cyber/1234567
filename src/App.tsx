@@ -150,6 +150,29 @@ function App() {
     setCurrentStep('home');
   }
 
+  function handleBackToHome() {
+    stopAllAudio();
+    setJourneyData({
+      emotions: [],
+      bodyStates: [],
+      journalContent: '',
+    });
+    setBackgroundAudio(null);
+    setCurrentStep('home');
+  }
+
+  function handleBackToEmotion() {
+    setCurrentStep('emotion');
+  }
+
+  function handleBackToJournal() {
+    setCurrentStep('journal');
+  }
+
+  function handleBackToDialogue() {
+    setCurrentStep('dialogue');
+  }
+
   function handlePremiumRequired() {
     setShowPremiumModal(true);
   }
@@ -183,13 +206,13 @@ function App() {
       return (
         <>
           <VideoBackground />
-          <EmotionScan onNext={handleEmotionComplete} />
+          <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />
         </>
       );
     }
 
     if (currentStep === 'journal') {
-      return <JournalEntry onNext={handleJournalComplete} userName={userNames.userName} />;
+      return <JournalEntry onNext={handleJournalComplete} userName={userNames.userName} onBack={handleBackToEmotion} />;
     }
 
     if (currentStep === 'transition') {
@@ -210,12 +233,13 @@ function App() {
           journalContent={journeyData.journalContent}
           backgroundMusic={backgroundAudio}
           onComplete={handleDialogueComplete}
+          onBack={handleBackToJournal}
         />
       );
     }
 
     if (currentStep === 'answers') {
-      return <BookOfAnswers onComplete={handleAnswersComplete} backgroundAudio={backgroundAudio} />;
+      return <BookOfAnswers onComplete={handleAnswersComplete} backgroundAudio={backgroundAudio} onBack={handleBackToDialogue} />;
     }
   }
 

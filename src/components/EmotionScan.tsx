@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
 
 interface EmotionScanProps {
   onNext: (emotions: string[], bodyStates: string[]) => void;
+  onBack?: () => void;
 }
 
 const EMOTIONS = [
@@ -13,7 +15,7 @@ const EMOTIONS = [
   { label: '迷茫', hue: 270 },
 ];
 
-export default function EmotionScan({ onNext }: EmotionScanProps) {
+export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
   const [journalContent, setJournalContent] = useState('');
   const [step, setStep] = useState<'emotion' | 'writing'>('emotion');
@@ -49,6 +51,19 @@ export default function EmotionScan({ onNext }: EmotionScanProps) {
 
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative">
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute top-8 left-6 z-50 flex items-center justify-center w-10 h-10 rounded-full transition-all hover:scale-110"
+          style={{
+            backgroundColor: 'rgba(235, 200, 98, 0.1)',
+            border: '1px solid rgba(235, 200, 98, 0.3)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <ChevronLeft size={24} color="#EBC862" />
+        </button>
+      )}
       <div className="absolute top-0 left-0 w-full h-[30vh] z-20 pointer-events-none top-vignette" />
 
       <div className="absolute top-[8vh] left-0 w-full z-30 flex justify-center pointer-events-none">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
 
 interface HigherSelfDialogueProps {
@@ -8,6 +8,7 @@ interface HigherSelfDialogueProps {
   journalContent: string;
   backgroundMusic?: HTMLAudioElement | null;
   onComplete: (response: string, audio: HTMLAudioElement | null) => void;
+  onBack?: () => void;
 }
 
 const floatingPrompts = [
@@ -19,7 +20,7 @@ const floatingPrompts = [
   '深呼吸，感受此刻',
 ];
 
-export default function HigherSelfDialogue({ userName, higherSelfName, journalContent, backgroundMusic: incomingBackgroundMusic, onComplete }: HigherSelfDialogueProps) {
+export default function HigherSelfDialogue({ userName, higherSelfName, journalContent, backgroundMusic: incomingBackgroundMusic, onComplete, onBack }: HigherSelfDialogueProps) {
   const [response, setResponse] = useState('');
   const [currentPrompt, setCurrentPrompt] = useState(floatingPrompts[0]);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(incomingBackgroundMusic || null);
@@ -58,6 +59,19 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade" style={{ position: 'relative' }}>
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute top-8 left-6 z-50 flex items-center justify-center w-10 h-10 rounded-full transition-all hover:scale-110"
+          style={{
+            backgroundColor: 'rgba(235, 200, 98, 0.1)',
+            border: '1px solid rgba(235, 200, 98, 0.3)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <ChevronLeft size={24} color="#EBC862" />
+        </button>
+      )}
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
         <div
           className="mb-8 p-6 rounded-lg glassmorphic-card"

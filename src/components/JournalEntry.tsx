@@ -1,12 +1,14 @@
 import { useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
 
 interface JournalEntryProps {
   onNext: (content: string) => void;
   userName?: string;
+  onBack?: () => void;
 }
 
-export default function JournalEntry({ onNext, userName = '朋友' }: JournalEntryProps) {
+export default function JournalEntry({ onNext, userName = '朋友', onBack }: JournalEntryProps) {
   const [content, setContent] = useState('');
 
   const handleSubmit = () => {
@@ -16,7 +18,20 @@ export default function JournalEntry({ onNext, userName = '朋友' }: JournalEnt
   };
 
   return (
-    <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade">
+    <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative">
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute top-8 left-6 z-50 flex items-center justify-center w-10 h-10 rounded-full transition-all hover:scale-110"
+          style={{
+            backgroundColor: 'rgba(235, 200, 98, 0.1)',
+            border: '1px solid rgba(235, 200, 98, 0.3)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <ChevronLeft size={24} color="#EBC862" />
+        </button>
+      )}
       <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
         <h2
           className="text-2xl font-light mb-8 text-center"

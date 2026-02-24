@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import { stopAllAudio } from '../utils/audioManager';
 
 interface BookOfAnswersProps {
   onComplete: () => void;
   backgroundAudio?: HTMLAudioElement | null;
+  onBack?: () => void;
 }
 
 const WISDOMS = [
@@ -18,7 +20,7 @@ const WISDOMS = [
   '转变始于觉察',
 ];
 
-export default function BookOfAnswers({ onComplete, backgroundAudio }: BookOfAnswersProps) {
+export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: BookOfAnswersProps) {
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
   const [selectedWisdom] = useState(WISDOMS[Math.floor(Math.random() * WISDOMS.length)]);
 
@@ -37,6 +39,19 @@ export default function BookOfAnswers({ onComplete, backgroundAudio }: BookOfAns
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'linear-gradient(180deg, #1A352F 0%, #0D1814 100%)' }}>
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute top-8 left-6 z-50 flex items-center justify-center w-10 h-10 rounded-full transition-all hover:scale-110"
+          style={{
+            backgroundColor: 'rgba(235, 200, 98, 0.1)',
+            border: '1px solid rgba(235, 200, 98, 0.3)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <ChevronLeft size={24} color="#EBC862" />
+        </button>
+      )}
       <div className="w-full max-w-md flex flex-col" style={{ height: '100vh', justifyContent: 'space-between', paddingTop: '80px', paddingBottom: '40px' }}>
         <div className="space-y-2 text-center">
           <h2 className="text-3xl font-light" style={{ color: '#EBC862', letterSpacing: '0.1em' }}>
