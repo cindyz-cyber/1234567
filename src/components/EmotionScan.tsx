@@ -36,8 +36,17 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [step, setStep] = useState<'emotion' | 'writing'>('emotion');
   const [activeHue, setActiveHue] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customEmotion, setCustomEmotion] = useState('');
+  const [customBodyState, setCustomBodyState] = useState('');
+  const [showEmotionInput, setShowEmotionInput] = useState(false);
+  const [showBodyStateInput, setShowBodyStateInput] = useState(false);
 
   const toggleEmotion = (emotion: string, hue: number) => {
+    if (emotion === '其他') {
+      setShowEmotionInput(true);
+      return;
+    }
+
     const isSelected = selectedEmotions.includes(emotion);
 
     if (isSelected) {
@@ -50,12 +59,33 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   };
 
   const toggleBodyState = (state: string) => {
+    if (state === '其他') {
+      setShowBodyStateInput(true);
+      return;
+    }
+
     const isSelected = selectedBodyStates.includes(state);
 
     if (isSelected) {
       setSelectedBodyStates(prev => prev.filter(s => s !== state));
     } else {
       setSelectedBodyStates(prev => [...prev, state]);
+    }
+  };
+
+  const handleCustomEmotionSubmit = () => {
+    if (customEmotion.trim()) {
+      setSelectedEmotions(prev => [...prev, customEmotion.trim()]);
+      setCustomEmotion('');
+      setShowEmotionInput(false);
+    }
+  };
+
+  const handleCustomBodyStateSubmit = () => {
+    if (customBodyState.trim()) {
+      setSelectedBodyStates(prev => [...prev, customBodyState.trim()]);
+      setCustomBodyState('');
+      setShowBodyStateInput(false);
     }
   };
 
@@ -126,6 +156,76 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             ))}
           </div>
 
+          {showEmotionInput && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)' }}>
+              <div className="relative w-full max-w-md mx-6 p-8 rounded-3xl" style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(247, 231, 206, 0.3)',
+                boxShadow: '0 0 30px rgba(247, 231, 206, 0.5), 0 0 60px rgba(247, 231, 206, 0.2)'
+              }}>
+                <p className="text-center mb-6" style={{
+                  color: '#FFFFFF',
+                  fontWeight: 400,
+                  letterSpacing: '0.25em',
+                  fontSize: '16px',
+                  textShadow: '0 2px 8px rgba(255, 255, 255, 0.6)'
+                }}>
+                  请输入你的情绪
+                </p>
+                <input
+                  type="text"
+                  value={customEmotion}
+                  onChange={(e) => setCustomEmotion(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleCustomEmotionSubmit()}
+                  placeholder="例如: 期待、感恩..."
+                  autoFocus
+                  className="w-full mb-6 px-6 py-4 rounded-2xl text-center"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    border: '1px solid rgba(247, 231, 206, 0.4)',
+                    outline: 'none',
+                    color: '#EBC862',
+                    fontSize: '18px',
+                    letterSpacing: '0.15em',
+                    fontFamily: 'Georgia, Times New Roman, serif'
+                  }}
+                />
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      setShowEmotionInput(false);
+                      setCustomEmotion('');
+                    }}
+                    className="flex-1 py-3 rounded-xl transition-all"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(247, 231, 206, 0.3)',
+                      color: '#FFFFFF',
+                      letterSpacing: '0.2em'
+                    }}
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={handleCustomEmotionSubmit}
+                    disabled={!customEmotion.trim()}
+                    className="flex-1 py-3 rounded-xl transition-all"
+                    style={{
+                      background: customEmotion.trim() ? 'rgba(247, 231, 206, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(247, 231, 206, 0.5)',
+                      color: customEmotion.trim() ? '#EBC862' : 'rgba(255, 255, 255, 0.3)',
+                      letterSpacing: '0.2em',
+                      cursor: customEmotion.trim() ? 'pointer' : 'not-allowed'
+                    }}
+                  >
+                    确定
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mb-6 text-center">
             <p className="text-base" style={{
               color: '#FFFFFF',
@@ -160,6 +260,76 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               </button>
             ))}
           </div>
+
+          {showBodyStateInput && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)' }}>
+              <div className="relative w-full max-w-md mx-6 p-8 rounded-3xl" style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(247, 231, 206, 0.3)',
+                boxShadow: '0 0 30px rgba(247, 231, 206, 0.5), 0 0 60px rgba(247, 231, 206, 0.2)'
+              }}>
+                <p className="text-center mb-6" style={{
+                  color: '#FFFFFF',
+                  fontWeight: 400,
+                  letterSpacing: '0.25em',
+                  fontSize: '16px',
+                  textShadow: '0 2px 8px rgba(255, 255, 255, 0.6)'
+                }}>
+                  请输入你的身体感受
+                </p>
+                <input
+                  type="text"
+                  value={customBodyState}
+                  onChange={(e) => setCustomBodyState(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleCustomBodyStateSubmit()}
+                  placeholder="例如: 麻木、刺痛..."
+                  autoFocus
+                  className="w-full mb-6 px-6 py-4 rounded-2xl text-center"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    border: '1px solid rgba(247, 231, 206, 0.4)',
+                    outline: 'none',
+                    color: '#EBC862',
+                    fontSize: '18px',
+                    letterSpacing: '0.15em',
+                    fontFamily: 'Georgia, Times New Roman, serif'
+                  }}
+                />
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      setShowBodyStateInput(false);
+                      setCustomBodyState('');
+                    }}
+                    className="flex-1 py-3 rounded-xl transition-all"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(247, 231, 206, 0.3)',
+                      color: '#FFFFFF',
+                      letterSpacing: '0.2em'
+                    }}
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={handleCustomBodyStateSubmit}
+                    disabled={!customBodyState.trim()}
+                    className="flex-1 py-3 rounded-xl transition-all"
+                    style={{
+                      background: customBodyState.trim() ? 'rgba(247, 231, 206, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(247, 231, 206, 0.5)',
+                      color: customBodyState.trim() ? '#EBC862' : 'rgba(255, 255, 255, 0.3)',
+                      letterSpacing: '0.2em',
+                      cursor: customBodyState.trim() ? 'pointer' : 'not-allowed'
+                    }}
+                  >
+                    确定
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="w-full max-w-md mx-auto">
             <GoldButton
