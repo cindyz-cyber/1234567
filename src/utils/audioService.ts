@@ -75,12 +75,17 @@ export async function getNextAudioFromCategory(
 
 export async function getTodaysRecommendation(): Promise<AudioFile | null> {
   const today = new Date();
-  const startOfYear = new Date(today.getFullYear(), 0, 0);
-  const diff = today.getTime() - startOfYear.getTime();
-  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  const mayanStartDate = new Date('2024-01-01');
+  const diffTime = today.getTime() - mayanStartDate.getTime();
+  const daysSinceMayanStart = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  const mayanCycle = 260;
+  const mayanDay = daysSinceMayanStart % mayanCycle;
 
   const chakras: ChakraType[] = ['root', 'sacral', 'solar_plexus', 'heart', 'throat', 'third_eye', 'crown'];
-  const todaysChakra = chakras[dayOfYear % chakras.length];
+  const chakraIndex = Math.floor((mayanDay / mayanCycle) * chakras.length);
+  const todaysChakra = chakras[chakraIndex];
 
   const { data, error } = await supabase
     .from('audio_files')
@@ -94,8 +99,8 @@ export async function getTodaysRecommendation(): Promise<AudioFile | null> {
     return getRandomAudioFromAllCategories();
   }
 
-  const randomIndex = Math.floor(Math.random() * data.length);
-  return data[randomIndex];
+  const audioIndex = mayanDay % data.length;
+  return data[audioIndex];
 }
 
 async function getRandomAudioFromAllCategories(): Promise<AudioFile | null> {

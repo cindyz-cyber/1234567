@@ -3,11 +3,14 @@ import { RefreshCw } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 interface UnifiedPlayerProps {
-  type: string;
+  type?: string;
+  audioUrl?: string;
+  title?: string;
+  description?: string;
   onBack: () => void;
 }
 
-export default function UnifiedPlayer({ type, onBack }: UnifiedPlayerProps) {
+export default function UnifiedPlayer({ type, audioUrl, title, description, onBack }: UnifiedPlayerProps) {
   const [fadeIn, setFadeIn] = useState(false);
   const [showUI, setShowUI] = useState(true);
   const [rotation, setRotation] = useState(0);
