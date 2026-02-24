@@ -72,18 +72,26 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           width: 280px;
           height: 280px;
           border-radius: 50%;
-          background: transparent !important;
+          background: radial-gradient(
+            circle at 30% 30%,
+            rgba(255, 220, 100, 0.25) 0%,
+            rgba(235, 200, 98, 0.15) 30%,
+            rgba(247, 231, 206, 0.08) 60%,
+            transparent 100%
+          );
           backdrop-filter: none;
-          border: 1.5px solid rgba(247, 231, 206, 0.6);
-          animation: crystalBreathe 7s ease-in-out infinite;
+          border: 2px solid rgba(255, 220, 100, 0.8);
+          animation: crystalBreathe 7s ease-in-out infinite, energyPulse 3s ease-in-out infinite;
           position: relative;
           z-index: 2;
           display: flex;
           align-items: center;
           justify-content: center;
           box-shadow:
-            0 0 20px rgba(247, 231, 206, 0.4),
-            0 0 60px rgba(247, 231, 206, 0.2);
+            0 0 30px rgba(255, 220, 100, 0.6),
+            0 0 60px rgba(235, 200, 98, 0.4),
+            0 0 100px rgba(247, 231, 206, 0.3),
+            inset 0 0 40px rgba(255, 220, 100, 0.2);
           transition: all 0.5s ease;
         }
 
@@ -91,12 +99,13 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
         .divine-golden-tree::after {
           content: '';
           position: absolute;
-          width: 40px;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(247, 231, 206, 0.8), transparent);
+          width: 80px;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, rgba(255, 220, 100, 1), rgba(235, 200, 98, 0.8), transparent);
           border-radius: 50%;
           animation: electricArc 2s ease-in-out infinite;
           opacity: 0;
+          box-shadow: 0 0 10px rgba(255, 220, 100, 0.8);
         }
 
         .divine-golden-tree::before {
@@ -116,8 +125,11 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
         .divine-golden-tree:hover {
           transform: scale(1.05);
           box-shadow:
-            0 0 30px rgba(247, 231, 206, 0.5),
-            0 0 80px rgba(247, 231, 206, 0.3);
+            0 0 40px rgba(255, 220, 100, 0.7),
+            0 0 80px rgba(235, 200, 98, 0.5),
+            0 0 120px rgba(247, 231, 206, 0.4),
+            inset 0 0 50px rgba(255, 220, 100, 0.3);
+          border-color: rgba(255, 220, 100, 1);
         }
 
         .tree-icon {
@@ -129,8 +141,14 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           width: 420px;
           height: 420px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(247, 231, 206, 0.4) 0%, rgba(247, 231, 206, 0.2) 30%, transparent 70%);
-          animation: auraPulse 7s ease-in-out infinite;
+          background: radial-gradient(
+            circle,
+            rgba(255, 220, 100, 0.5) 0%,
+            rgba(235, 200, 98, 0.35) 20%,
+            rgba(247, 231, 206, 0.25) 40%,
+            transparent 70%
+          );
+          animation: auraPulse 7s ease-in-out infinite, auraRotate 20s linear infinite;
           z-index: 1;
           filter: blur(60px);
         }
@@ -153,14 +171,27 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           0%, 100% {
             transform: scale(1);
             box-shadow:
-              0 0 20px rgba(247, 231, 206, 0.4),
-              0 0 60px rgba(247, 231, 206, 0.2);
+              0 0 30px rgba(255, 220, 100, 0.6),
+              0 0 60px rgba(235, 200, 98, 0.4),
+              0 0 100px rgba(247, 231, 206, 0.3),
+              inset 0 0 40px rgba(255, 220, 100, 0.2);
           }
           50% {
             transform: scale(1.05);
             box-shadow:
-              0 0 30px rgba(247, 231, 206, 0.5),
-              0 0 80px rgba(247, 231, 206, 0.3);
+              0 0 40px rgba(255, 220, 100, 0.7),
+              0 0 80px rgba(235, 200, 98, 0.5),
+              0 0 120px rgba(247, 231, 206, 0.4),
+              inset 0 0 50px rgba(255, 220, 100, 0.25);
+          }
+        }
+
+        @keyframes energyPulse {
+          0%, 100% {
+            filter: brightness(1);
+          }
+          50% {
+            filter: brightness(1.2);
           }
         }
 
@@ -170,12 +201,21 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
             transform: scale(0.8);
           }
           5%, 15% {
-            opacity: 0.9;
-            transform: scale(1);
+            opacity: 1;
+            transform: scale(1.2);
           }
           20% {
             opacity: 0;
             transform: scale(0.8);
+          }
+        }
+
+        @keyframes auraRotate {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
           }
         }
 
