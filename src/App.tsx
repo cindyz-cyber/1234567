@@ -18,7 +18,7 @@ import VideoBackground from './components/VideoBackground';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
-type FlowStep = 'home' | 'voice' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
+type FlowStep = 'home' | 'energy' | 'voice' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
 type TabType = 'breath' | 'voice' | 'archive' | 'profile' | 'admin';
 
 interface JourneyData {
@@ -103,7 +103,7 @@ function App() {
   }
 
   function handleStartJourney() {
-    setCurrentStep('voice');
+    setCurrentStep('energy');
   }
 
   function handleVoiceComplete() {
@@ -201,7 +201,11 @@ function App() {
     return <NamingRitual onComplete={handleNamingComplete} />;
   }
 
-  if (currentStep === 'voice' || currentStep === 'innerWhisper' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
+  if (currentStep === 'energy' || currentStep === 'voice' || currentStep === 'innerWhisper' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
+    if (currentStep === 'energy') {
+      return <EnergyCenter isPremium={isPremium} onPremiumRequired={handlePremiumRequired} />;
+    }
+
     if (currentStep === 'voice') {
       return <VoiceRecognition onBack={handleBackToHome} />;
     }
