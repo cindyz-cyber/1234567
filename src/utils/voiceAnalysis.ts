@@ -1,10 +1,12 @@
 export interface VoiceAnalysisResult {
-  source: 'brain' | 'throat' | 'heart';
+  source: 'brain' | 'throat' | 'heart' | 'lower';
   quality: 'smooth' | 'rough' | 'flat';
   phase: 'grounded' | 'floating' | 'scattering';
   profileId: string;
   profileName: string;
   message: string;
+  dominantCenter: 'brain' | 'throat' | 'heart';
+  gapCenter: 'brain' | 'throat' | 'heart';
   energyData: {
     freq432Hz: number;
     freq384Hz: number;
@@ -14,6 +16,16 @@ export interface VoiceAnalysisResult {
     brainEnergy: number;
     throatEnergy: number;
     heartEnergy: number;
+  };
+  frequencyDistribution: {
+    heart: number;
+    throat: number;
+    brain: number;
+  };
+  recommendedFrequency: {
+    hz: number;
+    center: 'brain' | 'throat' | 'heart';
+    reason: string;
   };
 }
 
@@ -87,6 +99,10 @@ export class VoiceAnalyzer {
     const quality = this.determineQuality(fftData, energyData);
     const phase = this.determinePhase(energyData);
 
+    const { dominantCenter, gapCenter } = this.findDominantAndGap(energyData);
+    const frequencyDistribution = this.calculateFrequencyDistribution(energyData);
+    const recommendedFrequency = this.getRecommendedFrequency(dominantCenter, gapCenter);
+
     const profile = this.matchProfile(source, quality, phase);
 
     return {
@@ -96,7 +112,11 @@ export class VoiceAnalyzer {
       profileId: profile.id,
       profileName: profile.name,
       message: profile.message,
-      energyData
+      dominantCenter,
+      gapCenter,
+      energyData,
+      frequencyDistribution,
+      recommendedFrequency
     };
   }
 
@@ -123,6 +143,10 @@ export class VoiceAnalyzer {
     const quality = this.determineQuality(fftData, energyData);
     const phase = this.determinePhase(energyData);
 
+    const { dominantCenter, gapCenter } = this.findDominantAndGap(energyData);
+    const frequencyDistribution = this.calculateFrequencyDistribution(energyData);
+    const recommendedFrequency = this.getRecommendedFrequency(dominantCenter, gapCenter);
+
     const profile = this.matchProfile(sourceType, quality, phase);
 
     source.disconnect();
@@ -134,7 +158,11 @@ export class VoiceAnalyzer {
       profileId: profile.id,
       profileName: profile.name,
       message: profile.message,
-      energyData
+      dominantCenter,
+      gapCenter,
+      energyData,
+      frequencyDistribution,
+      recommendedFrequency
     };
   }
 
@@ -280,16 +308,96 @@ export class VoiceAnalyzer {
     return 1 / (1 + Math.sqrt(variance / timeData.length));
   }
 
-  private determineSource(energyData: VoiceAnalysisResult['energyData']): 'brain' | 'throat' | 'heart' {
-    const { freq432Hz, freq384Hz, freq342Hz } = energyData;
+  private determineSource(energyData: VoiceAnalysisResult['energyData']): 'brain' | 'throat' | 'heart' | 'lower' {
+    const { brainEnergy, throatEnergy, heartEnergy } = energyData;
 
-    if (freq432Hz > freq384Hz && freq432Hz > freq342Hz) {
+    const maxEnergy = Math.max(brainEnergy, throatEnergy, heartEnergy);
+
+    if (maxEnergy < 0.1) {
+      return 'lower';
+    }
+
+    if (brainEnergy === maxEnergy) {
       return 'brain';
-    } else if (freq384Hz > freq432Hz && freq384Hz > freq342Hz) {
+    } else if (throatEnergy === maxEnergy) {
       return 'throat';
     } else {
       return 'heart';
     }
+  }
+
+  private findDominantAndGap(energyData: VoiceAnalysisResult['energyData']): {
+    dominantCenter: 'brain' | 'throat' | 'heart';
+    gapCenter: 'brain' | 'throat' | 'heart';
+  } {
+    const centers = [
+      { name: 'heart' as const, energy: energyData.heartEnergy },
+      { name: 'throat' as const, energy: energyData.throatEnergy },
+      { name: 'brain' as const, energy: energyData.brainEnergy }
+    ];
+
+    centers.sort((a, b) => b.energy - a.energy);
+
+    return {
+      dominantCenter: centers[0].name,
+      gapCenter: centers[2].name
+    };
+  }
+
+  private calculateFrequencyDistribution(energyData: VoiceAnalysisResult['energyData']): {
+    heart: number;
+    throat: number;
+    brain: number;
+  } {
+    const total = energyData.heartEnergy + energyData.throatEnergy + energyData.brainEnergy;
+
+    if (total === 0) {
+      return { heart: 33.33, throat: 33.33, brain: 33.33 };
+    }
+
+    return {
+      heart: Math.round((energyData.heartEnergy / total) * 100),
+      throat: Math.round((energyData.throatEnergy / total) * 100),
+      brain: Math.round((energyData.brainEnergy / total) * 100)
+    };
+  }
+
+  private getRecommendedFrequency(
+    dominant: 'brain' | 'throat' | 'heart',
+    gap: 'brain' | 'throat' | 'heart'
+  ): { hz: number; center: 'brain' | 'throat' | 'heart'; reason: string } {
+    const frequencyMap = {
+      heart: { hz: 342, name: '心轮' },
+      throat: { hz: 384, name: '喉轮' },
+      brain: { hz: 432, name: '脑轮' }
+    };
+
+    const dominantName = frequencyMap[dominant].name;
+    const gapInfo = frequencyMap[gap];
+
+    let reason = '';
+
+    if (dominant === 'heart' && gap === 'brain') {
+      reason = `你的${dominantName}能量充沛，但${gapInfo.name}较弱。建议补充 ${gapInfo.hz}Hz 频率，帮助理清思绪，平衡感性与理性。`;
+    } else if (dominant === 'brain' && gap === 'heart') {
+      reason = `你的${dominantName}能量活跃，但${gapInfo.name}能量不足。建议补充 ${gapInfo.hz}Hz 频率，连接内在情感，减少过度思考。`;
+    } else if (dominant === 'throat' && gap === 'heart') {
+      reason = `你的${dominantName}能量强劲，但${gapInfo.name}需要滋养。建议补充 ${gapInfo.hz}Hz 频率，让表达更有温度和深度。`;
+    } else if (dominant === 'throat' && gap === 'brain') {
+      reason = `你的${dominantName}能量旺盛，但${gapInfo.name}需要加强。建议补充 ${gapInfo.hz}Hz 频率，让表达更具条理性。`;
+    } else if (dominant === 'heart' && gap === 'throat') {
+      reason = `你的${dominantName}饱满，但${gapInfo.name}表达受阻。建议补充 ${gapInfo.hz}Hz 频率，帮助情感顺畅流动和表达。`;
+    } else if (dominant === 'brain' && gap === 'throat') {
+      reason = `你的${dominantName}能量高涨，但${gapInfo.name}沟通不畅。建议补充 ${gapInfo.hz}Hz 频率，让想法更容易传递出来。`;
+    } else {
+      reason = `建议补充 ${gapInfo.hz}Hz 频率，平衡整体能量场。`;
+    }
+
+    return {
+      hz: gapInfo.hz,
+      center: gap,
+      reason
+    };
   }
 
   private determineQuality(fftData: Float32Array, energyData: VoiceAnalysisResult['energyData']): 'smooth' | 'rough' | 'flat' {

@@ -117,7 +117,8 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
 
         const profile = getProfileWithDynamicBalance(
           analysisResult.profileId,
-          analysisResult.source,
+          analysisResult.dominantCenter,
+          analysisResult.gapCenter,
           analysisResult.quality,
           analysisResult.phase
         );
@@ -140,7 +141,8 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
 
       const profile = getProfileWithDynamicBalance(
         analysis.profileId,
-        analysis.source,
+        analysis.dominantCenter,
+        analysis.gapCenter,
         analysis.quality,
         analysis.phase
       );
@@ -280,25 +282,71 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
               </div>
             </div>
 
-            <div className="healing-cards">
-              <div className="healing-card">
-                <div className="healing-card-header">
-                  <Heart size={20} />
-                  <span>身体平衡建议</span>
+            <div className="frequency-distribution-card">
+              <div className="frequency-card-header">
+                <Activity size={20} />
+                <span>能量频率分布</span>
+              </div>
+              <div className="frequency-bars">
+                <div className="frequency-bar-item">
+                  <div className="frequency-bar-label">
+                    <span>心轮 (342Hz)</span>
+                    <span className="frequency-percentage">{result.frequencyDistribution.heart}%</span>
+                  </div>
+                  <div className="frequency-bar-track">
+                    <div
+                      className="frequency-bar-fill heart-bar"
+                      style={{ width: `${result.frequencyDistribution.heart}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="healing-card-content">
-                  {energyProfile.bodyBalance}
+                <div className="frequency-bar-item">
+                  <div className="frequency-bar-label">
+                    <span>喉轮 (384Hz)</span>
+                    <span className="frequency-percentage">{result.frequencyDistribution.throat}%</span>
+                  </div>
+                  <div className="frequency-bar-track">
+                    <div
+                      className="frequency-bar-fill throat-bar"
+                      style={{ width: `${result.frequencyDistribution.throat}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="frequency-bar-item">
+                  <div className="frequency-bar-label">
+                    <span>脑轮 (432Hz)</span>
+                    <span className="frequency-percentage">{result.frequencyDistribution.brain}%</span>
+                  </div>
+                  <div className="frequency-bar-track">
+                    <div
+                      className="frequency-bar-fill brain-bar"
+                      style={{ width: `${result.frequencyDistribution.brain}%` }}
+                    />
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="healing-card">
-                <div className="healing-card-header">
-                  <Activity size={20} />
-                  <span>情绪转化动作</span>
+            <div className="healing-station-card">
+              <div className="healing-station-header">
+                <Heart size={20} />
+                <span>调频补给站</span>
+              </div>
+              <div className="healing-station-content">
+                <div className="recommended-frequency">
+                  <div className="frequency-badge">推荐频率：{result.recommendedFrequency.hz}Hz</div>
+                  <div className="frequency-reason">{result.recommendedFrequency.reason}</div>
                 </div>
-                <div className="healing-card-content">
-                  {energyProfile.emotionAction}
-                </div>
+              </div>
+            </div>
+
+            <div className="energy-flow-card">
+              <div className="energy-flow-header">
+                <Sparkles size={20} />
+                <span>能量流转建议</span>
+              </div>
+              <div className="energy-flow-content">
+                {energyProfile.energyFlowAdvice}
               </div>
             </div>
 
@@ -876,32 +924,159 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           }
         }
 
-        .healing-cards {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-          margin: 40px 0;
-        }
-
-        .healing-card {
+        .frequency-distribution-card {
           background: rgba(255, 255, 255, 0.06);
           backdrop-filter: blur(30px);
           border-radius: 16px;
           border: 1.5px solid rgba(200, 220, 255, 0.15);
           padding: 24px;
+          margin: 24px 0;
           text-align: left;
-          transition: all 0.3s ease;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
-        .healing-card:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(200, 220, 255, 0.25);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        .frequency-card-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 20px;
+          color: rgba(200, 220, 255, 0.9);
+          font-size: 15px;
+          font-weight: 400;
+          letter-spacing: 0.15em;
+          font-family: 'Noto Serif SC', serif;
         }
 
-        .healing-card-header {
+        .frequency-bars {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .frequency-bar-item {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .frequency-bar-label {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 13px;
+          font-weight: 300;
+          letter-spacing: 0.1em;
+          font-family: 'Noto Serif SC', serif;
+        }
+
+        .frequency-percentage {
+          color: rgba(200, 220, 255, 0.9);
+          font-weight: 400;
+        }
+
+        .frequency-bar-track {
+          width: 100%;
+          height: 8px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 4px;
+          overflow: hidden;
+        }
+
+        .frequency-bar-fill {
+          height: 100%;
+          border-radius: 4px;
+          transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .heart-bar {
+          background: linear-gradient(90deg, rgba(255, 100, 150, 0.8), rgba(255, 150, 180, 0.9));
+          box-shadow: 0 0 15px rgba(255, 100, 150, 0.5);
+        }
+
+        .throat-bar {
+          background: linear-gradient(90deg, rgba(100, 180, 255, 0.8), rgba(150, 200, 255, 0.9));
+          box-shadow: 0 0 15px rgba(100, 180, 255, 0.5);
+        }
+
+        .brain-bar {
+          background: linear-gradient(90deg, rgba(180, 140, 255, 0.8), rgba(200, 170, 255, 0.9));
+          box-shadow: 0 0 15px rgba(180, 140, 255, 0.5);
+        }
+
+        .healing-station-card {
+          background: rgba(255, 255, 255, 0.06);
+          backdrop-filter: blur(30px);
+          border-radius: 16px;
+          border: 1.5px solid rgba(255, 200, 100, 0.2);
+          padding: 24px;
+          margin: 24px 0;
+          text-align: left;
+          box-shadow: 0 4px 20px rgba(255, 200, 100, 0.15);
+        }
+
+        .healing-station-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 16px;
+          color: rgba(255, 220, 150, 0.9);
+          font-size: 15px;
+          font-weight: 400;
+          letter-spacing: 0.15em;
+          font-family: 'Noto Serif SC', serif;
+        }
+
+        .healing-station-content {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .recommended-frequency {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .frequency-badge {
+          display: inline-block;
+          padding: 10px 20px;
+          background: linear-gradient(135deg, rgba(255, 200, 100, 0.2), rgba(255, 220, 150, 0.15));
+          border: 1px solid rgba(255, 220, 150, 0.3);
+          border-radius: 20px;
+          color: rgba(255, 240, 200, 0.95);
+          font-size: 14px;
+          font-weight: 400;
+          letter-spacing: 0.1em;
+          font-family: 'Noto Serif SC', serif;
+          box-shadow: 0 2px 10px rgba(255, 200, 100, 0.2);
+        }
+
+        .frequency-reason {
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 14px;
+          font-weight: 300;
+          line-height: 2;
+          letter-spacing: 0.08em;
+          font-family: 'Noto Serif SC', serif;
+          text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .energy-flow-card {
+          background: rgba(255, 255, 255, 0.06);
+          backdrop-filter: blur(30px);
+          border-radius: 16px;
+          border: 1.5px solid rgba(200, 220, 255, 0.15);
+          padding: 24px;
+          margin: 24px 0;
+          text-align: left;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .energy-flow-header {
           display: flex;
           align-items: center;
           gap: 10px;
@@ -913,7 +1088,7 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           font-family: 'Noto Serif SC', serif;
         }
 
-        .healing-card-content {
+        .energy-flow-content {
           color: rgba(255, 255, 255, 0.85);
           font-size: 14px;
           font-weight: 300;
