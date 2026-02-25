@@ -1,15 +1,14 @@
-import { Crown, FileText, Settings, LogOut, RotateCcw } from 'lucide-react';
+import { Crown, Settings, LogOut, RotateCcw } from 'lucide-react';
 
 interface ProfileProps {
   userName: string;
   higherSelfName: string;
   isPremium: boolean;
   onShowPremium: () => void;
-  onNavigateArchive: () => void;
   onResetIdentity: () => void;
 }
 
-export default function Profile({ userName, higherSelfName, isPremium, onShowPremium, onNavigateArchive, onResetIdentity }: ProfileProps) {
+export default function Profile({ userName, higherSelfName, isPremium, onShowPremium, onResetIdentity }: ProfileProps) {
   return (
     <div className="min-h-screen pb-24 pt-20 px-6">
       <div className="max-w-md mx-auto space-y-6">
@@ -95,23 +94,6 @@ export default function Profile({ userName, higherSelfName, isPremium, onShowPre
               </div>
             </button>
           )}
-
-          <button
-            onClick={onNavigateArchive}
-            className="w-full p-4 rounded-2xl flex items-center justify-between transition-all active:scale-98 glassmorphic-button"
-            style={{
-              backgroundColor: 'rgba(2, 10, 9, 0.6)',
-              border: '0.5px solid rgba(235, 200, 98, 0.3)',
-              backdropFilter: 'blur(15px)',
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <FileText size={20} style={{ color: '#EBC862', opacity: 0.8 }} />
-              <span className="font-light" style={{ color: '#E0E0D0', letterSpacing: '0.03em' }}>
-                情绪档案
-              </span>
-            </div>
-          </button>
 
           <button
             className="w-full p-4 rounded-2xl flex items-center justify-between transition-all active:scale-98 glassmorphic-button"
