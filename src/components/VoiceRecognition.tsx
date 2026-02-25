@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft } from 'lucide-react';
+import { VoiceAnalyzer, VoiceAnalysisResult } from '../utils/voiceAnalysis';
+import { supabase } from '../lib/supabase';
 
 interface VoiceRecognitionProps {
   onBack?: () => void;
@@ -7,57 +9,22 @@ interface VoiceRecognitionProps {
 
 type RecordingState = 'idle' | 'recording' | 'analyzing' | 'result';
 
-interface AnalysisResult {
-  label: string;
-  hopeMessage: string;
-}
-
-const RESULTS: AnalysisResult[] = [
-  {
-    label: '疲惫但坚定',
-    hopeMessage: '你的声音带着疲惫，但底色是坚定的。休息不是放弃，是为了走更远的路。'
-  },
-  {
-    label: '压抑中的力量',
-    hopeMessage: '声音里藏着未释放的力量。当你准备好，这股能量会带你突破当下。'
-  },
-  {
-    label: '平静的觉察者',
-    hopeMessage: '你的声音像湖面，平静之下有深度。这份沉稳会成为你的护盾。'
-  },
-  {
-    label: '不安中的勇气',
-    hopeMessage: '声音在颤抖，但你仍在说话。这本身就是勇气的证明。'
-  },
-  {
-    label: '温柔的疗愈者',
-    hopeMessage: '你的声音有温度，这份柔软不是弱点，是治愈自己和他人的能力。'
-  },
-  {
-    label: '隐忍的爆发力',
-    hopeMessage: '声音克制，但能量聚集。你在等待正确的时机释放。'
-  },
-  {
-    label: '迷茫中的求索',
-    hopeMessage: '声音里有迷茫，也有好奇。迷失是找到新方向的前奏。'
-  },
-  {
-    label: '清澈的信念',
-    hopeMessage: '你的声音清晰笃定，这份确定性会照亮前方的路。'
-  }
-];
-
 export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [audioLevel, setAudioLevel] = useState(0);
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [result, setResult] = useState<VoiceAnalysisResult | null>(null);
   const [rippleScale, setRippleScale] = useState(1);
+  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const voiceAnalyzerRef = useRef<VoiceAnalyzer | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
+    voiceAnalyzerRef.current = new VoiceAnalyzer();
+
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
@@ -65,11 +32,15 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
+      if (voiceAnalyzerRef.current) {
+        voiceAnalyzerRef.current.destroy();
+      }
     };
   }, []);
 
   const startRecording = async () => {
     try {
+      audioChunksRef.current = [];
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
       const audioContext = new AudioContext();
@@ -84,6 +55,17 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
 
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await analyzeVoice(audioBlob);
+      };
 
       mediaRecorder.start();
       setRecordingState('recording');
@@ -120,6 +102,54 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
     animate();
   };
 
+  const analyzeVoice = async (audioBlob: Blob) => {
+    try {
+      if (!voiceAnalyzerRef.current) return;
+
+      const analysisResult = await voiceAnalyzerRef.current.analyzeAudioBuffer(audioBlob);
+
+      await saveAnalysisToDatabase(analysisResult);
+
+      setTimeout(() => {
+        setResult(analysisResult);
+        setRecordingState('result');
+        setRippleScale(1);
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error analyzing voice:', error);
+      setRecordingState('idle');
+      setRippleScale(1);
+    }
+  };
+
+  const saveAnalysisToDatabase = async (analysis: VoiceAnalysisResult) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { error } = await supabase
+        .from('voice_analysis_results')
+        .insert({
+          user_id: user?.id || null,
+          session_id: sessionId,
+          source: analysis.source,
+          quality: analysis.quality,
+          phase: analysis.phase,
+          profile_id: analysis.profileId,
+          profile_name: analysis.profileName,
+          message: analysis.message,
+          energy_data: analysis.energyData,
+          audio_duration: 5
+        });
+
+      if (error) {
+        console.error('Error saving analysis:', error);
+      }
+    } catch (error) {
+      console.error('Error saving to database:', error);
+    }
+  };
+
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
@@ -136,13 +166,6 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
     setTimeout(() => {
       setRippleScale(0.3);
     }, 100);
-
-    setTimeout(() => {
-      const randomResult = RESULTS[Math.floor(Math.random() * RESULTS.length)];
-      setResult(randomResult);
-      setRecordingState('result');
-      setRippleScale(1);
-    }, 2000);
   };
 
   const handleScreenClick = () => {
@@ -237,11 +260,23 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
 
         {recordingState === 'result' && result && (
           <div className="result-container">
+            <div className="result-profile-id">
+              ID {result.profileId}
+            </div>
             <div className="result-label">
-              {result.label}
+              {result.profileName}
             </div>
             <div className="result-message">
-              {result.hopeMessage}
+              {result.message}
+            </div>
+            <div className="result-details">
+              <div className="energy-info">
+                发音源: {result.source === 'brain' ? '脑部' : result.source === 'throat' ? '喉部' : '心部'}
+                {' • '}
+                质地: {result.quality === 'smooth' ? '流畅' : result.quality === 'rough' ? '粗糙' : '平坦'}
+                {' • '}
+                相位: {result.phase === 'grounded' ? '稳定' : result.phase === 'floating' ? '悬浮' : '散开'}
+              </div>
             </div>
             <div className="tap-hint">
               点击屏幕继续
@@ -474,11 +509,11 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
 
         .result-container {
           position: absolute;
-          bottom: -220px;
+          bottom: -280px;
           left: 50%;
           transform: translateX(-50%);
           width: 100%;
-          max-width: 400px;
+          max-width: 500px;
           text-align: center;
           animation: resultFadeIn 1s ease-out;
         }
@@ -494,9 +529,18 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           }
         }
 
+        .result-profile-id {
+          color: rgba(200, 220, 255, 0.6);
+          font-size: 13px;
+          font-weight: 300;
+          letter-spacing: 0.2em;
+          font-family: 'Noto Serif SC', serif;
+          margin-bottom: 12px;
+        }
+
         .result-label {
           color: rgba(200, 220, 255, 0.95);
-          font-size: 24px;
+          font-size: 26px;
           font-weight: 200;
           letter-spacing: 0.25em;
           font-family: 'Noto Serif SC', serif;
@@ -505,7 +549,7 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
         }
 
         .result-message {
-          color: rgba(255, 255, 255, 0.8);
+          color: rgba(255, 255, 255, 0.85);
           font-size: 15px;
           font-weight: 200;
           line-height: 2;
@@ -513,6 +557,25 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           font-family: 'Noto Serif SC', serif;
           padding: 0 32px;
           text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+          margin-bottom: 20px;
+        }
+
+        .result-details {
+          margin-top: 20px;
+          padding: 16px 24px;
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(20px);
+          border-radius: 12px;
+          border: 1px solid rgba(200, 220, 255, 0.1);
+        }
+
+        .energy-info {
+          color: rgba(200, 220, 255, 0.7);
+          font-size: 12px;
+          font-weight: 300;
+          letter-spacing: 0.08em;
+          font-family: 'Noto Serif SC', serif;
+          line-height: 1.8;
         }
 
         .tap-hint {
