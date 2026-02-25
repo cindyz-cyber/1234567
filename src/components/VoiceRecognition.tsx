@@ -6,11 +6,12 @@ import { getProfileWithDynamicBalance, EnergyProfile } from '../data/energyDatab
 
 interface VoiceRecognitionProps {
   onBack?: () => void;
+  onNext?: () => void;
 }
 
 type RecordingState = 'idle' | 'recording' | 'analyzing' | 'result';
 
-export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
+export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [audioLevel, setAudioLevel] = useState(0);
   const [result, setResult] = useState<VoiceAnalysisResult | null>(null);
@@ -354,10 +355,17 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
               {energyProfile.hopeNote}
             </div>
 
-            <button onClick={handleRestart} className="restart-button">
-              <RotateCcw size={18} />
-              <span>重新测试</span>
-            </button>
+            <div className="result-action-buttons">
+              <button onClick={handleRestart} className="restart-button secondary">
+                <RotateCcw size={18} />
+                <span>重新测试</span>
+              </button>
+              {onNext && (
+                <button onClick={onNext} className="restart-button primary">
+                  <span>继续探索</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       ) : (
@@ -869,12 +877,18 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
+        .result-action-buttons {
+          display: flex;
+          gap: 16px;
+          justify-content: center;
+          margin-top: 32px;
+        }
+
         .restart-button {
           display: inline-flex;
           align-items: center;
           gap: 12px;
           padding: 18px 48px;
-          margin-top: 32px;
           font-size: 16px;
           font-weight: 300;
           letter-spacing: 0.2em;
@@ -889,7 +903,20 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           box-shadow: 0 0 30px rgba(200, 220, 255, 0.2);
         }
 
-        .restart-button:hover {
+        .restart-button.primary {
+          background: linear-gradient(135deg, rgba(247, 231, 206, 0.2), rgba(235, 200, 98, 0.15));
+          border-color: rgba(247, 231, 206, 0.6);
+          box-shadow: 0 0 30px rgba(247, 231, 206, 0.3);
+        }
+
+        .restart-button.primary:hover {
+          background: linear-gradient(135deg, rgba(247, 231, 206, 0.3), rgba(235, 200, 98, 0.25));
+          border-color: rgba(247, 231, 206, 0.9);
+          transform: scale(1.05);
+          box-shadow: 0 0 50px rgba(247, 231, 206, 0.5);
+        }
+
+        .restart-button.secondary:hover {
           background: rgba(200, 220, 255, 0.15);
           border-color: rgba(200, 220, 255, 0.7);
           transform: scale(1.05);
