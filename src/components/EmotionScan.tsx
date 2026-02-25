@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
 
@@ -8,24 +8,34 @@ interface EmotionScanProps {
 }
 
 const EMOTIONS = [
-  { label: '喜悦', hue: 45 },
-  { label: '平和', hue: 120 },
-  { label: '焦虑', hue: 210 },
-  { label: '迷茫', hue: 270 },
-  { label: '愤怒', hue: 0 },
-  { label: '悲伤', hue: 200 },
-  { label: '丰盛', hue: 50 },
-  { label: '其他', hue: 180 },
+  { label: '喜悦', hue: 45, angle: 0 },
+  { label: '平和', hue: 120, angle: 45 },
+  { label: '焦虑', hue: 210, angle: 90 },
+  { label: '迷茫', hue: 270, angle: 135 },
+  { label: '愤怒', hue: 0, angle: 180 },
+  { label: '悲伤', hue: 200, angle: 225 },
+  { label: '丰盛', hue: 50, angle: 270 },
+  { label: '其他', hue: 180, angle: 315 },
 ];
 
 const BODY_STATES = [
-  { label: '紧绷' },
-  { label: '松弛' },
-  { label: '温热' },
-  { label: '空洞' },
-  { label: '沉重' },
-  { label: '其他' },
+  { label: '紧绷', angle: 0 },
+  { label: '松弛', angle: 60 },
+  { label: '温热', angle: 120 },
+  { label: '空洞', angle: 180 },
+  { label: '沉重', angle: 240 },
+  { label: '其他', angle: 300 },
 ];
+
+const getCircularPosition = (angle: number, radius: number, radiusVariation: number, index: number) => {
+  const rad = (angle * Math.PI) / 180;
+  const seed = index * 0.123;
+  const actualRadius = radius + (Math.sin(seed * 100) * radiusVariation);
+  return {
+    x: 50 + actualRadius * Math.cos(rad),
+    y: 50 + actualRadius * Math.sin(rad),
+  };
+};
 
 export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
@@ -38,6 +48,24 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [customBodyState, setCustomBodyState] = useState('');
   const [showEmotionInput, setShowEmotionInput] = useState(false);
   const [showBodyStateInput, setShowBodyStateInput] = useState(false);
+
+  const emotionPositions = useMemo(() =>
+    EMOTIONS.map((emotion, index) => ({
+      ...emotion,
+      position: getCircularPosition(emotion.angle, 28, 4, index)
+    })),
+    []
+  );
+
+  const bodyPositions = useMemo(() =>
+    BODY_STATES.map((state, index) => ({
+      ...state,
+      position: getCircularPosition(state.angle, 22, 3, index)
+    })),
+    []
+  );
+
+  const hasAnySelection = selectedEmotions.length > 0 || selectedBodyStates.length > 0;
 
   const toggleEmotion = (emotion: string, hue: number) => {
     if (emotion === '其他') {
@@ -102,6 +130,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
     }
   };
 
+  const titleText = selectedBodyStates.length > 0 ? '身体的反馈是？' : '此刻，你的情绪是？';
+
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative">
       <div className="forest-background-layer" />
@@ -120,8 +150,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         </button>
       )}
       {step === 'emotion' ? (
-        <div className="flex-1 flex flex-col justify-center items-center max-w-5xl mx-auto w-full relative" style={{ paddingTop: '80px', paddingBottom: '60px' }}>
-          <div className="mb-10 text-center">
+        <div className="flex-1 flex flex-col justify-center items-center max-w-6xl mx-auto w-full relative" style={{ paddingTop: '60px', paddingBottom: '60px' }}>
+          <div className="mb-16 text-center transition-all duration-500">
             <p className="text-sm title-text" style={{
               color: '#FFFFFF',
               fontWeight: 500,
@@ -130,17 +160,21 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               position: 'relative',
               zIndex: 100
             }}>
-              此刻，你的情绪是
+              {titleText}
             </p>
           </div>
 
-          <div className="emotion-cluster w-full flex flex-wrap justify-center items-center gap-5 mb-16 px-6" style={{ maxWidth: '800px' }}>
-            {EMOTIONS.map((emotion, index) => (
+          <div className="mandala-container relative w-full" style={{ height: '400px', marginBottom: '80px' }}>
+            {emotionPositions.map((emotion, index) => (
               <button
                 key={emotion.label}
                 onClick={() => toggleEmotion(emotion.label, emotion.hue)}
-                className={`glass-bubble emotion-bubble ${selectedEmotions.includes(emotion.label) ? 'selected' : ''}`}
+                className={`glass-bubble emotion-bubble mandala-bubble ${selectedEmotions.includes(emotion.label) ? 'selected' : ''} ${hasAnySelection && !selectedEmotions.includes(emotion.label) ? 'dimmed' : ''}`}
                 style={{
+                  position: 'absolute',
+                  left: `${emotion.position.x}%`,
+                  top: `${emotion.position.y}%`,
+                  transform: 'translate(-50%, -50%)',
                   animationDelay: `${index * 0.1}s`,
                 }}
               >
@@ -222,33 +256,17 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             </div>
           )}
 
-          <div className="section-divider mb-10 text-center" style={{
-            borderTop: '0.5px solid rgba(235, 200, 98, 0.25)',
-            paddingTop: '50px',
-            width: '100%',
-            maxWidth: '600px'
-          }}>
-            <p className="text-sm body-section-title" style={{
-              color: '#FFFFFF',
-              fontWeight: 400,
-              letterSpacing: '0.3em',
-              textShadow: '0 2px 4px rgba(0, 0, 0, 0.95), 0 4px 12px rgba(0, 0, 0, 0.8)',
-              position: 'relative',
-              zIndex: 100,
-              fontFamily: 'Georgia, Times New Roman, serif',
-              fontSize: '13px'
-            }}>
-              你的身体感受是？
-            </p>
-          </div>
-
-          <div className="body-cluster w-full flex flex-wrap justify-center items-center gap-4 mb-12 px-6" style={{ maxWidth: '700px' }}>
-            {BODY_STATES.map((state, index) => (
+          <div className="mandala-container relative w-full" style={{ height: '350px', marginBottom: '50px' }}>
+            {bodyPositions.map((state, index) => (
               <button
                 key={state.label}
                 onClick={() => toggleBodyState(state.label)}
-                className={`glass-bubble body-bubble ${selectedBodyStates.includes(state.label) ? 'selected' : ''}`}
+                className={`glass-bubble body-bubble mandala-bubble ${selectedBodyStates.includes(state.label) ? 'selected' : ''} ${hasAnySelection && !selectedBodyStates.includes(state.label) ? 'dimmed' : ''}`}
                 style={{
+                  position: 'absolute',
+                  left: `${state.position.x}%`,
+                  top: `${state.position.y}%`,
+                  transform: 'translate(-50%, -50%)',
                   animationDelay: `${(index + EMOTIONS.length) * 0.1}s`,
                 }}
               >
@@ -334,7 +352,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             <GoldButton
               onClick={handleContinueToWriting}
               disabled={selectedEmotions.length === 0 || selectedBodyStates.length === 0}
-              className="w-full"
+              className="w-full golden-breath"
             >
               继续
             </GoldButton>
@@ -398,8 +416,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           }
         }
 
-        .emotion-cluster,
-        .body-cluster {
+        .mandala-container {
           position: relative;
           z-index: 20;
         }
@@ -415,12 +432,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           cursor: pointer;
           transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           opacity: 0;
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat 6s ease-in-out infinite;
           box-shadow:
             0 0 20px rgba(255, 255, 255, 0.5),
             0 0 40px rgba(247, 231, 206, 0.2),
             inset 0 0 10px rgba(255, 255, 255, 0.3);
-          position: relative;
+          position: absolute;
           overflow: hidden;
           flex-shrink: 0;
         }
@@ -428,6 +444,80 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         .emotion-bubble {
           width: 75px;
           height: 75px;
+        }
+
+        .body-bubble {
+          width: 60px;
+          height: 60px;
+        }
+
+        .mandala-bubble {
+          animation: bubbleFloat 1.2s ease-out forwards;
+        }
+
+        .mandala-bubble:nth-child(1) {
+          animation: bubbleFloat 1.2s ease-out forwards, waveFloat1 6s ease-in-out infinite;
+        }
+
+        .mandala-bubble:nth-child(2) {
+          animation: bubbleFloat 1.2s ease-out forwards, waveFloat2 6.5s ease-in-out infinite;
+        }
+
+        .mandala-bubble:nth-child(3) {
+          animation: bubbleFloat 1.2s ease-out forwards, waveFloat3 7s ease-in-out infinite;
+        }
+
+        .mandala-bubble:nth-child(4) {
+          animation: bubbleFloat 1.2s ease-out forwards, waveFloat1 6.8s ease-in-out infinite;
+        }
+
+        .mandala-bubble:nth-child(5) {
+          animation: bubbleFloat 1.2s ease-out forwards, waveFloat2 6.2s ease-in-out infinite;
+        }
+
+        .mandala-bubble:nth-child(6) {
+          animation: bubbleFloat 1.2s ease-out forwards, waveFloat3 6.6s ease-in-out infinite;
+        }
+
+        .mandala-bubble:nth-child(7) {
+          animation: bubbleFloat 1.2s ease-out forwards, waveFloat1 7.2s ease-in-out infinite;
+        }
+
+        .mandala-bubble:nth-child(8) {
+          animation: bubbleFloat 1.2s ease-out forwards, waveFloat2 6.4s ease-in-out infinite;
+        }
+
+        @keyframes waveFloat1 {
+          0%, 100% {
+            transform: translate(-50%, -50%) translateY(0px);
+          }
+          50% {
+            transform: translate(-50%, -50%) translateY(-5px);
+          }
+        }
+
+        @keyframes waveFloat2 {
+          0%, 100% {
+            transform: translate(-50%, -50%) translateY(0px);
+          }
+          50% {
+            transform: translate(-50%, -50%) translateY(-4px);
+          }
+        }
+
+        @keyframes waveFloat3 {
+          0%, 100% {
+            transform: translate(-50%, -50%) translateY(0px);
+          }
+          50% {
+            transform: translate(-50%, -50%) translateY(-6px);
+          }
+        }
+
+        .glass-bubble.dimmed {
+          opacity: 0.2 !important;
+          transform: translate(-50%, -50%) scale(0.95) !important;
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .glass-bubble::before {
@@ -456,103 +546,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), transparent 50%);
           pointer-events: none;
           z-index: 1;
-        }
-
-        .body-bubble {
-          width: 60px;
-          height: 60px;
-        }
-
-        .emotion-bubble:nth-child(1) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat1 6s ease-in-out infinite;
-        }
-
-        .emotion-bubble:nth-child(2) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat2 6.5s ease-in-out infinite;
-        }
-
-        .emotion-bubble:nth-child(3) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat3 7s ease-in-out infinite;
-        }
-
-        .emotion-bubble:nth-child(4) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat1 6.8s ease-in-out infinite;
-        }
-
-        .emotion-bubble:nth-child(5) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat2 6.2s ease-in-out infinite;
-        }
-
-        .emotion-bubble:nth-child(6) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat3 6.6s ease-in-out infinite;
-        }
-
-        .emotion-bubble:nth-child(7) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat1 7.2s ease-in-out infinite;
-        }
-
-        .emotion-bubble:nth-child(8) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat2 6.4s ease-in-out infinite;
-        }
-
-        .body-bubble:nth-child(1) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat3 5.8s ease-in-out infinite;
-        }
-
-        .body-bubble:nth-child(2) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat1 6.1s ease-in-out infinite;
-        }
-
-        .body-bubble:nth-child(3) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat2 5.5s ease-in-out infinite;
-        }
-
-        .body-bubble:nth-child(4) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat3 6.3s ease-in-out infinite;
-        }
-
-        .body-bubble:nth-child(5) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat1 5.9s ease-in-out infinite;
-        }
-
-        .body-bubble:nth-child(6) {
-          animation: bubbleFloat 1.2s ease-out forwards, subtleFloat2 6.7s ease-in-out infinite;
-        }
-
-        @keyframes subtleFloat1 {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-5px);
-          }
-        }
-
-        @keyframes subtleFloat2 {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-4px);
-          }
-        }
-
-        @keyframes subtleFloat3 {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-6px);
-          }
-        }
-
-        @keyframes subtleFloat {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-3px);
-          }
         }
 
         .golden-halo {
@@ -604,27 +597,12 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             0 0 40px rgba(247, 231, 206, 0.4),
             0 0 60px rgba(235, 200, 98, 0.25),
             inset 0 0 30px rgba(255, 255, 255, 0.2);
-          transform: scale(1.05);
+          transform: translate(-50%, -50%) scale(1.15) !important;
+          animation: bubbleFloat 1.2s ease-out forwards, selectedTremor 0.15s ease-in-out infinite, selectedGlow 2.5s ease-in-out infinite !important;
         }
 
-        .emotion-bubble.selected:nth-child(1),
-        .emotion-bubble.selected:nth-child(2),
-        .emotion-bubble.selected:nth-child(3),
-        .emotion-bubble.selected:nth-child(4),
-        .emotion-bubble.selected:nth-child(5),
-        .emotion-bubble.selected:nth-child(6),
-        .emotion-bubble.selected:nth-child(7),
-        .emotion-bubble.selected:nth-child(8) {
-          animation: bubbleFloat 1.2s ease-out forwards, selectedGlow 2.5s ease-in-out infinite;
-        }
-
-        .body-bubble.selected:nth-child(1),
-        .body-bubble.selected:nth-child(2),
-        .body-bubble.selected:nth-child(3),
-        .body-bubble.selected:nth-child(4),
-        .body-bubble.selected:nth-child(5),
-        .body-bubble.selected:nth-child(6) {
-          animation: bubbleFloat 1.2s ease-out forwards, selectedGlow 2.5s ease-in-out infinite;
+        .glass-bubble.selected::before {
+          transform: scale(1.15);
         }
 
         .glass-bubble.selected .golden-halo {
@@ -633,21 +611,51 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           box-shadow:
             0 0 30px rgba(247, 231, 206, 0.75),
             0 0 55px rgba(247, 231, 206, 0.45);
+          animation: haloBreath 4s ease-in-out infinite, haloTremor 0.15s ease-in-out infinite;
         }
 
+        @keyframes selectedTremor {
+          0%, 100% {
+            box-shadow:
+              0 0 20px rgba(247, 231, 206, 0.6),
+              0 0 40px rgba(247, 231, 206, 0.4),
+              0 0 60px rgba(235, 200, 98, 0.25),
+              inset 0 0 30px rgba(255, 255, 255, 0.2);
+          }
+          50% {
+            box-shadow:
+              0 0 24px rgba(247, 231, 206, 0.65),
+              0 0 45px rgba(247, 231, 206, 0.45),
+              0 0 65px rgba(235, 200, 98, 0.3),
+              inset 0 0 35px rgba(255, 255, 255, 0.22);
+          }
+        }
+
+        @keyframes haloTremor {
+          0%, 100% {
+            box-shadow:
+              0 0 30px rgba(247, 231, 206, 0.75),
+              0 0 55px rgba(247, 231, 206, 0.45);
+          }
+          50% {
+            box-shadow:
+              0 0 35px rgba(247, 231, 206, 0.8),
+              0 0 60px rgba(247, 231, 206, 0.5);
+          }
+        }
 
         .bubble-content {
           font-family: 'Georgia', 'Times New Roman', serif;
           font-weight: 500;
           letter-spacing: 0.25em;
-          color: #FFFFFF;
+          color: #FFF9E5;
           text-shadow:
             0 1px 2px rgba(0, 0, 0, 0.9),
             0 2px 8px rgba(0, 0, 0, 0.7);
           position: relative;
           z-index: 10;
           transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease, text-shadow 0.3s ease;
-          filter: none;
+          filter: none !important;
         }
 
         .emotion-bubble .bubble-content {
@@ -670,7 +678,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           }
         }
 
-
         @keyframes selectedGlow {
           0%, 100% {
             box-shadow:
@@ -685,6 +692,25 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               0 0 55px rgba(247, 231, 206, 0.5),
               0 0 80px rgba(235, 200, 98, 0.35),
               inset 0 0 40px rgba(255, 255, 255, 0.25);
+          }
+        }
+
+        .golden-breath {
+          animation: goldenBreathPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes goldenBreathPulse {
+          0%, 100% {
+            box-shadow:
+              0 0 20px rgba(247, 231, 206, 0.5),
+              0 0 40px rgba(247, 231, 206, 0.3),
+              0 0 60px rgba(235, 200, 98, 0.2);
+          }
+          50% {
+            box-shadow:
+              0 0 30px rgba(247, 231, 206, 0.7),
+              0 0 60px rgba(247, 231, 206, 0.5),
+              0 0 90px rgba(235, 200, 98, 0.3);
           }
         }
 
@@ -762,11 +788,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         @keyframes bubbleFloat {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translate(-50%, -50%) translateY(20px);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translate(-50%, -50%) translateY(0);
           }
         }
 
@@ -808,18 +834,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           }
         }
 
-        @keyframes bubbleExpand {
-          0% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.1);
-          }
-          100% {
-            transform: scale(1);
-          }
-        }
-
         video {
           transition: filter 2s ease-in-out;
         }
@@ -831,18 +845,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         .title-text {
           position: relative;
           z-index: 100;
-        }
-
-        .body-section-title {
-          position: relative;
-          z-index: 100;
-        }
-
-        .body-section-title p {
-          color: #FFFFFF !important;
-          text-shadow:
-            0 2px 4px rgba(0, 0, 0, 0.95),
-            0 4px 12px rgba(0, 0, 0, 0.8) !important;
         }
 
         .continue-button-wrapper {
