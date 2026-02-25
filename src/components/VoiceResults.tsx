@@ -31,30 +31,34 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
   const benefitMessage = `建议补充${gapChakra.name}能量以固本，补足后您将获得更稳固的显化力量`;
 
   return (
-    <div className="min-h-screen flex flex-col px-6 py-12 relative">
-      <div className="forest-background-layer" />
+    <div className="min-h-screen flex flex-col px-6 py-12 relative overflow-y-auto">
+      <div className="portal-background-layer">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="portal-background-video"
+        >
+          <source src="https://cdn.midjourney.com/video/661ffc10-0d89-43d1-b8f9-83e67d0421ae/2.mp4" type="video/mp4" />
+        </video>
+      </div>
       <div
-        className="background-overlay"
+        className="chakra-overlay"
         style={{
-          opacity: 0.3,
-          backgroundColor: gapChakra.bg
+          background: `radial-gradient(circle at center, ${gapChakra.bg.replace('0.08', '0.15')} 0%, rgba(0, 0, 0, 0.6) 100%)`
         }}
       />
 
       <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full relative z-10 space-y-6">
-        <div
-          className="w-full p-8 rounded-3xl backdrop-blur-xl"
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(247, 231, 206, 0.2)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}
-        >
+        <div className="zen-card status-card">
           <p
-            className="text-2xl font-bold text-center mb-2"
+            className="text-2xl font-light text-center mb-4"
             style={{
               color: dominantChakra.text,
-              letterSpacing: '0.1em'
+              letterSpacing: '0.3em',
+              fontFamily: 'Georgia, Times New Roman, serif',
+              textShadow: `0 0 20px ${dominantChakra.text}40, 0 2px 8px rgba(0, 0, 0, 0.8)`
             }}
           >
             {result.profileName}
@@ -62,63 +66,57 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           <p
             className="text-center text-sm"
             style={{
-              color: 'rgba(255, 255, 255, 0.7)',
-              letterSpacing: '0.15em'
+              color: 'rgba(255, 255, 255, 0.85)',
+              letterSpacing: '0.2em',
+              fontFamily: 'Georgia, Times New Roman, serif',
+              textShadow: '0 2px 6px rgba(0, 0, 0, 0.9)'
             }}
           >
             {statusMessage}
           </p>
         </div>
 
-        <div
-          className="w-full p-8 rounded-3xl backdrop-blur-xl"
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(247, 231, 206, 0.2)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}
-        >
+        <div className="zen-card suggestion-card">
           <p
-            className="text-center text-lg"
+            className="text-center text-base mb-4"
             style={{
               color: '#EBC862',
-              letterSpacing: '0.15em',
-              lineHeight: 1.8
+              letterSpacing: '0.25em',
+              lineHeight: 2,
+              fontFamily: 'Georgia, Times New Roman, serif',
+              textShadow: '0 0 15px rgba(235, 200, 98, 0.6), 0 2px 8px rgba(0, 0, 0, 0.9)'
             }}
           >
             {suggestionMessage}
           </p>
           <p
-            className="text-center text-sm mt-4"
+            className="text-center text-xs"
             style={{
-              color: 'rgba(255, 255, 255, 0.6)',
-              letterSpacing: '0.1em',
-              lineHeight: 1.6
+              color: 'rgba(255, 255, 255, 0.7)',
+              letterSpacing: '0.15em',
+              lineHeight: 1.8,
+              fontFamily: 'Georgia, Times New Roman, serif',
+              textShadow: '0 2px 6px rgba(0, 0, 0, 0.9)'
             }}
           >
             {benefitMessage}
           </p>
         </div>
 
-        <div
-          className="w-full p-8 rounded-3xl backdrop-blur-xl"
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(247, 231, 206, 0.2)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}
-        >
+        <div className="zen-card frequency-card">
           <GoldButton
             onClick={() => onPlayAudio(result.recommendedFrequency.hz)}
-            className="w-full mb-4"
+            className="w-full mb-6 py-5"
           >
-            一键调频
+            <span style={{ letterSpacing: '0.3em', fontSize: '16px' }}>一键调频</span>
           </GoldButton>
           <p
-            className="text-center text-sm"
+            className="text-center text-xs"
             style={{
-              color: 'rgba(255, 255, 255, 0.5)',
-              letterSpacing: '0.2em'
+              color: 'rgba(247, 231, 206, 0.6)',
+              letterSpacing: '0.3em',
+              fontFamily: 'Georgia, Times New Roman, serif',
+              textShadow: '0 2px 6px rgba(0, 0, 0, 0.9)'
             }}
           >
             {result.recommendedFrequency.hz}Hz
@@ -127,135 +125,77 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
 
         <button
           onClick={() => setShowDetails(!showDetails)}
-          className="flex items-center gap-2 mt-6 transition-all hover:scale-105"
+          className="zen-toggle-button"
           style={{
-            color: '#EBC862',
-            letterSpacing: '0.2em',
-            fontSize: '14px'
+            color: 'rgba(247, 231, 206, 0.85)',
+            letterSpacing: '0.25em',
+            fontSize: '13px',
+            fontFamily: 'Georgia, Times New Roman, serif',
+            textShadow: '0 0 10px rgba(247, 231, 206, 0.5), 0 2px 6px rgba(0, 0, 0, 0.9)'
           }}
         >
-          <span>查看深度报告</span>
-          {showDetails ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          <span>{showDetails ? '收起报告' : '查看深度报告'}</span>
+          {showDetails ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </button>
 
         {showDetails && (
-          <div
-            className="w-full p-8 rounded-3xl backdrop-blur-xl animate-fadeIn"
-            style={{
-              background: 'rgba(0, 0, 0, 0.6)',
-              border: '1px solid rgba(247, 231, 206, 0.3)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
-            }}
-          >
+          <div className="zen-report-container">
             <h3
-              className="text-xl font-bold mb-6 text-center"
+              className="text-lg font-light mb-8 text-center"
               style={{
-                color: '#EBC862',
-                letterSpacing: '0.2em'
+                color: 'rgba(247, 231, 206, 0.9)',
+                letterSpacing: '0.4em',
+                fontFamily: 'Georgia, Times New Roman, serif',
+                textShadow: '0 0 15px rgba(247, 231, 206, 0.4), 0 2px 8px rgba(0, 0, 0, 0.9)'
               }}
             >
-              详细分析报告
+              深度报告
             </h3>
 
-            <div className="space-y-6">
-              <div>
-                <h4
-                  className="text-sm font-bold mb-3"
-                  style={{
-                    color: 'rgba(235, 200, 98, 0.8)',
-                    letterSpacing: '0.2em'
-                  }}
-                >
-                  【频率检测结果】
-                </h4>
+            <div className="zen-report-section-wrapper">
+              <div className="zen-report-section">
+                <h4 className="zen-section-title">频率检测结果</h4>
                 {result.detectionDetails.slice(0, 3).map((detail, index) => (
-                  <p
-                    key={index}
-                    className="text-sm mb-2"
-                    style={{
-                      color: 'rgba(255, 255, 255, 0.7)',
-                      letterSpacing: '0.1em',
-                      lineHeight: 1.6
-                    }}
-                  >
-                    • 检测值: {detail.detectedFrequency}Hz → 判定: {detail.organSystem}
+                  <p key={index} className="zen-detail-text">
+                    {detail.detectedFrequency}Hz → {detail.organSystem}
                   </p>
                 ))}
               </div>
 
-              <div>
-                <h4
-                  className="text-sm font-bold mb-3"
-                  style={{
-                    color: 'rgba(235, 200, 98, 0.8)',
-                    letterSpacing: '0.2em'
-                  }}
-                >
-                  【核心频率坐标】
-                </h4>
-                <div className="space-y-1">
-                  <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px', letterSpacing: '0.1em' }}>
-                    心轮: 342-343Hz (核心)
-                  </p>
-                  <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px', letterSpacing: '0.1em' }}>
-                    喉轮: 384Hz (核心)
-                  </p>
-                  <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px', letterSpacing: '0.1em' }}>
-                    眉心轮: 432Hz (核心)
-                  </p>
-                  <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px', letterSpacing: '0.1em' }}>
-                    太阳神经丛: 528Hz (转化频)
-                  </p>
-                  <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px', letterSpacing: '0.1em' }}>
-                    海底轮: &lt;200Hz (纯低频)
-                  </p>
+              <div className="zen-report-section">
+                <h4 className="zen-section-title">核心频率坐标</h4>
+                <div className="space-y-2">
+                  <p className="zen-detail-text-sm">心轮: 342-343Hz</p>
+                  <p className="zen-detail-text-sm">喉轮: 384Hz</p>
+                  <p className="zen-detail-text-sm">眉心轮: 432Hz</p>
+                  <p className="zen-detail-text-sm">太阳神经丛: 528Hz</p>
+                  <p className="zen-detail-text-sm">海底轮: &lt;200Hz</p>
                 </div>
               </div>
 
-              <div>
-                <h4
-                  className="text-sm font-bold mb-3"
-                  style={{
-                    color: 'rgba(235, 200, 98, 0.8)',
-                    letterSpacing: '0.2em'
-                  }}
-                >
-                  【能量分布】
-                </h4>
+              <div className="zen-report-section">
+                <h4 className="zen-section-title">能量分布</h4>
                 {Object.entries(result.chakraDistribution).map(([chakra, percentage]) => {
                   const chakraKey = chakra as keyof typeof CHAKRA_COLORS;
                   const chakraColor = CHAKRA_COLORS[chakraKey];
                   return (
-                    <div key={chakra} className="flex items-center gap-3 mb-2">
-                      <span
-                        className="text-xs"
-                        style={{
-                          color: 'rgba(255, 255, 255, 0.6)',
-                          width: '80px',
-                          letterSpacing: '0.1em'
-                        }}
-                      >
+                    <div key={chakra} className="flex items-center gap-3 mb-3">
+                      <span className="zen-chakra-label">
                         {chakraColor.name}
                       </span>
-                      <div
-                        className="flex-1 h-2 rounded-full overflow-hidden"
-                        style={{ background: 'rgba(255, 255, 255, 0.1)' }}
-                      >
+                      <div className="zen-energy-bar-track">
                         <div
-                          className="h-full transition-all duration-1000"
+                          className="zen-energy-bar-fill"
                           style={{
                             width: `${percentage}%`,
-                            background: chakraColor.text
+                            background: `linear-gradient(90deg, ${chakraColor.text}80, ${chakraColor.text})`,
+                            boxShadow: `0 0 10px ${chakraColor.text}60`
                           }}
                         />
                       </div>
                       <span
-                        className="text-xs"
-                        style={{
-                          color: chakraColor.text,
-                          width: '40px',
-                          textAlign: 'right'
-                        }}
+                        className="zen-percentage"
+                        style={{ color: chakraColor.text }}
                       >
                         {percentage}%
                       </span>
@@ -267,36 +207,30 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           </div>
         )}
 
-        <button
-          onClick={onBack}
-          className="mt-8 px-8 py-3 rounded-xl transition-all hover:scale-105"
-          style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            border: '1px solid rgba(247, 231, 206, 0.3)',
-            color: 'rgba(255, 255, 255, 0.7)',
-            letterSpacing: '0.2em'
-          }}
-        >
+        <button onClick={onBack} className="zen-back-button">
           返回
         </button>
       </div>
 
       <style>{`
-        .forest-background-layer {
+        .portal-background-layer {
           position: fixed;
           top: 0;
           left: 0;
           width: 100%;
           height: 100vh;
-          background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
-          background-size: cover;
-          background-position: center;
-          background-attachment: fixed;
           z-index: 1;
           pointer-events: none;
         }
 
-        .background-overlay {
+        .portal-background-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          filter: brightness(0.85) contrast(1.1);
+        }
+
+        .chakra-overlay {
           position: fixed;
           top: 0;
           left: 0;
@@ -307,19 +241,217 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        @keyframes fadeIn {
+        .zen-card {
+          position: relative;
+          width: 100%;
+          padding: 32px 24px;
+          border-radius: 24px;
+          backdrop-filter: blur(40px) saturate(150%);
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(247, 231, 206, 0.15);
+          box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.6),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: zenCardFadeIn 0.8s ease-out;
+        }
+
+        @keyframes zenCardFadeIn {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(30px) scale(0.96);
           }
           to {
             opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        .status-card {
+          animation-delay: 0.1s;
+        }
+
+        .suggestion-card {
+          animation-delay: 0.2s;
+        }
+
+        .frequency-card {
+          animation-delay: 0.3s;
+        }
+
+        .zen-toggle-button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 24px;
+          padding: 12px 24px;
+          background: rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(20px);
+          border-radius: 20px;
+          border: 1px solid rgba(247, 231, 206, 0.2);
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+
+        .zen-toggle-button:hover {
+          background: rgba(247, 231, 206, 0.1);
+          border-color: rgba(247, 231, 206, 0.4);
+          transform: scale(1.02);
+          box-shadow: 0 4px 20px rgba(247, 231, 206, 0.2);
+        }
+
+        .zen-report-container {
+          width: 100%;
+          margin-top: 24px;
+          padding: 32px 24px;
+          border-radius: 24px;
+          backdrop-filter: blur(40px) saturate(150%);
+          background: rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(247, 231, 206, 0.2);
+          box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.7),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+          animation: zenReportExpand 0.5s ease-out;
+          max-height: 70vh;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .zen-report-container::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        .zen-report-container::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.3);
+          border-radius: 2px;
+        }
+
+        .zen-report-container::-webkit-scrollbar-thumb {
+          background: rgba(247, 231, 206, 0.3);
+          border-radius: 2px;
+        }
+
+        .zen-report-container::-webkit-scrollbar-thumb:hover {
+          background: rgba(247, 231, 206, 0.5);
+        }
+
+        @keyframes zenReportExpand {
+          from {
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            max-height: 70vh;
             transform: translateY(0);
           }
         }
 
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out;
+        .zen-report-section-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 32px;
+        }
+
+        .zen-report-section {
+          padding-bottom: 24px;
+          border-bottom: 1px solid rgba(247, 231, 206, 0.1);
+        }
+
+        .zen-report-section:last-child {
+          border-bottom: none;
+          padding-bottom: 0;
+        }
+
+        .zen-section-title {
+          color: rgba(247, 231, 206, 0.9);
+          font-size: 14px;
+          font-weight: 300;
+          letter-spacing: 0.3em;
+          font-family: Georgia, Times New Roman, serif;
+          margin-bottom: 16px;
+          text-shadow: 0 0 10px rgba(247, 231, 206, 0.4), 0 2px 6px rgba(0, 0, 0, 0.9);
+        }
+
+        .zen-detail-text {
+          color: rgba(255, 255, 255, 0.75);
+          font-size: 13px;
+          font-weight: 300;
+          letter-spacing: 0.15em;
+          line-height: 2;
+          font-family: Georgia, Times New Roman, serif;
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+          margin-bottom: 8px;
+        }
+
+        .zen-detail-text-sm {
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 11px;
+          font-weight: 300;
+          letter-spacing: 0.15em;
+          line-height: 1.8;
+          font-family: Georgia, Times New Roman, serif;
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+        }
+
+        .zen-chakra-label {
+          min-width: 80px;
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 11px;
+          font-weight: 300;
+          letter-spacing: 0.15em;
+          font-family: Georgia, Times New Roman, serif;
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+        }
+
+        .zen-energy-bar-track {
+          flex: 1;
+          height: 6px;
+          background: rgba(255, 255, 255, 0.08);
+          border-radius: 3px;
+          overflow: hidden;
+          backdrop-filter: blur(10px);
+        }
+
+        .zen-energy-bar-fill {
+          height: 100%;
+          border-radius: 3px;
+          transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .zen-percentage {
+          min-width: 45px;
+          text-align: right;
+          font-size: 11px;
+          font-weight: 400;
+          letter-spacing: 0.1em;
+          font-family: Georgia, Times New Roman, serif;
+          text-shadow: 0 0 8px currentColor, 0 2px 6px rgba(0, 0, 0, 0.9);
+        }
+
+        .zen-back-button {
+          margin-top: 32px;
+          padding: 14px 48px;
+          background: rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(20px);
+          border-radius: 50px;
+          border: 1px solid rgba(247, 231, 206, 0.25);
+          color: rgba(247, 231, 206, 0.8);
+          font-size: 14px;
+          font-weight: 300;
+          letter-spacing: 0.3em;
+          font-family: Georgia, Times New Roman, serif;
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+
+        .zen-back-button:hover {
+          background: rgba(247, 231, 206, 0.08);
+          border-color: rgba(247, 231, 206, 0.4);
+          transform: scale(1.05);
+          box-shadow: 0 4px 20px rgba(247, 231, 206, 0.2);
         }
       `}</style>
     </div>
