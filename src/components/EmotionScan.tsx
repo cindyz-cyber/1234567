@@ -199,6 +199,15 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
     }
   };
 
+  const handleContinue = () => {
+    if (selectedEmotions.length > 0 && selectedBodyStates.length > 0) {
+      setIsSubmitting(true);
+      setTimeout(() => {
+        onNext(selectedEmotions, selectedBodyStates);
+      }, 800);
+    }
+  };
+
   const handleContinueToWriting = () => {
     if (selectedEmotions.length > 0 && selectedBodyStates.length > 0) {
       setIsTransitioning(true);
@@ -481,21 +490,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
           <div className={`w-full max-w-md mx-auto continue-button-wrapper transition-all duration-700 ${selectedEmotions.length > 0 && selectedBodyStates.length > 0 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
             <GoldButton
-              onClick={handleContinueToWriting}
-              disabled={selectedEmotions.length === 0 || selectedBodyStates.length === 0}
+              onClick={handleContinue}
+              disabled={selectedEmotions.length === 0 || selectedBodyStates.length === 0 || isSubmitting}
               className="w-full golden-breath"
             >
-              继续
-            </GoldButton>
-          </div>
-
-          <div className={`w-full max-w-md mx-auto mt-6 transition-all duration-700 ${selectedEmotions.length > 0 && selectedBodyStates.length > 0 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-            <GoldButton
-              onClick={handleSubmit}
-              disabled={selectedEmotions.length === 0 || selectedBodyStates.length === 0}
-              className="w-full"
-            >
-              完成
+              {isSubmitting ? '正在继续...' : '继续'}
             </GoldButton>
           </div>
         </div>
