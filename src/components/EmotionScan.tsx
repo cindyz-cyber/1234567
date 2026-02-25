@@ -60,7 +60,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [particles, setParticles] = useState<Particle[]>([]);
   const [poppedBubbles, setPoppedBubbles] = useState<Set<string>>(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [backgroundBlur, setBackgroundBlur] = useState(13);
+  const [backgroundDarkness, setBackgroundDarkness] = useState(0.25);
 
   const emotionPositions = useMemo(() =>
     EMOTIONS.map((emotion, index) => ({
@@ -99,17 +99,17 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
   const createParticles = (x: number, y: number) => {
     const newParticles: Particle[] = [];
-    const count = 12 + Math.floor(Math.random() * 6);
+    const count = 15;
 
     for (let i = 0; i < count; i++) {
-      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
-      const speed = 2 + Math.random() * 3;
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
+      const speed = 3 + Math.random() * 2;
       newParticles.push({
         id: `${Date.now()}-${i}`,
         x,
         y,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 2,
+        vy: Math.sin(angle) * speed - 1.5,
         life: 1,
       });
     }
@@ -203,13 +203,13 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
     if (selectedEmotions.length > 0 && selectedBodyStates.length > 0) {
       setIsTransitioning(true);
 
-      const blurInterval = setInterval(() => {
-        setBackgroundBlur(prev => {
-          if (prev >= 40) {
-            clearInterval(blurInterval);
-            return 40;
+      const darknessInterval = setInterval(() => {
+        setBackgroundDarkness(prev => {
+          if (prev >= 0.6) {
+            clearInterval(darknessInterval);
+            return 0.6;
           }
-          return prev + 1;
+          return prev + 0.015;
         });
       }, 30);
 
@@ -233,7 +233,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative">
-      <div className="forest-background-layer" style={{ filter: `blur(${backgroundBlur}px)` }} />
+      <div className="forest-background-layer" />
+      <div className="background-overlay" style={{ opacity: backgroundDarkness }} />
 
       {particles.map(particle => (
         <div
@@ -502,13 +503,13 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
       <style>{`
         .particle {
           position: fixed;
-          width: 4px;
-          height: 4px;
+          width: 3px;
+          height: 3px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(247, 231, 206, 1) 0%, rgba(235, 200, 98, 0.8) 50%, transparent 100%);
+          background: radial-gradient(circle, rgba(247, 231, 206, 1) 0%, rgba(235, 200, 98, 0.9) 40%, transparent 100%);
           pointer-events: none;
           z-index: 1000;
-          box-shadow: 0 0 8px rgba(247, 231, 206, 0.8), 0 0 12px rgba(235, 200, 98, 0.6);
+          box-shadow: 0 0 6px rgba(247, 231, 206, 0.9), 0 0 10px rgba(235, 200, 98, 0.7);
           will-change: transform, opacity;
         }
 
@@ -522,28 +523,39 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
-          opacity: 0.65;
           z-index: 1;
           pointer-events: none;
-          animation: forestBreath 8s ease-in-out infinite;
-          transition: filter 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-          will-change: filter;
+          animation: cameraBreath 20s ease-in-out infinite;
+          will-change: transform;
         }
 
-        @keyframes forestBreath {
+        .background-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100vh;
+          background: rgba(0, 0, 0, 0.25);
+          z-index: 2;
+          pointer-events: none;
+          transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes cameraBreath {
           0%, 100% {
-            transform: scale(1);
-            opacity: 0.65;
+            transform: scale(1) translate(0, 0);
           }
-          50% {
-            transform: scale(1.02);
-            opacity: 0.75;
+          33% {
+            transform: scale(1.05) translate(-1%, -0.5%);
+          }
+          66% {
+            transform: scale(1.03) translate(0.5%, 1%);
           }
         }
 
         .mandala-container {
           position: relative;
-          z-index: 20;
+          z-index: 10;
         }
 
         .glass-bubble {
@@ -662,23 +674,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .glass-bubble::before {
-          content: '';
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          border-radius: 0;
-          background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
-          background-size: cover;
-          background-position: center;
-          background-attachment: fixed;
-          filter: none;
-          opacity: 1;
-          pointer-events: none;
-          z-index: -2;
-        }
 
         .glass-bubble::after {
           content: '';
@@ -710,12 +705,12 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
           }
-          50% {
-            transform: translate(-50%, -50%) scale(1.3);
-            opacity: 0.8;
+          40% {
+            transform: translate(-50%, -50%) scale(1.2);
+            opacity: 0.9;
           }
           100% {
-            transform: translate(-50%, -50%) scale(1.5);
+            transform: translate(-50%, -50%) scale(0.5);
             opacity: 0;
           }
         }
@@ -820,10 +815,10 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           font-family: 'Georgia', 'Times New Roman', serif;
           font-weight: 500;
           letter-spacing: 0.25em;
-          color: #FFF9E5;
+          color: #FFFFFF;
           text-shadow:
-            0 1px 2px rgba(0, 0, 0, 0.9),
-            0 2px 8px rgba(0, 0, 0, 0.7);
+            0 2px 4px rgba(0, 0, 0, 0.5),
+            0 1px 2px rgba(0, 0, 0, 0.8);
           position: relative;
           z-index: 10;
           transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease, text-shadow 0.3s ease;
