@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, Mic, Square, RotateCcw, Heart, Activity, Sparkles } from 'lucide-react';
+import { ChevronLeft, Mic, Square, RotateCcw, FileText, Activity, Heart, Zap, ListChecks, Music } from 'lucide-react';
 import { VoiceAnalyzer, VoiceAnalysisResult } from '../utils/voiceAnalysis';
 import { supabase } from '../lib/supabase';
 import { getProfileWithDynamicBalance, EnergyProfile } from '../data/energyDatabase';
+import { generateReport, ReportData } from '../utils/reportGenerator';
+import ReportSection from './ReportSection';
 
 interface VoiceRecognitionProps {
   onBack?: () => void;
@@ -16,6 +18,7 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
   const [audioLevel, setAudioLevel] = useState(0);
   const [result, setResult] = useState<VoiceAnalysisResult | null>(null);
   const [energyProfile, setEnergyProfile] = useState<EnergyProfile | null>(null);
+  const [report, setReport] = useState<ReportData | null>(null);
   const [rippleScale, setRippleScale] = useState(1);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -124,6 +127,9 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
           analysisResult.phase
         );
         setEnergyProfile(profile);
+
+        const generatedReport = generateReport(analysisResult);
+        setReport(generatedReport);
 
         setRecordingState('result');
         setRippleScale(1);
@@ -267,149 +273,188 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
               {result.message}
             </div>
 
-            <div className="energy-flow-hint">
-              <Sparkles size={16} />
-              <span>这只是你此刻的能量状态，它正在流动和转化中</span>
-            </div>
+            {report && (
+              <div className="report-container">
+                <ReportSection
+                  title="核心综述"
+                  icon={<FileText size={20} />}
+                  summary={report.coreSummary.summary}
+                  summaryColor="rgba(255, 100, 100, 0.95)"
+                  defaultExpanded={true}
+                >
+                  <div className="report-detail-content">
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">情绪画像</div>
+                      <div style={{ marginTop: '8px' }}>
+                        {report.coreSummary.details.profile}
+                      </div>
+                    </div>
 
-            <div className="result-details">
-              <div className="detail-item">
-                <div className="detail-label">发音源</div>
-                <div className="detail-value">
-                  {result.source === 'brain' ? '脑部发声' : result.source === 'throat' ? '喉部发声' : result.source === 'heart' ? '心部发声' : '下焦发声'}
-                </div>
-              </div>
-              <div className="detail-item">
-                <div className="detail-label">情绪纹理</div>
-                <div className="detail-value">
-                  {result.quality === 'smooth' ? '流畅平滑' : result.quality === 'rough' ? '粗糙带刺' : '平坦逻辑'}
-                </div>
-              </div>
-              <div className="detail-item">
-                <div className="detail-label">能量相位</div>
-                <div className="detail-value">
-                  {result.phase === 'grounded' ? '稳定扎根' : result.phase === 'floating' ? '悬浮上升' : '横向散开'}
-                </div>
-              </div>
-            </div>
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">发声源定位</div>
+                      <div style={{ marginTop: '8px' }}>
+                        {report.coreSummary.details.sourceAnalysis}
+                      </div>
+                    </div>
 
-            <div className="frequency-distribution-card">
-              <div className="frequency-card-header">
-                <Activity size={20} />
-                <span>7脉轮能量分布</span>
-              </div>
-              <div className="frequency-bars">
-                <div className="frequency-bar-item">
-                  <div className="frequency-bar-label">
-                    <span>海底轮 (194Hz)</span>
-                    <span className="frequency-percentage">{result.chakraDistribution.root}%</span>
-                  </div>
-                  <div className="frequency-bar-track">
-                    <div
-                      className="frequency-bar-fill root-bar"
-                      style={{ width: `${result.chakraDistribution.root}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="frequency-bar-item">
-                  <div className="frequency-bar-label">
-                    <span>脐轮 (417Hz)</span>
-                    <span className="frequency-percentage">{result.chakraDistribution.sacral}%</span>
-                  </div>
-                  <div className="frequency-bar-track">
-                    <div
-                      className="frequency-bar-fill sacral-bar"
-                      style={{ width: `${result.chakraDistribution.sacral}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="frequency-bar-item">
-                  <div className="frequency-bar-label">
-                    <span>太阳轮 (528Hz)</span>
-                    <span className="frequency-percentage">{result.chakraDistribution.solar}%</span>
-                  </div>
-                  <div className="frequency-bar-track">
-                    <div
-                      className="frequency-bar-fill solar-bar"
-                      style={{ width: `${result.chakraDistribution.solar}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="frequency-bar-item">
-                  <div className="frequency-bar-label">
-                    <span>心轮 (639Hz)</span>
-                    <span className="frequency-percentage">{result.chakraDistribution.heart}%</span>
-                  </div>
-                  <div className="frequency-bar-track">
-                    <div
-                      className="frequency-bar-fill heart-bar"
-                      style={{ width: `${result.chakraDistribution.heart}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="frequency-bar-item">
-                  <div className="frequency-bar-label">
-                    <span>喉轮 (741Hz)</span>
-                    <span className="frequency-percentage">{result.chakraDistribution.throat}%</span>
-                  </div>
-                  <div className="frequency-bar-track">
-                    <div
-                      className="frequency-bar-fill throat-bar"
-                      style={{ width: `${result.chakraDistribution.throat}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="frequency-bar-item">
-                  <div className="frequency-bar-label">
-                    <span>眉心轮 (852Hz)</span>
-                    <span className="frequency-percentage">{result.chakraDistribution.thirdEye}%</span>
-                  </div>
-                  <div className="frequency-bar-track">
-                    <div
-                      className="frequency-bar-fill thirdeye-bar"
-                      style={{ width: `${result.chakraDistribution.thirdEye}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="frequency-bar-item">
-                  <div className="frequency-bar-label">
-                    <span>顶轮 (963Hz)</span>
-                    <span className="frequency-percentage">{result.chakraDistribution.crown}%</span>
-                  </div>
-                  <div className="frequency-bar-track">
-                    <div
-                      className="frequency-bar-fill crown-bar"
-                      style={{ width: `${result.chakraDistribution.crown}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">声音质地</div>
+                      <div style={{ marginTop: '8px' }}>
+                        {report.coreSummary.details.qualityAnalysis}
+                      </div>
+                    </div>
 
-            <div className="healing-station-card">
-              <div className="healing-station-header">
-                <Heart size={20} />
-                <span>调频补给站</span>
-              </div>
-              <div className="healing-station-content">
-                <div className="recommended-frequency">
-                  <div className="frequency-badge">推荐频率：{result.recommendedFrequency.hz}Hz</div>
-                  <div className="frequency-reason">{result.recommendedFrequency.reason}</div>
-                </div>
-              </div>
-            </div>
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">能量相位</div>
+                      <div style={{ marginTop: '8px' }}>
+                        {report.coreSummary.details.phaseAnalysis}
+                      </div>
+                    </div>
+                  </div>
+                </ReportSection>
 
-            <div className="energy-flow-card">
-              <div className="energy-flow-header">
-                <Sparkles size={20} />
-                <span>能量流转建议</span>
-              </div>
-              <div className="energy-flow-content">
-                {energyProfile.energyFlowAdvice}
-              </div>
-            </div>
+                <ReportSection
+                  title="脉轮能量"
+                  icon={<Activity size={20} />}
+                  summary={report.chakraAnalysis.summary}
+                  summaryColor="rgba(100, 220, 100, 0.95)"
+                >
+                  <div className="report-detail-content">
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">物理计算公式</div>
+                      <div className="report-formula">
+                        {report.chakraAnalysis.details.formula}
+                      </div>
+                    </div>
 
-            <div className="hope-note">
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">优势脉轮</div>
+                      <div style={{ marginTop: '8px' }}>
+                        {report.chakraAnalysis.details.dominantChakra}
+                      </div>
+                    </div>
+
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">缺口脉轮</div>
+                      <div style={{ marginTop: '8px' }}>
+                        {report.chakraAnalysis.details.gapChakras}
+                      </div>
+                    </div>
+
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">完整能量分布</div>
+                      <div className="report-formula" style={{ borderColor: 'rgba(255, 200, 100, 0.3)', color: 'rgba(255, 200, 100, 0.95)' }}>
+                        {report.chakraAnalysis.details.distribution}
+                      </div>
+                    </div>
+
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">能量流动解析</div>
+                      <div style={{ marginTop: '8px' }}>
+                        {report.chakraAnalysis.details.energyFlow}
+                      </div>
+                    </div>
+                  </div>
+                </ReportSection>
+
+                <ReportSection
+                  title="脏腑调理"
+                  icon={<Heart size={20} />}
+                  summary={report.organTherapy.summary}
+                  summaryColor="rgba(100, 180, 255, 0.95)"
+                >
+                  <div className="report-detail-content">
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">主要调理目标</div>
+                      <div style={{ marginTop: '8px' }}>
+                        {report.organTherapy.details.primaryOrgan}
+                      </div>
+                    </div>
+
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">次要调理目标</div>
+                      <div style={{ marginTop: '8px' }}>
+                        {report.organTherapy.details.secondaryOrgan}
+                      </div>
+                    </div>
+
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">调理建议</div>
+                      <ul className="report-list">
+                        {report.organTherapy.details.recommendations.map((rec, index) => (
+                          <li key={index}>{rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </ReportSection>
+
+                <ReportSection
+                  title="行动红黑榜"
+                  icon={<ListChecks size={20} />}
+                  summary={report.actionPlan.summary}
+                  summaryColor="rgba(255, 180, 80, 0.95)"
+                >
+                  <div className="report-detail-content">
+                    <div className="report-subsection">
+                      <div className="report-subsection-title" style={{ color: 'rgba(100, 220, 120, 0.95)' }}>
+                        ✓ 建议多做
+                      </div>
+                      <ul className="report-list do-list">
+                        {report.actionPlan.details.doList.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="report-subsection">
+                      <div className="report-subsection-title" style={{ color: 'rgba(255, 100, 100, 0.95)' }}>
+                        ✗ 建议避免
+                      </div>
+                      <ul className="report-list avoid-list">
+                        {report.actionPlan.details.avoidList.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </ReportSection>
+
+                <ReportSection
+                  title="能量补给站"
+                  icon={<Music size={20} />}
+                  summary={report.healingStation.summary}
+                  summaryColor="rgba(200, 150, 255, 0.95)"
+                >
+                  <div className="report-detail-content">
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">推荐频率</div>
+                      <div className="report-formula" style={{ borderColor: 'rgba(200, 150, 255, 0.3)', color: 'rgba(200, 150, 255, 0.95)' }}>
+                        {report.healingStation.details.recommendedFrequency}Hz → {report.healingStation.details.chakraTarget}
+                      </div>
+                    </div>
+
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">为什么选择这个频率</div>
+                      <div style={{ marginTop: '8px' }}>
+                        {report.healingStation.details.reason}
+                      </div>
+                    </div>
+
+                    <div className="report-subsection">
+                      <div className="report-subsection-title">使用指南</div>
+                      <ul className="report-list">
+                        {report.healingStation.details.howToUse.map((instruction, index) => (
+                          <li key={index}>{instruction}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </ReportSection>
+              </div>
+            )}
+
+            <div className="hope-note" style={{ marginTop: '32px' }}>
               {energyProfile.hopeNote}
             </div>
 
@@ -980,6 +1025,11 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
           border-color: rgba(200, 220, 255, 0.7);
           transform: scale(1.05);
           box-shadow: 0 0 50px rgba(200, 220, 255, 0.4);
+        }
+
+        .report-container {
+          margin-top: 32px;
+          width: 100%;
         }
 
         .energy-flow-hint {
