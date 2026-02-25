@@ -66,7 +66,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           playsInline
           className="home-background-video"
         >
-          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
+          <source src="https://cdn.midjourney.com/video/48fc39c6-3c66-4f02-a3e2-3445b7fec438/1.mp4" type="video/mp4" />
         </video>
         <div className="home-background-overlay" />
       </div>
@@ -178,7 +178,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           width: 100%;
           height: 100%;
           object-fit: cover;
-          filter: brightness(0.9) contrast(1.1) saturate(1.05);
+          filter: brightness(0.7) contrast(1.15) saturate(0.9);
         }
 
         .home-background-overlay {
@@ -190,8 +190,8 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           background: linear-gradient(
             to bottom,
             transparent 0%,
-            rgba(10, 31, 28, 0.25) 66.666vh,
-            rgba(4, 20, 18, 0.5) 100%
+            rgba(5, 10, 20, 0.4) 66.666vh,
+            rgba(2, 5, 12, 0.7) 100%
           );
         }
 
@@ -214,31 +214,31 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
         .portal-glow-effect {
           position: absolute;
-          bottom: -60px;
+          bottom: -80px;
           left: 50%;
           transform: translateX(-50%);
-          width: 120%;
-          height: 120px;
+          width: 140%;
+          height: 160px;
           background: radial-gradient(
             ellipse at center,
-            rgba(168, 218, 181, 0.25) 0%,
-            rgba(144, 198, 149, 0.15) 30%,
-            rgba(120, 178, 117, 0.08) 50%,
+            rgba(180, 200, 255, 0.18) 0%,
+            rgba(150, 170, 220, 0.12) 30%,
+            rgba(120, 140, 180, 0.06) 50%,
             transparent 70%
           );
-          filter: blur(40px);
+          filter: blur(60px);
           pointer-events: none;
-          animation: portalGlowPulse 4s ease-in-out infinite;
+          animation: portalGlowPulse 5s ease-in-out infinite;
         }
 
         @keyframes portalGlowPulse {
           0%, 100% {
-            opacity: 0.6;
+            opacity: 0.5;
             transform: translateX(-50%) scale(1);
           }
           50% {
-            opacity: 0.9;
-            transform: translateX(-50%) scale(1.1);
+            opacity: 0.8;
+            transform: translateX(-50%) scale(1.15);
           }
         }
 
@@ -247,15 +247,15 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           bottom: 0;
           left: 0;
           width: 100%;
-          height: 40%;
+          height: 50%;
           background: linear-gradient(
             180deg,
             transparent 0%,
-            rgba(168, 218, 181, 0.03) 20%,
-            rgba(144, 198, 149, 0.05) 40%,
-            rgba(120, 178, 117, 0.06) 60%,
-            rgba(96, 158, 93, 0.08) 80%,
-            rgba(10, 31, 28, 0.3) 100%
+            rgba(180, 200, 255, 0.02) 15%,
+            rgba(150, 170, 220, 0.03) 30%,
+            rgba(120, 140, 180, 0.04) 50%,
+            rgba(90, 110, 140, 0.06) 70%,
+            rgba(5, 10, 20, 0.4) 100%
           );
           pointer-events: none;
         }
@@ -274,54 +274,64 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
         }
 
         .dialogue-greeting {
-          color: #F7E7CE;
-          font-size: 20px;
-          font-weight: 300;
-          letter-spacing: 0.1em;
-          line-height: 2;
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 19px;
+          font-weight: 200;
+          letter-spacing: 0.2em;
+          line-height: 2.4;
           text-align: center;
-          margin-bottom: 60px;
-          text-shadow: 0 2px 30px rgba(247, 231, 206, 0.3);
-          font-family: 'Noto Serif SC', 'STSong', 'Songti SC', serif;
+          margin-bottom: 70px;
+          text-shadow: 0 0 40px rgba(180, 200, 255, 0.2);
+          font-family: 'Noto Serif SC', serif;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
+          opacity: 0.9;
         }
 
         .user-name-highlight {
-          color: #D4C5A0;
-          font-weight: 400;
-          letter-spacing: 0.15em;
-          text-shadow: 0 0 20px rgba(212, 197, 160, 0.4);
+          color: rgba(200, 220, 255, 0.95);
+          font-weight: 300;
+          letter-spacing: 0.25em;
+          text-shadow: 0 0 30px rgba(200, 220, 255, 0.3);
         }
 
         .zen-dialogue-box {
           position: relative;
-          background: transparent;
-          border: 0.5px solid rgba(168, 218, 181, 0.15);
-          border-radius: 2px;
-          padding: 40px;
-          box-shadow: inset 0 0 60px rgba(168, 218, 181, 0.02);
-          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+          background: rgba(255, 255, 255, 0.015);
+          backdrop-filter: blur(60px) saturate(120%);
+          -webkit-backdrop-filter: blur(60px) saturate(120%);
+          border: 0.5px solid rgba(200, 220, 255, 0.08);
+          border-radius: 4px;
+          padding: 48px;
+          box-shadow:
+            inset 0 0 80px rgba(180, 200, 255, 0.01),
+            0 8px 40px rgba(0, 0, 0, 0.4);
+          transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .zen-dialogue-box::before {
           content: '';
           position: absolute;
-          inset: -1px;
-          border-radius: 2px;
-          padding: 1px;
+          inset: 0;
+          border-radius: 4px;
           background: linear-gradient(
             135deg,
-            rgba(168, 218, 181, 0.2),
-            rgba(144, 198, 149, 0.1),
-            rgba(120, 178, 117, 0.05),
-            transparent
+            rgba(200, 220, 255, 0.06) 0%,
+            rgba(180, 200, 240, 0.03) 30%,
+            rgba(160, 180, 220, 0.01) 60%,
+            transparent 100%
           );
-          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
           opacity: 0;
-          transition: opacity 0.8s ease;
+          transition: opacity 1s ease;
+          pointer-events: none;
+        }
+
+        .zen-dialogue-box:focus-within {
+          background: rgba(255, 255, 255, 0.025);
+          border-color: rgba(200, 220, 255, 0.15);
+          box-shadow:
+            inset 0 0 100px rgba(180, 200, 255, 0.02),
+            0 12px 60px rgba(0, 0, 0, 0.5);
         }
 
         .zen-dialogue-box:focus-within::before {
@@ -330,58 +340,54 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
         .dialogue-textarea-input {
           width: 100%;
-          min-height: 320px;
+          min-height: 360px;
           background: transparent;
           border: none;
           outline: none;
-          color: #E8E8DC;
-          font-size: 17px;
-          font-weight: 300;
-          line-height: 2;
-          letter-spacing: 0.05em;
-          font-family: 'Noto Serif SC', 'STSong', 'Songti SC', serif;
+          color: rgba(255, 255, 255, 0.88);
+          font-size: 16.5px;
+          font-weight: 200;
+          line-height: 2.3;
+          letter-spacing: 0.15em;
+          font-family: 'Noto Serif SC', serif;
           resize: none;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
           caret-color: transparent;
-          text-shadow: 0 0 1px rgba(232, 232, 220, 0.1);
-          animation: textAppear 0.3s ease-out;
-        }
-
-        @keyframes textAppear {
-          0% {
-            filter: blur(4px);
-            opacity: 0;
-          }
-          100% {
-            filter: blur(0);
-            opacity: 1;
-          }
+          text-shadow: 0 0 2px rgba(200, 220, 255, 0.1);
         }
 
         .dialogue-textarea-input::placeholder {
-          color: rgba(232, 232, 220, 0.2);
-          letter-spacing: 0.08em;
+          color: rgba(255, 255, 255, 0.15);
+          letter-spacing: 0.2em;
+          font-weight: 200;
         }
 
         .breathing-cursor {
           position: absolute;
-          width: 2px;
-          height: 20px;
-          background: rgba(168, 218, 181, 0.6);
-          bottom: 40px;
-          left: 40px;
-          animation: breathingCursor 2s ease-in-out infinite;
+          width: 1.5px;
+          height: 22px;
+          background: linear-gradient(
+            to bottom,
+            rgba(200, 220, 255, 0.7),
+            rgba(180, 200, 240, 0.4)
+          );
+          bottom: 48px;
+          left: 48px;
+          animation: breathingCursor 3s ease-in-out infinite;
           pointer-events: none;
-          filter: blur(0.5px);
+          filter: blur(0.3px);
+          box-shadow: 0 0 8px rgba(200, 220, 255, 0.3);
         }
 
         @keyframes breathingCursor {
           0%, 100% {
-            opacity: 0;
+            opacity: 0.2;
+            transform: scaleY(0.9);
           }
           50% {
-            opacity: 1;
+            opacity: 0.9;
+            transform: scaleY(1);
           }
         }
 
@@ -393,11 +399,11 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           height: 100%;
           background: radial-gradient(
             circle at center,
-            rgba(168, 218, 181, 0.15) 0%,
-            rgba(144, 198, 149, 0.1) 30%,
+            rgba(200, 220, 255, 0.12) 0%,
+            rgba(180, 200, 240, 0.08) 30%,
             transparent 60%
           );
-          animation: completionRippleExpand 1.2s ease-out forwards;
+          animation: completionRippleExpand 1.5s ease-out forwards;
           pointer-events: none;
           z-index: 1000;
         }
@@ -406,13 +412,16 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           0% {
             transform: scale(0);
             opacity: 0;
+            filter: blur(0);
           }
           30% {
             opacity: 1;
+            filter: blur(20px);
           }
           100% {
-            transform: scale(3);
+            transform: scale(3.5);
             opacity: 0;
+            filter: blur(40px);
           }
         }
 
@@ -437,17 +446,17 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           }
 
           .zen-dialogue-box {
-            padding: 28px 20px;
+            padding: 32px 24px;
           }
 
           .dialogue-textarea-input {
-            font-size: 16px;
-            min-height: 280px;
+            font-size: 15.5px;
+            min-height: 320px;
           }
 
           .breathing-cursor {
-            bottom: 28px;
-            left: 20px;
+            bottom: 32px;
+            left: 24px;
           }
         }
       `}</style>
