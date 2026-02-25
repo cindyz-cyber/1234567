@@ -81,11 +81,11 @@ const EMOTION_PROFILES: EmotionProfile[] = [
 
 const CHAKRA_FREQUENCIES = {
   root: { base: 194, range: [100, 199], core: 194 },
-  sacral: { base: 417, range: [200, 339], core: 417 },
-  solar: { base: 528, range: [480, 580], core: 528 },
   heart: { base: 343, range: [340, 355], core: 343 },
   throat: { base: 384, range: [375, 405], core: 384 },
+  sacral: { base: 417, range: [406, 419], core: 417 },
   thirdEye: { base: 432, range: [420, 460], core: 432 },
+  solar: { base: 528, range: [480, 580], core: 528 },
   crown: { base: 963, range: [920, 1200], core: 963 }
 };
 
@@ -241,7 +241,7 @@ export class VoiceAnalyzer {
       crown: 0
     };
 
-    const detectionOrder: Array<keyof ChakraEnergy> = ['heart', 'throat', 'thirdEye', 'solar', 'root', 'sacral', 'crown'];
+    const detectionOrder: Array<keyof ChakraEnergy> = ['heart', 'throat', 'thirdEye', 'sacral', 'solar', 'root', 'crown'];
 
     for (const chakraKey of detectionOrder) {
       const { core, range } = CHAKRA_FREQUENCIES[chakraKey];
@@ -250,8 +250,8 @@ export class VoiceAnalyzer {
       const rangeEnergy = this.getEnergyInRange(fftData, range[0], range[1], sampleRate);
 
       chakraEnergy[chakraKey] = (
-        coreEnergy * 0.7 +
-        rangeEnergy * 0.3
+        coreEnergy * 0.75 +
+        rangeEnergy * 0.25
       );
     }
 

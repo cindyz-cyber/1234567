@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Shuffle } from 'lucide-react';
 import GoldButton from './GoldButton';
 import { VoiceAnalysisResult } from '../utils/voiceAnalysis';
 
@@ -13,7 +13,7 @@ const CHAKRA_COLORS = {
   root: { bg: 'rgba(220, 38, 38, 0.08)', text: '#DC2626', name: '海底轮' },
   sacral: { bg: 'rgba(249, 115, 22, 0.08)', text: '#F97316', name: '脐轮' },
   solar: { bg: 'rgba(234, 179, 8, 0.08)', text: '#EAB308', name: '太阳轮' },
-  heart: { bg: 'rgba(34, 197, 94, 0.08)', text: '#22C55E', name: '心轮' },
+  heart: { bg: 'rgba(236, 72, 153, 0.08)', text: '#EC4899', name: '心轮' },
   throat: { bg: 'rgba(59, 130, 246, 0.08)', text: '#3B82F6', name: '喉轮' },
   thirdEye: { bg: 'rgba(99, 102, 241, 0.08)', text: '#6366F1', name: '眉心轮' },
   crown: { bg: 'rgba(168, 85, 247, 0.08)', text: '#A855F7', name: '顶轮' }
@@ -27,8 +27,8 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
   const gapOrgans = result.organMapping[result.gapChakras[0]].join('、');
 
   const statusMessage = `您正处于${dominantChakra.name}通达的状态`;
-  const suggestionMessage = `关注${gapOrgans}的受纳平衡`;
-  const benefitMessage = `建议补充${gapChakra.name}能量以固本，补足后您将获得更稳固的显化力量`;
+  const suggestionMessage = `关注${gapOrgans}的滋养平衡`;
+  const benefitMessage = `建议补充${gapChakra.name}能量，补足后您将获得更完整的生命力`;
 
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 relative overflow-y-auto">
@@ -109,24 +109,37 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
         </div>
 
         <div className="zen-card frequency-card">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <p
+              className="text-center text-sm"
+              style={{
+                color: gapChakra.text,
+                letterSpacing: '0.25em',
+                fontFamily: 'Georgia, Times New Roman, serif',
+                textShadow: `0 0 20px ${gapChakra.text}80, 0 2px 8px rgba(0, 0, 0, 0.95)`,
+                fontWeight: 400,
+                filter: 'brightness(1.3)'
+              }}
+            >
+              {gapChakra.name}·{result.recommendedFrequency.hz}Hz
+            </p>
+            <button
+              onClick={() => {
+                const frequencies = [194, 417, 528, 343, 384, 432, 963];
+                const randomHz = frequencies[Math.floor(Math.random() * frequencies.length)];
+                onPlayAudio(randomHz);
+              }}
+              className="shuffle-button"
+            >
+              <Shuffle size={16} />
+            </button>
+          </div>
           <GoldButton
             onClick={() => onPlayAudio(result.recommendedFrequency.hz)}
-            className="w-full mb-6 py-5"
+            className="w-full py-5"
           >
-            <span style={{ letterSpacing: '0.3em', fontSize: '16px' }}>一键调频</span>
+            <span style={{ letterSpacing: '0.3em', fontSize: '16px' }}>播放调频音频</span>
           </GoldButton>
-          <p
-            className="text-center text-xs"
-            style={{
-              color: 'rgba(247, 231, 206, 0.95)',
-              letterSpacing: '0.3em',
-              fontFamily: 'Georgia, Times New Roman, serif',
-              textShadow: '0 2px 8px rgba(0, 0, 0, 0.95)',
-              fontWeight: 400
-            }}
-          >
-            {result.recommendedFrequency.hz}Hz
-          </p>
         </div>
 
         <button
@@ -461,6 +474,26 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           border-color: rgba(247, 231, 206, 0.6);
           transform: scale(1.05);
           box-shadow: 0 4px 20px rgba(247, 231, 206, 0.3);
+        }
+
+        .shuffle-button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 8px;
+          background: rgba(247, 231, 206, 0.08);
+          border: 1px solid rgba(247, 231, 206, 0.3);
+          border-radius: 12px;
+          color: rgba(247, 231, 206, 0.9);
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+
+        .shuffle-button:hover {
+          background: rgba(247, 231, 206, 0.15);
+          border-color: rgba(247, 231, 206, 0.5);
+          transform: scale(1.1) rotate(15deg);
+          box-shadow: 0 2px 12px rgba(247, 231, 206, 0.3);
         }
       `}</style>
     </div>

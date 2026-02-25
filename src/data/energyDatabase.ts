@@ -95,39 +95,39 @@ export function generateDynamicEnergyFlowFor7Chakras(
   const primaryGapOrgans = organMapping[primaryGap].join('、');
   const secondaryGapOrgans = organMapping[secondaryGap].join('、');
 
-  energyFlowAdvice = `【7脉轮对冲诊断】\n\n你的${dominantName}能量过盛，形成能量堆积。根据"损有余而补不足"原则：\n\n• 主要缺口：${primaryGapName}能量最弱，对应脏腑为${primaryGapOrgans}。建议优先通过相应频率音乐、食疗和经络疏通来滋养此轮。\n\n• 次要缺口：${secondaryGapName}也需关注，对应${secondaryGapOrgans}系统。可在主要缺口得到改善后进行调理。\n\n`;
+  energyFlowAdvice = `您的${dominantName}能量充沛，展现出良好的生命力。\n\n建议关注：\n\n• ${primaryGapName}滋养：对应${primaryGapOrgans}系统，建议通过相应频率音乐、温和食疗来充盈此轮。\n\n• ${secondaryGapName}补足：对应${secondaryGapOrgans}系统，可在主要调理完成后温和滋养。\n\n`;
 
   if (dominantChakra === 'crown' || dominantChakra === 'thirdEye') {
-    energyFlowAdvice += '• 上焦过盛处理：你的能量过度集中在头部，容易导致思虑过度、失眠。建议通过泡脚、按摩涌泉穴，将能量引导下行至海底轮和脐轮，重建上下平衡。\n\n';
+    energyFlowAdvice += '上焦能量充足，建议通过泡脚、按摩涌泉穴，让能量温柔地流向下焦，形成上下贯通的和谐状态。\n\n';
   } else if (dominantChakra === 'root' || dominantChakra === 'sacral') {
-    energyFlowAdvice += '• 下焦过盛处理：你的能量过度沉降在下焦，可能感到沉重、迟钝。建议通过伸展运动、深呼吸打开上焦通道，让能量向心轮和喉轮上升。\n\n';
+    energyFlowAdvice += '下焦能量扎实，建议通过伸展运动、深呼吸，让能量向上流动至心轮和喉轮，获得更完整的表达力。\n\n';
   } else if (dominantChakra === 'throat') {
-    energyFlowAdvice += '• 喉轮过盛处理：表达欲过强或喉部紧张。建议减少过度说话，多做颈部放松，将能量导向心轮和下丹田储存。\n\n';
+    energyFlowAdvice += '表达通道活跃，建议适度放松颈部，将部分能量导向心轮储存，让表达更有力量感。\n\n';
   } else if (dominantChakra === 'heart') {
-    energyFlowAdvice += '• 心轮过盛处理：情绪波动大或心火上扬。建议通过腹式呼吸将心火能量下沉至太阳轮和脐轮，平复情绪波动。\n\n';
+    energyFlowAdvice += '心轮光明饱满，建议通过腹式呼吸让能量向下扎根，平衡情感与理性，获得更稳定的内在力量。\n\n';
   } else if (dominantChakra === 'solar') {
-    energyFlowAdvice += '• 太阳轮过盛处理：控制欲强或消化系统紧张。建议通过冥想放松腹部，平衡意志力与柔软度。\n\n';
+    energyFlowAdvice += '意志力中心充盈，建议通过冥想放松腹部，平衡行动力与柔软度，让力量更加从容。\n\n';
   }
 
-  hopeNote = `${dominantName}的能量虽然充沛，但平衡才是健康之道。当你滋养了${primaryGapName}和${secondaryGapName}，整个能量系统会进入更和谐的状态，身心都会感到轻盈和完整。`;
+  hopeNote = `${dominantName}能量充沛是很好的生命状态。当您滋养${primaryGapName}和${secondaryGapName}，整个能量系统将更和谐完整，身心都会感到轻盈圆满。`;
 
   if (quality === 'rough') {
-    energyFlowAdvice += '• 声音质地粗糙：说明内在有未疏解的紧张、愤怒或防御机制。建议通过按摩、情绪释放或声音疗愈，软化这些紧绷的能量结。\n\n';
-    hopeNote += ' 那些粗糙带刺的部分，都是你曾经的保护盔甲。当你准备好放下，温柔会自然流淌。';
+    energyFlowAdvice += '声音质地展现出独特的力量感，建议通过按摩、声音疗愈，让这份力量更加柔和流畅。\n\n';
+    hopeNote += '您的力量正在寻找更温柔的表达方式，这是成长的美好过程。';
   } else if (quality === 'flat') {
-    energyFlowAdvice += '• 声音质地平坦：能量场缺乏波动和情绪流动性，可能过度压抑或麻木。建议通过运动、大笑、唱歌或情绪表达，重新激活能量的生命力。\n\n';
-    hopeNote += ' 允许自己有更丰富的情绪起伏，生命的色彩就藏在这些自然的波动里。';
+    energyFlowAdvice += '声音质地平稳安静，建议通过运动、唱歌或情绪表达，激活能量的丰富色彩和生命力。\n\n';
+    hopeNote += '允许自己展现更多生命的律动，丰盛就在这些自然的波动中。';
   } else {
-    energyFlowAdvice += '• 声音质地流畅：能量流动自然，说明你的表达通道较为畅通。继续保持这种觉察和流动性。\n\n';
-    hopeNote += ' 你的能量流动顺畅，这是很好的状态基础。';
+    energyFlowAdvice += '声音质地流畅自然，表达通道畅通，继续保持这份觉察和流动。\n\n';
+    hopeNote += '您的能量流动顺畅，这是很好的状态基础。';
   }
 
   if (phase === 'floating') {
-    energyFlowAdvice += '• 能量相位：悬浮上升。能量过度集中在上焦，缺乏接地性。建议赤脚踩地、抱树或练习蹲马步，让能量重新扎根大地。';
+    energyFlowAdvice += '能量轻盈向上，建议赤脚踩地、抱树或练习蹲马步，让能量扎根大地，获得更稳固的支持力。';
   } else if (phase === 'dispersed') {
-    energyFlowAdvice += '• 能量相位：横向散开。能量向外分散，中轴线薄弱。建议通过站桩、打坐或腹式呼吸，将分散的能量收摄回中脉。';
+    energyFlowAdvice += '能量向外拓展，建议通过站桩、打坐或腹式呼吸，将能量收摄回中轴，形成更强的凝聚力。';
   } else {
-    energyFlowAdvice += '• 能量相位：稳定扎根。你的根基扎实，能量相对稳定，这是很好的基础状态。';
+    energyFlowAdvice += '能量稳定扎根，根基扎实，这是很好的平衡状态。';
   }
 
   return { energyFlowAdvice, hopeNote };
