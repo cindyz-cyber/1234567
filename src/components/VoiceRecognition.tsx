@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { getProfileWithDynamicBalance, EnergyProfile } from '../data/energyDatabase';
 import { generateReport, ReportData } from '../utils/reportGenerator';
 import ReportSection from './ReportSection';
+import HealingStation from './HealingStation';
 
 interface VoiceRecognitionProps {
   onBack?: () => void;
@@ -425,6 +426,12 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
                   icon={<Music size={20} />}
                   summary={report.healingStation.summary}
                   summaryColor="rgba(200, 150, 255, 0.95)"
+                  customContent={
+                    <HealingStation
+                      frequencyHz={report.healingStation.details.recommendedFrequency}
+                      chakraName={report.healingStation.details.chakraTarget}
+                    />
+                  }
                 >
                   <div className="report-detail-content">
                     <div className="report-subsection">

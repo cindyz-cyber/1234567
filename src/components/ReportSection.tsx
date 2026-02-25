@@ -6,8 +6,9 @@ interface ReportSectionProps {
   icon: React.ReactNode;
   summary: string;
   summaryColor: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   defaultExpanded?: boolean;
+  customContent?: React.ReactNode;
 }
 
 export default function ReportSection({
@@ -16,6 +17,7 @@ export default function ReportSection({
   summary,
   summaryColor,
   children,
+  customContent,
   defaultExpanded = false
 }: ReportSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -33,17 +35,40 @@ export default function ReportSection({
         {summary}
       </div>
 
-      <button
-        className="report-expand-button"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        {isExpanded ? '收起详细报告' : '查看详细报告'}
-        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-      </button>
+      {customContent ? (
+        <>
+          {customContent}
+          {children && (
+            <>
+              <button
+                className="report-expand-button"
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                {isExpanded ? '收起详细说明' : '查看详细说明'}
+                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
 
-      <div className={`report-section-details ${isExpanded ? 'expanded' : ''}`}>
-        {children}
-      </div>
+              <div className={`report-section-details ${isExpanded ? 'expanded' : ''}`}>
+                {children}
+              </div>
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          <button
+            className="report-expand-button"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            {isExpanded ? '收起详细报告' : '查看详细报告'}
+            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+
+          <div className={`report-section-details ${isExpanded ? 'expanded' : ''}`}>
+            {children}
+          </div>
+        </>
+      )}
 
       <style>{`
         .report-section {
