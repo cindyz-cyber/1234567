@@ -104,12 +104,12 @@ function App() {
   }
 
   function handleStartJourney() {
-    setCurrentStep('emotion');
+    setCurrentStep('innerWhisper');
   }
 
   function handleEmotionComplete(emotions: string[], bodyStates: string[]) {
     setJourneyData(prev => ({ ...prev, emotions, bodyStates }));
-    setCurrentStep('innerWhisper');
+    setCurrentStep('journal');
   }
 
   function handleInnerWhisperComplete() {
@@ -220,7 +220,7 @@ function App() {
         <InnerWhisperJournal
           emotions={journeyData.emotions}
           bodyStates={journeyData.bodyStates}
-          onBack={handleBackToEmotion}
+          onBack={handleBackToHome}
           onNext={handleInnerWhisperComplete}
         />
       );

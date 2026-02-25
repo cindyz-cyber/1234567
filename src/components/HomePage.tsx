@@ -108,7 +108,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
             opacity: 0.8,
           }}
         >
-          想和「{higherSelfName}」聊一聊吗
+          此刻，你想说些什么
         </p>
       </div>
 
