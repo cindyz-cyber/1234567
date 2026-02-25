@@ -764,7 +764,7 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
         .result-full-page {
           position: fixed;
           inset: 0;
-          z-index: 20;
+          z-index: 100;
           display: flex;
           align-items: center;
           justify-content: center;
