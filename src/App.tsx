@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import NamingRitual from './components/NamingRitual';
 import HomePage from './components/HomePage';
+import EmotionScan from './components/EmotionScan';
 import VoiceRecognition from './components/VoiceRecognition';
 import InnerWhisperJournal from './components/InnerWhisperJournal';
 import GoldenTransition from './components/GoldenTransition';
@@ -18,7 +19,7 @@ import VideoBackground from './components/VideoBackground';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
-type FlowStep = 'home' | 'energy' | 'voice' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
+type FlowStep = 'home' | 'emotion' | 'energy' | 'voice' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
 type TabType = 'breath' | 'voice' | 'archive' | 'profile' | 'admin';
 
 interface JourneyData {
@@ -103,7 +104,16 @@ function App() {
   }
 
   function handleStartJourney() {
-    setCurrentStep('energy');
+    setCurrentStep('emotion');
+  }
+
+  function handleEmotionComplete(emotions: string[], bodyStates: string[]) {
+    setJourneyData(prev => ({
+      ...prev,
+      emotions,
+      bodyStates,
+    }));
+    setCurrentStep('voice');
   }
 
   function handleVoiceComplete() {
@@ -201,7 +211,11 @@ function App() {
     return <NamingRitual onComplete={handleNamingComplete} />;
   }
 
-  if (currentStep === 'energy' || currentStep === 'voice' || currentStep === 'innerWhisper' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
+  if (currentStep === 'emotion' || currentStep === 'energy' || currentStep === 'voice' || currentStep === 'innerWhisper' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
+    if (currentStep === 'emotion') {
+      return <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />;
+    }
+
     if (currentStep === 'energy') {
       return <EnergyCenter isPremium={isPremium} onPremiumRequired={handlePremiumRequired} />;
     }
