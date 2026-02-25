@@ -114,8 +114,6 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
       await saveAnalysisToDatabase(analysisResult);
 
       setTimeout(() => {
-        console.log('===== Setting result state =====');
-        console.log('Analysis result:', analysisResult);
         setResult(analysisResult);
 
         const profile = getProfileWithDynamicBalance(
@@ -125,10 +123,8 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
           analysisResult.quality,
           analysisResult.phase
         );
-        console.log('Energy profile:', profile);
         setEnergyProfile(profile);
 
-        console.log('Setting recordingState to result');
         setRecordingState('result');
         setRippleScale(1);
       }, 2000);
@@ -222,12 +218,6 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
     return '';
   };
 
-  console.log('===== VoiceRecognition Render =====');
-  console.log('recordingState:', recordingState);
-  console.log('result:', result);
-  console.log('energyProfile:', energyProfile);
-  console.log('Condition check:', recordingState === 'result' && result && energyProfile);
-
   return (
     <div className="voice-recognition-container">
       <div className="portal-background-layer">
@@ -242,11 +232,10 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
         </video>
       </div>
 
-      {onBack && (
+      {onBack && recordingState !== 'result' && (
         <button
           onClick={(e) => {
             e.stopPropagation();
-            console.log('===== Back button clicked =====');
             onBack();
           }}
           className="back-button"
@@ -257,6 +246,16 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
 
       {recordingState === 'result' && result && energyProfile ? (
         <div className="result-full-page">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onBack) onBack();
+            }}
+            className="back-button"
+            style={{ position: 'fixed', top: '40px', left: '40px', zIndex: 101 }}
+          >
+            <ChevronLeft size={24} color="rgba(255, 255, 255, 0.95)" />
+          </button>
           <div className="result-content">
             <div className="result-profile-id">
               ID {result.profileId}
@@ -367,17 +366,12 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
             </div>
 
             <div className="result-action-buttons">
-              <button onClick={(e) => {
-                e.stopPropagation();
-                console.log('===== Restart button clicked =====');
-                handleRestart(e);
-              }} className="restart-button secondary">
+              <button onClick={handleRestart} className="restart-button secondary">
                 <RotateCcw size={18} />
                 <span>重新测试</span>
               </button>
               <button onClick={(e) => {
                 e.stopPropagation();
-                console.log('===== Complete button clicked =====');
                 if (onBack) onBack();
               }} className="restart-button primary">
                 <span>完成</span>
@@ -784,10 +778,8 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
           position: fixed;
           inset: 0;
           z-index: 100;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 40px;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
           animation: resultPageFadeIn 0.8s ease-out;
         }
 
@@ -803,6 +795,8 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
         .result-content {
           max-width: 600px;
           width: 100%;
+          margin: 0 auto;
+          padding: 80px 40px 120px;
           text-align: center;
           animation: resultContentSlideIn 0.8s ease-out;
         }

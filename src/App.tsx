@@ -195,7 +195,6 @@ function App() {
   }
 
   function handleTabChange(tab: TabType) {
-    console.log('===== handleTabChange called with tab:', tab, '=====');
     setCurrentTab(tab);
     if (tab === 'breath') {
       setCurrentStep('home');
@@ -284,10 +283,7 @@ function App() {
 
       {currentTab === 'voice' && currentStep === 'voice' && (
         <VoiceRecognition
-          onBack={() => {
-            console.log('===== VoiceRecognition onBack called, changing tab to breath =====');
-            setCurrentTab('breath');
-          }}
+          onBack={() => setCurrentTab('breath')}
         />
       )}
 
