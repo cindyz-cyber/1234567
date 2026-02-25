@@ -88,12 +88,12 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
               <p
                 className="text-center leading-loose font-light ritual-text-secondary"
                 style={{
-                  color: 'rgba(247, 231, 206, 0.92)',
+                  color: 'rgba(247, 231, 206, 0.98)',
                   fontSize: '15px',
                   letterSpacing: '0.1em',
                   lineHeight: '2.2',
                   fontFamily: 'Georgia, "STSong", "Songti SC", "SimSun", serif',
-                  textShadow: '0 2px 16px rgba(247, 231, 206, 0.4)',
+                  textShadow: '0 2px 20px rgba(247, 231, 206, 0.5)',
                   animation: 'ritualFadeIn 2s ease-out 0.8s both',
                   fontWeight: 300,
                   marginTop: '32px',
@@ -154,7 +154,7 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
             </div>
             <div style={{ animation: 'ritualFadeIn 2s ease-out 0.8s both' }}>
               <GoldButton type="submit" disabled={!userName.trim()} className="w-full">
-                开启植本人之旅
+                开启植本人觉察之旅
               </GoldButton>
             </div>
           </form>
