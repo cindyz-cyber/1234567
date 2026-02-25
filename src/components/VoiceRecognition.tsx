@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, Mic, Square, RotateCcw } from 'lucide-react';
+import { ChevronLeft, Mic, Square, RotateCcw, Heart, Activity, Sparkles } from 'lucide-react';
 import { VoiceAnalyzer, VoiceAnalysisResult } from '../utils/voiceAnalysis';
 import { supabase } from '../lib/supabase';
+import { getProfileWithDynamicBalance, EnergyProfile } from '../data/energyDatabase';
 
 interface VoiceRecognitionProps {
   onBack?: () => void;
@@ -13,6 +14,7 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [audioLevel, setAudioLevel] = useState(0);
   const [result, setResult] = useState<VoiceAnalysisResult | null>(null);
+  const [energyProfile, setEnergyProfile] = useState<EnergyProfile | null>(null);
   const [rippleScale, setRippleScale] = useState(1);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -112,6 +114,15 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
 
       setTimeout(() => {
         setResult(analysisResult);
+
+        const profile = getProfileWithDynamicBalance(
+          analysisResult.profileId,
+          analysisResult.source,
+          analysisResult.quality,
+          analysisResult.phase
+        );
+        setEnergyProfile(profile);
+
         setRecordingState('result');
         setRippleScale(1);
       }, 1500);
@@ -127,6 +138,13 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
+      const profile = getProfileWithDynamicBalance(
+        analysis.profileId,
+        analysis.source,
+        analysis.quality,
+        analysis.phase
+      );
+
       const { error } = await supabase
         .from('voice_analysis_results')
         .insert({
@@ -136,10 +154,11 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           quality: analysis.quality,
           phase: analysis.phase,
           profile_id: analysis.profileId,
-          profile_name: analysis.profileName,
+          profile_name: profile.tagName,
           message: analysis.message,
           energy_data: analysis.energyData,
-          audio_duration: 5
+          audio_duration: 5,
+          healing_audio_id: profile.healingAudioId || null
         });
 
       if (error) {
@@ -186,6 +205,7 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
     e.stopPropagation();
     setRecordingState('idle');
     setResult(null);
+    setEnergyProfile(null);
     setRippleScale(1);
   };
 
@@ -221,23 +241,29 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
         </button>
       )}
 
-      {recordingState === 'result' && result ? (
+      {recordingState === 'result' && result && energyProfile ? (
         <div className="result-full-page">
           <div className="result-content">
             <div className="result-profile-id">
               ID {result.profileId}
             </div>
             <div className="result-label">
-              {result.profileName}
+              {energyProfile.tagName}
             </div>
             <div className="result-message">
               {result.message}
             </div>
+
+            <div className="energy-flow-hint">
+              <Sparkles size={16} />
+              <span>这只是你此刻的能量状态，它正在流动和转化中</span>
+            </div>
+
             <div className="result-details">
               <div className="detail-item">
                 <div className="detail-label">发音源</div>
                 <div className="detail-value">
-                  {result.source === 'brain' ? '脑部发声' : result.source === 'throat' ? '喉部发声' : '心部发声'}
+                  {result.source === 'brain' ? '脑部发声' : result.source === 'throat' ? '喉部发声' : result.source === 'heart' ? '心部发声' : '下焦发声'}
                 </div>
               </div>
               <div className="detail-item">
@@ -253,6 +279,33 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
                 </div>
               </div>
             </div>
+
+            <div className="healing-cards">
+              <div className="healing-card">
+                <div className="healing-card-header">
+                  <Heart size={20} />
+                  <span>身体平衡建议</span>
+                </div>
+                <div className="healing-card-content">
+                  {energyProfile.bodyBalance}
+                </div>
+              </div>
+
+              <div className="healing-card">
+                <div className="healing-card-header">
+                  <Activity size={20} />
+                  <span>情绪转化动作</span>
+                </div>
+                <div className="healing-card-content">
+                  {energyProfile.emotionAction}
+                </div>
+              </div>
+            </div>
+
+            <div className="hope-note">
+              {energyProfile.hopeNote}
+            </div>
+
             <button onClick={handleRestart} className="restart-button">
               <RotateCcw size={18} />
               <span>重新测试</span>
@@ -793,6 +846,121 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           border-color: rgba(200, 220, 255, 0.7);
           transform: scale(1.05);
           box-shadow: 0 0 50px rgba(200, 220, 255, 0.4);
+        }
+
+        .energy-flow-hint {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin: 24px 0;
+          padding: 12px 24px;
+          color: rgba(255, 220, 150, 0.9);
+          font-size: 13px;
+          font-weight: 300;
+          letter-spacing: 0.1em;
+          font-family: 'Noto Serif SC', serif;
+          background: rgba(255, 220, 100, 0.08);
+          backdrop-filter: blur(20px);
+          border-radius: 20px;
+          border: 1px solid rgba(255, 220, 100, 0.2);
+          animation: flowHintGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes flowHintGlow {
+          0%, 100% {
+            box-shadow: 0 0 20px rgba(255, 220, 100, 0.2);
+          }
+          50% {
+            box-shadow: 0 0 35px rgba(255, 220, 100, 0.4);
+          }
+        }
+
+        .healing-cards {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          margin: 40px 0;
+        }
+
+        .healing-card {
+          background: rgba(255, 255, 255, 0.06);
+          backdrop-filter: blur(30px);
+          border-radius: 16px;
+          border: 1.5px solid rgba(200, 220, 255, 0.15);
+          padding: 24px;
+          text-align: left;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .healing-card:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(200, 220, 255, 0.25);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .healing-card-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 16px;
+          color: rgba(200, 220, 255, 0.9);
+          font-size: 15px;
+          font-weight: 400;
+          letter-spacing: 0.15em;
+          font-family: 'Noto Serif SC', serif;
+        }
+
+        .healing-card-content {
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 14px;
+          font-weight: 300;
+          line-height: 2;
+          letter-spacing: 0.08em;
+          font-family: 'Noto Serif SC', serif;
+          text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .hope-note {
+          margin: 32px 0;
+          padding: 24px 32px;
+          color: rgba(255, 240, 200, 0.95);
+          font-size: 15px;
+          font-weight: 300;
+          line-height: 2.2;
+          letter-spacing: 0.12em;
+          font-family: 'Noto Serif SC', serif;
+          background: linear-gradient(
+            135deg,
+            rgba(255, 220, 100, 0.12) 0%,
+            rgba(200, 220, 255, 0.08) 100%
+          );
+          backdrop-filter: blur(25px);
+          border-radius: 16px;
+          border: 1px solid rgba(255, 220, 150, 0.2);
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+          box-shadow: 0 4px 20px rgba(255, 220, 100, 0.15);
+        }
+
+        @media (max-width: 640px) {
+          .result-content {
+            padding: 0 20px;
+          }
+
+          .result-label {
+            font-size: 28px;
+          }
+
+          .healing-card {
+            padding: 20px;
+          }
+
+          .hope-note {
+            padding: 20px 24px;
+            font-size: 14px;
+          }
         }
       `}</style>
     </div>
