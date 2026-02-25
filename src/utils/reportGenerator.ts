@@ -16,9 +16,9 @@ const chakraFrequencies: Record<ChakraKey, number> = {
   root: 194,
   sacral: 417,
   solar: 528,
-  heart: 639,
-  throat: 741,
-  thirdEye: 852,
+  heart: 343,
+  throat: 384,
+  thirdEye: 432,
   crown: 963
 };
 
@@ -109,15 +109,15 @@ export function generateReport(analysis: VoiceAnalysisResult): ReportData {
     scattering: '横向散开，能量向外分散'
   };
 
-  const coreSummary = `你的能量体呈现【${analysis.profileName}】状态，${dominantChakraName}能量过盛（${Math.round(analysis.chakraDistribution[analysis.dominantChakra])}%），需要向${primaryGapName}和${secondaryGapName}进行能量对冲调理。`;
+  const coreSummary = `你的能量体呈现【${analysis.profileName}】状态，由于${primaryGapName}能量断层（${Math.round(analysis.chakraDistribution[analysis.gapChakras[0]])}%），建议补充 ${primaryGapFreq}Hz 频率音频。`;
 
-  const chakraSummary = `检测到你的声音频谱中${dominantChakraName}（${dominantFreq}Hz）能量占比最高，而${primaryGapName}（${primaryGapFreq}Hz）能量最弱，形成明显的能量失衡。`;
+  const chakraSummary = `检测到你的声音频谱中${primaryGapName}（核心频率 ${primaryGapFreq}Hz）能量最弱，而${dominantChakraName}（${dominantFreq}Hz）能量占比最高，形成明显的能量失衡。`;
 
-  const organSummary = `你的${primaryGapName}能量不足，对应${primaryOrgans}系统需要重点调理；${secondaryGapName}（${secondaryOrgans}）也需要关注。`;
+  const organSummary = `由于${primaryGapName}能量断层，对应${primaryOrgans}系统需要重点调理；${secondaryGapName}（${secondaryOrgans}）也需要关注。`;
 
-  const actionSummary = `建议优先补充${primaryGapFreq}Hz频率，同时避免过度使用${dominantChakraName}（如过度思考、说话或情绪激动）。`;
+  const actionSummary = `由于${primaryGapName}能量断层，建议补充 ${primaryGapFreq}Hz 频率的音频，滋养${primaryOrgans}系统。`;
 
-  const healingSummary = `为你推荐${primaryGapFreq}Hz疗愈频率，专门针对${primaryGapName}能量补给，帮助恢复整体平衡。`;
+  const healingSummary = `由于${primaryGapName}能量断层，建议补充 ${primaryGapFreq}Hz 频率的音频，帮助恢复整体能量平衡。`;
 
   const doList: string[] = [];
   const avoidList: string[] = [];
@@ -236,12 +236,26 @@ export function generateReport(analysis: VoiceAnalysisResult): ReportData {
     })
     .join('\n');
 
-  const formula = `基频采样：${dominantFreq}Hz (${dominantChakraName})
-谐波计算：${dominantFreq}Hz × 2 = ${dominantFreq * 2}Hz (二次谐波)
-          ${dominantFreq}Hz × 3 = ${dominantFreq * 3}Hz (三次谐波)
-能量叠加：基频权重 50% + 二次谐波 25% + 三次谐波 15% + 频段能量 10%
-对冲目标：${primaryGapFreq}Hz (${primaryGapName}) - 能量最弱点
-次要目标：${secondaryGapFreq}Hz (${secondaryGapName}) - 次弱点`;
+  const detectionInfo = analysis.detectionDetails && analysis.detectionDetails.length > 0
+    ? analysis.detectionDetails.slice(0, 3).map(d =>
+        `• 检测值: ${d.detectedFrequency}Hz → 判定: ${d.organSystem}`
+      ).join('\n')
+    : `• 检测值: ${dominantFreq}Hz → 判定: ${dominantChakraName}\n• 检测值: ${primaryGapFreq}Hz → 判定: ${primaryGapName}`;
+
+  const formula = `【频率检测结果】
+${detectionInfo}
+
+【核心频率坐标】
+心轮: 342-343Hz (核心)
+喉轮: 384Hz (核心)
+眉心轮: 432Hz (核心)
+太阳神经丛: 528Hz (转化频)
+海底轮: <200Hz (纯低频)
+
+【能量分析】
+最强脉轮：${dominantChakraName} (${dominantFreq}Hz) - ${Math.round(analysis.chakraDistribution[analysis.dominantChakra])}%
+能量断层：${primaryGapName} (${primaryGapFreq}Hz) - ${Math.round(analysis.chakraDistribution[analysis.gapChakras[0]])}%
+补足建议：建议聆听 ${primaryGapFreq}Hz 音频`;
 
   return {
     coreSummary: {

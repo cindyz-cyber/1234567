@@ -27,6 +27,12 @@ export interface VoiceAnalysisResult {
     chakra: keyof ChakraEnergy;
     reason: string;
   };
+  detectionDetails: {
+    chakra: keyof ChakraEnergy;
+    detectedFrequency: number;
+    coreFrequency: number;
+    organSystem: string;
+  }[];
 }
 
 interface EmotionProfile {
@@ -74,13 +80,13 @@ const EMOTION_PROFILES: EmotionProfile[] = [
 ];
 
 const CHAKRA_FREQUENCIES = {
-  root: { base: 194, range: [100, 380] },
-  sacral: { base: 417, range: [380, 480] },
-  solar: { base: 528, range: [480, 600] },
-  heart: { base: 639, range: [600, 700] },
-  throat: { base: 741, range: [700, 820] },
-  thirdEye: { base: 852, range: [820, 920] },
-  crown: { base: 963, range: [920, 1200] }
+  root: { base: 194, range: [100, 199], core: 194 },
+  sacral: { base: 417, range: [200, 339], core: 417 },
+  solar: { base: 528, range: [480, 580], core: 528 },
+  heart: { base: 343, range: [340, 355], core: 343 },
+  throat: { base: 384, range: [375, 405], core: 384 },
+  thirdEye: { base: 432, range: [420, 460], core: 432 },
+  crown: { base: 963, range: [920, 1200], core: 963 }
 };
 
 const ORGAN_MAPPING = {
@@ -114,6 +120,7 @@ export class VoiceAnalyzer {
 
     const fftData = this.performFFT(channelData, sampleRate);
     const chakraEnergy = this.extractChakraEnergy(fftData, sampleRate);
+    const detectionDetails = this.generateDetectionDetails(fftData, sampleRate, chakraEnergy);
 
     const source = this.determineSourceFromChakras(chakraEnergy);
     const quality = this.determineQuality(fftData, chakraEnergy);
@@ -137,7 +144,8 @@ export class VoiceAnalyzer {
       chakraEnergy,
       chakraDistribution,
       organMapping: ORGAN_MAPPING,
-      recommendedFrequency
+      recommendedFrequency,
+      detectionDetails
     };
   }
 
@@ -153,6 +161,7 @@ export class VoiceAnalyzer {
     const sampleRate = this.audioContext.sampleRate;
     const fftData = this.convertFrequencyData(frequencyData);
     const chakraEnergy = this.extractChakraEnergy(fftData, sampleRate);
+    const detectionDetails = this.generateDetectionDetails(fftData, sampleRate, chakraEnergy);
 
     const sourceType = this.determineSourceFromChakras(chakraEnergy);
     const quality = this.determineQuality(fftData, chakraEnergy);
@@ -178,7 +187,8 @@ export class VoiceAnalyzer {
       chakraEnergy,
       chakraDistribution,
       organMapping: ORGAN_MAPPING,
-      recommendedFrequency
+      recommendedFrequency,
+      detectionDetails
     };
   }
 
@@ -231,20 +241,17 @@ export class VoiceAnalyzer {
       crown: 0
     };
 
-    for (const chakra in CHAKRA_FREQUENCIES) {
-      const chakraKey = chakra as keyof ChakraEnergy;
-      const { base, range } = CHAKRA_FREQUENCIES[chakraKey];
+    const detectionOrder: Array<keyof ChakraEnergy> = ['heart', 'throat', 'thirdEye', 'solar', 'root', 'sacral', 'crown'];
 
-      const baseEnergy = this.getEnergyAtFrequency(fftData, base, sampleRate);
-      const harmonic2Energy = this.getEnergyAtFrequency(fftData, base * 2, sampleRate);
-      const harmonic3Energy = this.getEnergyAtFrequency(fftData, base * 3, sampleRate);
+    for (const chakraKey of detectionOrder) {
+      const { core, range } = CHAKRA_FREQUENCIES[chakraKey];
+
+      const coreEnergy = this.getEnergyAtFrequency(fftData, core, sampleRate);
       const rangeEnergy = this.getEnergyInRange(fftData, range[0], range[1], sampleRate);
 
       chakraEnergy[chakraKey] = (
-        baseEnergy * 0.5 +
-        harmonic2Energy * 0.25 +
-        harmonic3Energy * 0.15 +
-        rangeEnergy * 0.1
+        coreEnergy * 0.7 +
+        rangeEnergy * 0.3
       );
     }
 
@@ -274,6 +281,73 @@ export class VoiceAnalyzer {
     }
 
     return energy / (maxBin - minBin + 1);
+  }
+
+  private generateDetectionDetails(
+    fftData: Float32Array,
+    sampleRate: number,
+    chakraEnergy: ChakraEnergy
+  ): Array<{
+    chakra: keyof ChakraEnergy;
+    detectedFrequency: number;
+    coreFrequency: number;
+    organSystem: string;
+  }> {
+    const chakraNames = {
+      root: '海底轮',
+      sacral: '脐轮',
+      solar: '太阳轮',
+      heart: '心轮',
+      throat: '喉轮',
+      thirdEye: '眉心轮',
+      crown: '顶轮'
+    };
+
+    const details: Array<{
+      chakra: keyof ChakraEnergy;
+      detectedFrequency: number;
+      coreFrequency: number;
+      organSystem: string;
+    }> = [];
+
+    for (const chakra in CHAKRA_FREQUENCIES) {
+      const chakraKey = chakra as keyof ChakraEnergy;
+      const { core, range } = CHAKRA_FREQUENCIES[chakraKey];
+
+      const detectedFreq = this.findPeakFrequencyInRange(fftData, range[0], range[1], sampleRate);
+      const organs = ORGAN_MAPPING[chakraKey].join('、');
+
+      details.push({
+        chakra: chakraKey,
+        detectedFrequency: detectedFreq,
+        coreFrequency: core,
+        organSystem: `${chakraNames[chakraKey]}（${organs}）`
+      });
+    }
+
+    return details.sort((a, b) => chakraEnergy[b.chakra] - chakraEnergy[a.chakra]);
+  }
+
+  private findPeakFrequencyInRange(
+    fftData: Float32Array,
+    minFreq: number,
+    maxFreq: number,
+    sampleRate: number
+  ): number {
+    const minBin = Math.round((minFreq * fftData.length) / (sampleRate / 2));
+    const maxBin = Math.round((maxFreq * fftData.length) / (sampleRate / 2));
+
+    let peakBin = minBin;
+    let peakValue = fftData[minBin];
+
+    for (let i = minBin; i <= maxBin; i++) {
+      if (fftData[i] > peakValue) {
+        peakValue = fftData[i];
+        peakBin = i;
+      }
+    }
+
+    return Math.round((peakBin * sampleRate / 2) / fftData.length);
   }
 
   private determineSourceFromChakras(chakraEnergy: ChakraEnergy): 'brain' | 'throat' | 'heart' | 'lower' {
@@ -348,10 +422,10 @@ export class VoiceAnalyzer {
     };
 
     const primaryGap = gaps[0];
-    const gapHz = CHAKRA_FREQUENCIES[primaryGap].base;
+    const gapHz = CHAKRA_FREQUENCIES[primaryGap].core;
     const gapOrgans = ORGAN_MAPPING[primaryGap].join('、');
 
-    const reason = `你的${chakraNames[dominant]}能量过盛，而${chakraNames[primaryGap]}能量最弱。损有余而补不足，建议以 ${gapHz}Hz 频率滋养${chakraNames[primaryGap]}，调理${gapOrgans}系统，恢复整体能量平衡。`;
+    const reason = `由于${chakraNames[primaryGap]}能量断层，建议补充 ${gapHz}Hz 频率的音频，滋养${gapOrgans}系统，恢复整体能量平衡。`;
 
     return {
       hz: gapHz,
