@@ -284,7 +284,6 @@ function App() {
       {currentTab === 'voice' && currentStep === 'voice' && (
         <VoiceRecognition
           onBack={() => setCurrentTab('breath')}
-          onNext={() => setCurrentTab('breath')}
         />
       )}
 
