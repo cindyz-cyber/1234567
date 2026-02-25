@@ -20,6 +20,8 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const [audioLevel, setAudioLevel] = useState(0);
   const [result, setResult] = useState<VoiceAnalysisResult | null>(null);
   const [energyProfile, setEnergyProfile] = useState<EnergyProfile | null>(null);
+
+  console.log('[VoiceRecognition] RENDER - recordingState:', recordingState, 'result:', !!result, 'energyProfile:', !!energyProfile);
   const [report, setReport] = useState<ReportData | null>(null);
   const [rippleScale, setRippleScale] = useState(1);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
@@ -31,9 +33,11 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
+    console.log('[VoiceRecognition] Component MOUNTED');
     voiceAnalyzerRef.current = new VoiceAnalyzer();
 
     return () => {
+      console.log('[VoiceRecognition] Component UNMOUNTING - cleaning up');
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -126,9 +130,11 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       await saveAnalysisToDatabase(analysisResult);
       console.log('[VoiceRecognition] Saved to database successfully');
 
-      setTimeout(() => {
-        console.log('[VoiceRecognition] Setting result state...');
+      const timeoutId = setTimeout(() => {
+        console.log('[VoiceRecognition] ===== SETTING RESULT STATE (IN TIMEOUT) =====');
+        console.log('[VoiceRecognition] Current recordingState before set:', recordingState);
         setResult(analysisResult);
+        console.log('[VoiceRecognition] Set result to:', analysisResult);
 
         const profile = getProfileWithDynamicBalance(
           analysisResult.profileId,
@@ -138,18 +144,25 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
           analysisResult.phase
         );
         setEnergyProfile(profile);
+        console.log('[VoiceRecognition] Set energyProfile to:', profile);
 
         const generatedReport = generateReport(analysisResult);
         setReport(generatedReport);
+        console.log('[VoiceRecognition] Set report');
 
         setRecordingState('result');
+        console.log('[VoiceRecognition] Set recordingState to: result');
+
         setRippleScale(1);
         console.log('[VoiceRecognition] About to call onResultStateChange(true)');
         if (onResultStateChange) {
           onResultStateChange(true);
           console.log('[VoiceRecognition] Called onResultStateChange(true)');
         }
+        console.log('[VoiceRecognition] ===== END SETTING RESULT STATE =====');
       }, 2000);
+
+      console.log('[VoiceRecognition] Scheduled timeout with ID:', timeoutId);
 
     } catch (error) {
       console.error('[VoiceRecognition] Error analyzing voice:', error);
@@ -281,7 +294,15 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
         </button>
       )}
 
-      {recordingState === 'result' && result && energyProfile ? (
+      {(() => {
+        const shouldShowResult = recordingState === 'result' && result && energyProfile;
+        console.log('[VoiceRecognition] RENDER CHECK - shouldShowResult:', shouldShowResult, {
+          recordingState,
+          hasResult: !!result,
+          hasEnergyProfile: !!energyProfile
+        });
+        return shouldShowResult;
+      })() ? (
         <div
           className="result-full-page"
           onClick={(e) => e.stopPropagation()}
