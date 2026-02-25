@@ -132,31 +132,14 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
       <button
         onClick={toggleBackgroundMusic}
-        className="audio-toggle"
-        style={{
-          position: 'fixed',
-          bottom: '32px',
-          right: '32px',
-          width: '56px',
-          height: '56px',
-          borderRadius: '50%',
-          backgroundColor: isMusicPlaying ? 'rgba(235, 200, 98, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-          border: `1px solid ${isMusicPlaying ? 'rgba(235, 200, 98, 0.4)' : 'rgba(255, 255, 255, 0.2)'}`,
-          backdropFilter: 'blur(10px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: isMusicPlaying ? '0 0 24px rgba(235, 200, 98, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
-          zIndex: 100,
-        }}
+        className="portal-audio-toggle"
         title={isMusicPlaying ? '关闭背景音乐' : '开启背景音乐'}
       >
+        <div className="audio-toggle-glow" />
         {isMusicPlaying ? (
-          <Volume2 size={24} color="#EBC862" />
+          <Volume2 size={22} color="rgba(200, 220, 255, 0.9)" strokeWidth={1.5} />
         ) : (
-          <VolumeX size={24} color="rgba(224, 224, 208, 0.6)" />
+          <VolumeX size={22} color="rgba(255, 255, 255, 0.3)" strokeWidth={1.5} />
         )}
       </button>
 
@@ -425,13 +408,74 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           }
         }
 
-        .audio-toggle:hover {
-          transform: scale(1.1);
-          box-shadow: 0 6px 20px rgba(235, 200, 98, 0.4);
+        .portal-audio-toggle {
+          position: fixed;
+          bottom: 40px;
+          right: 40px;
+          width: 52px;
+          height: 52px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(40px) saturate(150%);
+          -webkit-backdrop-filter: blur(40px) saturate(150%);
+          border: 0.5px solid rgba(200, 220, 255, 0.12);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow:
+            inset 0 0 20px rgba(180, 200, 255, 0.03),
+            0 4px 20px rgba(0, 0, 0, 0.3);
+          z-index: 100;
+          position: relative;
         }
 
-        .audio-toggle:active {
-          transform: scale(0.95);
+        .audio-toggle-glow {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle at center,
+            rgba(200, 220, 255, 0.15),
+            transparent 70%
+          );
+          opacity: 0;
+          transition: opacity 0.6s ease;
+          pointer-events: none;
+          filter: blur(8px);
+        }
+
+        .portal-audio-toggle:hover {
+          transform: scale(1.08);
+          background: rgba(255, 255, 255, 0.04);
+          border-color: rgba(200, 220, 255, 0.2);
+          box-shadow:
+            inset 0 0 30px rgba(180, 200, 255, 0.05),
+            0 6px 30px rgba(0, 0, 0, 0.4),
+            0 0 40px rgba(200, 220, 255, 0.15);
+        }
+
+        .portal-audio-toggle:hover .audio-toggle-glow {
+          opacity: 1;
+          animation: audioGlowPulse 2s ease-in-out infinite;
+        }
+
+        .portal-audio-toggle:active {
+          transform: scale(0.96);
+          transition: all 0.15s ease;
+        }
+
+        @keyframes audioGlowPulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.6;
+          }
+          50% {
+            transform: scale(1.2);
+            opacity: 1;
+          }
         }
 
         @media (max-width: 640px) {
@@ -457,6 +501,13 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           .breathing-cursor {
             bottom: 32px;
             left: 24px;
+          }
+
+          .portal-audio-toggle {
+            bottom: 28px;
+            right: 28px;
+            width: 48px;
+            height: 48px;
           }
         }
       `}</style>
