@@ -271,7 +271,7 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          filter: brightness(0.7) contrast(1.1);
+          filter: brightness(1.1) contrast(1.05);
         }
 
         .back-button {
