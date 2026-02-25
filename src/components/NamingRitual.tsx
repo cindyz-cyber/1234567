@@ -88,12 +88,12 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
               <p
                 className="text-center leading-loose font-light ritual-text-secondary"
                 style={{
-                  color: 'rgba(247, 231, 206, 0.7)',
+                  color: 'rgba(247, 231, 206, 0.92)',
                   fontSize: '15px',
                   letterSpacing: '0.1em',
                   lineHeight: '2.2',
                   fontFamily: 'Georgia, "STSong", "Songti SC", "SimSun", serif',
-                  textShadow: '0 2px 16px rgba(247, 231, 206, 0.3)',
+                  textShadow: '0 2px 16px rgba(247, 231, 206, 0.4)',
                   animation: 'ritualFadeIn 2s ease-out 0.8s both',
                   fontWeight: 300,
                   marginTop: '32px',
