@@ -104,13 +104,14 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
         <p
           className="guidance-text"
           style={{
-            color: '#D4AF37',
-            fontSize: '1.125rem',
-            fontWeight: '300',
-            letterSpacing: '0.08em',
+            color: '#F7E7CE',
+            fontSize: '15px',
+            fontWeight: 200,
+            letterSpacing: '0.4em',
             lineHeight: '1.8',
-            textShadow: '0 0 20px rgba(212, 175, 55, 0.6), 0 0 35px rgba(212, 175, 55, 0.4)',
-            opacity: 1,
+            textShadow: '0 2px 12px rgba(247, 231, 206, 0.3)',
+            fontFamily: 'Georgia, "Times New Roman", serif',
+            opacity: 0.85,
             maxWidth: '400px',
           }}
         >
@@ -121,13 +122,14 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
       <p
         className="connection-subtitle"
         style={{
-          color: '#E0E0D0',
-          fontSize: '0.875rem',
-          fontWeight: '300',
-          letterSpacing: '0.06em',
-          opacity: 0.6,
+          color: '#F7E7CE',
+          fontSize: '14px',
+          fontWeight: 200,
+          letterSpacing: '0.35em',
+          opacity: 0.7,
           marginTop: '24px',
           textAlign: 'center',
+          fontFamily: 'Georgia, "Times New Roman", serif',
         }}
       >
         正在连接你的 <span className="highlight-name">{higherSelfName}</span>
@@ -353,10 +355,11 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
         }
 
         .highlight-name {
-          font-weight: 400;
-          color: #D4AF37;
-          text-shadow: 0 0 25px rgba(212, 175, 55, 0.7);
-          letter-spacing: 0.1em;
+          font-weight: 300;
+          color: #F7E7CE;
+          text-shadow: 0 2px 15px rgba(247, 231, 206, 0.5);
+          letter-spacing: 0.4em;
+          font-family: Georgia, "Times New Roman", serif;
         }
 
         .connection-subtitle {
