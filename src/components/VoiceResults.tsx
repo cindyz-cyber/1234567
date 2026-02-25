@@ -58,7 +58,8 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
               color: dominantChakra.text,
               letterSpacing: '0.3em',
               fontFamily: 'Georgia, Times New Roman, serif',
-              textShadow: `0 0 20px ${dominantChakra.text}40, 0 2px 8px rgba(0, 0, 0, 0.8)`
+              textShadow: `0 0 25px ${dominantChakra.text}, 0 2px 10px rgba(0, 0, 0, 0.95)`,
+              filter: 'brightness(1.4)'
             }}
           >
             {result.profileName}
@@ -66,10 +67,11 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           <p
             className="text-center text-sm"
             style={{
-              color: 'rgba(255, 255, 255, 0.85)',
+              color: 'rgba(255, 255, 255, 0.98)',
               letterSpacing: '0.2em',
               fontFamily: 'Georgia, Times New Roman, serif',
-              textShadow: '0 2px 6px rgba(0, 0, 0, 0.9)'
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.95)',
+              fontWeight: 400
             }}
           >
             {statusMessage}
@@ -80,11 +82,13 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           <p
             className="text-center text-base mb-4"
             style={{
-              color: '#EBC862',
+              color: '#FFD966',
               letterSpacing: '0.25em',
               lineHeight: 2,
               fontFamily: 'Georgia, Times New Roman, serif',
-              textShadow: '0 0 15px rgba(235, 200, 98, 0.6), 0 2px 8px rgba(0, 0, 0, 0.9)'
+              textShadow: '0 0 20px rgba(255, 217, 102, 0.8), 0 2px 10px rgba(0, 0, 0, 0.95)',
+              filter: 'brightness(1.2)',
+              fontWeight: 400
             }}
           >
             {suggestionMessage}
@@ -92,11 +96,12 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           <p
             className="text-center text-xs"
             style={{
-              color: 'rgba(255, 255, 255, 0.7)',
+              color: 'rgba(255, 255, 255, 0.95)',
               letterSpacing: '0.15em',
               lineHeight: 1.8,
               fontFamily: 'Georgia, Times New Roman, serif',
-              textShadow: '0 2px 6px rgba(0, 0, 0, 0.9)'
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.95)',
+              fontWeight: 400
             }}
           >
             {benefitMessage}
@@ -113,10 +118,11 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           <p
             className="text-center text-xs"
             style={{
-              color: 'rgba(247, 231, 206, 0.6)',
+              color: 'rgba(247, 231, 206, 0.95)',
               letterSpacing: '0.3em',
               fontFamily: 'Georgia, Times New Roman, serif',
-              textShadow: '0 2px 6px rgba(0, 0, 0, 0.9)'
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.95)',
+              fontWeight: 400
             }}
           >
             {result.recommendedFrequency.hz}Hz
@@ -127,11 +133,12 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           onClick={() => setShowDetails(!showDetails)}
           className="zen-toggle-button"
           style={{
-            color: 'rgba(247, 231, 206, 0.85)',
+            color: 'rgba(255, 255, 255, 0.98)',
             letterSpacing: '0.25em',
             fontSize: '13px',
             fontFamily: 'Georgia, Times New Roman, serif',
-            textShadow: '0 0 10px rgba(247, 231, 206, 0.5), 0 2px 6px rgba(0, 0, 0, 0.9)'
+            textShadow: '0 0 12px rgba(247, 231, 206, 0.6), 0 2px 8px rgba(0, 0, 0, 0.95)',
+            fontWeight: 400
           }}
         >
           <span>{showDetails ? '收起报告' : '查看深度报告'}</span>
@@ -143,10 +150,11 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
             <h3
               className="text-lg font-light mb-8 text-center"
               style={{
-                color: 'rgba(247, 231, 206, 0.9)',
+                color: 'rgba(255, 255, 255, 0.98)',
                 letterSpacing: '0.4em',
                 fontFamily: 'Georgia, Times New Roman, serif',
-                textShadow: '0 0 15px rgba(247, 231, 206, 0.4), 0 2px 8px rgba(0, 0, 0, 0.9)'
+                textShadow: '0 0 18px rgba(247, 231, 206, 0.7), 0 2px 10px rgba(0, 0, 0, 0.95)',
+                fontWeight: 400
               }}
             >
               深度报告
@@ -227,7 +235,7 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           width: 100%;
           height: 100%;
           object-fit: cover;
-          filter: brightness(0.85) contrast(1.1);
+          filter: brightness(1.3) contrast(1.15) saturate(1.1);
         }
 
         .chakra-overlay {
@@ -239,6 +247,7 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           z-index: 2;
           pointer-events: none;
           transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+          opacity: 0.7;
         }
 
         .zen-card {
@@ -246,12 +255,12 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           width: 100%;
           padding: 32px 24px;
           border-radius: 24px;
-          backdrop-filter: blur(40px) saturate(150%);
-          background: rgba(0, 0, 0, 0.4);
-          border: 1px solid rgba(247, 231, 206, 0.15);
+          backdrop-filter: blur(50px) saturate(180%);
+          background: rgba(0, 0, 0, 0.65);
+          border: 1px solid rgba(247, 231, 206, 0.35);
           box-shadow:
-            0 8px 32px rgba(0, 0, 0, 0.6),
-            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            0 8px 32px rgba(0, 0, 0, 0.7),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           animation: zenCardFadeIn 0.8s ease-out;
         }
@@ -285,19 +294,19 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           gap: 8px;
           margin-top: 24px;
           padding: 12px 24px;
-          background: rgba(0, 0, 0, 0.3);
-          backdrop-filter: blur(20px);
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(25px);
           border-radius: 20px;
-          border: 1px solid rgba(247, 231, 206, 0.2);
+          border: 1px solid rgba(247, 231, 206, 0.4);
           transition: all 0.3s ease;
           cursor: pointer;
         }
 
         .zen-toggle-button:hover {
-          background: rgba(247, 231, 206, 0.1);
-          border-color: rgba(247, 231, 206, 0.4);
+          background: rgba(247, 231, 206, 0.15);
+          border-color: rgba(247, 231, 206, 0.6);
           transform: scale(1.02);
-          box-shadow: 0 4px 20px rgba(247, 231, 206, 0.2);
+          box-shadow: 0 4px 20px rgba(247, 231, 206, 0.3);
         }
 
         .zen-report-container {
@@ -305,12 +314,12 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           margin-top: 24px;
           padding: 32px 24px;
           border-radius: 24px;
-          backdrop-filter: blur(40px) saturate(150%);
-          background: rgba(0, 0, 0, 0.5);
-          border: 1px solid rgba(247, 231, 206, 0.2);
+          backdrop-filter: blur(50px) saturate(180%);
+          background: rgba(0, 0, 0, 0.7);
+          border: 1px solid rgba(247, 231, 206, 0.4);
           box-shadow:
-            0 8px 32px rgba(0, 0, 0, 0.7),
-            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            0 8px 32px rgba(0, 0, 0, 0.8),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
           animation: zenReportExpand 0.5s ease-out;
           max-height: 70vh;
           overflow-y: auto;
@@ -365,44 +374,44 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
         }
 
         .zen-section-title {
-          color: rgba(247, 231, 206, 0.9);
+          color: rgba(255, 217, 102, 0.98);
           font-size: 14px;
-          font-weight: 300;
+          font-weight: 400;
           letter-spacing: 0.3em;
           font-family: Georgia, Times New Roman, serif;
           margin-bottom: 16px;
-          text-shadow: 0 0 10px rgba(247, 231, 206, 0.4), 0 2px 6px rgba(0, 0, 0, 0.9);
+          text-shadow: 0 0 15px rgba(255, 217, 102, 0.7), 0 2px 8px rgba(0, 0, 0, 0.95);
         }
 
         .zen-detail-text {
-          color: rgba(255, 255, 255, 0.75);
+          color: rgba(255, 255, 255, 0.95);
           font-size: 13px;
-          font-weight: 300;
+          font-weight: 400;
           letter-spacing: 0.15em;
           line-height: 2;
           font-family: Georgia, Times New Roman, serif;
-          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
           margin-bottom: 8px;
         }
 
         .zen-detail-text-sm {
-          color: rgba(255, 255, 255, 0.7);
+          color: rgba(255, 255, 255, 0.93);
           font-size: 11px;
-          font-weight: 300;
+          font-weight: 400;
           letter-spacing: 0.15em;
           line-height: 1.8;
           font-family: Georgia, Times New Roman, serif;
-          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
         }
 
         .zen-chakra-label {
           min-width: 80px;
-          color: rgba(255, 255, 255, 0.6);
+          color: rgba(255, 255, 255, 0.9);
           font-size: 11px;
-          font-weight: 300;
+          font-weight: 400;
           letter-spacing: 0.15em;
           font-family: Georgia, Times New Roman, serif;
-          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
         }
 
         .zen-energy-bar-track {
@@ -433,25 +442,25 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
         .zen-back-button {
           margin-top: 32px;
           padding: 14px 48px;
-          background: rgba(0, 0, 0, 0.3);
-          backdrop-filter: blur(20px);
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(25px);
           border-radius: 50px;
-          border: 1px solid rgba(247, 231, 206, 0.25);
-          color: rgba(247, 231, 206, 0.8);
+          border: 1px solid rgba(247, 231, 206, 0.4);
+          color: rgba(255, 255, 255, 0.95);
           font-size: 14px;
-          font-weight: 300;
+          font-weight: 400;
           letter-spacing: 0.3em;
           font-family: Georgia, Times New Roman, serif;
-          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
           transition: all 0.3s ease;
           cursor: pointer;
         }
 
         .zen-back-button:hover {
-          background: rgba(247, 231, 206, 0.08);
-          border-color: rgba(247, 231, 206, 0.4);
+          background: rgba(247, 231, 206, 0.12);
+          border-color: rgba(247, 231, 206, 0.6);
           transform: scale(1.05);
-          box-shadow: 0 4px 20px rgba(247, 231, 206, 0.2);
+          box-shadow: 0 4px 20px rgba(247, 231, 206, 0.3);
         }
       `}</style>
     </div>
