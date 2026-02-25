@@ -291,7 +291,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
                   animationDelay: `${index * 0.1}s`,
                 }}
               >
-                <div className="golden-halo" />
                 <div className="bubble-content">
                   {emotion.label}
                 </div>
@@ -383,7 +382,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
                   animationDelay: `${(index + EMOTIONS.length) * 0.1}s`,
                 }}
               >
-                <div className="golden-halo" />
                 <div className="bubble-content">
                   {state.label}
                 </div>
@@ -559,50 +557,108 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         }
 
         .glass-bubble {
-          background: transparent;
-          backdrop-filter: none;
-          border: 0.5px solid rgba(255, 255, 255, 0.6);
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle at center,
+              rgba(255, 255, 255, 1) 0%,
+              rgba(255, 255, 255, 0.98) 10%,
+              rgba(255, 245, 200, 0.5) 18%,
+              rgba(255, 225, 120, 0.35) 35%,
+              rgba(250, 210, 100, 0.2) 55%,
+              rgba(240, 195, 80, 0.1) 75%,
+              transparent 100%
+            );
+          backdrop-filter: blur(0.5px);
+          border: 2.5px solid rgba(255, 230, 120, 0.8);
+          animation: crystalBreathe 4s ease-in-out infinite, energyPulse 2s ease-in-out infinite;
+          position: absolute;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           opacity: 0;
           box-shadow:
-            0 0 20px rgba(255, 255, 255, 0.5),
-            0 0 40px rgba(247, 231, 206, 0.2),
-            inset 0 0 10px rgba(255, 255, 255, 0.3);
-          position: absolute;
+            0 0 30px rgba(255, 240, 150, 0.9),
+            0 0 50px rgba(255, 220, 100, 0.7),
+            0 0 80px rgba(255, 200, 80, 0.5),
+            0 0 120px rgba(240, 180, 60, 0.3),
+            inset 0 0 50px rgba(255, 245, 200, 0.4),
+            inset 0 0 25px rgba(255, 255, 255, 0.6);
+          transition: all 0.5s ease;
           overflow: hidden;
-          flex-shrink: 0;
-          border-radius: 48% 52% 53% 47% / 51% 49% 51% 49%;
-          animation: liquidMorph 6s ease-in-out infinite;
-          will-change: transform, opacity, border-radius;
+          will-change: transform, opacity;
         }
 
-        @keyframes liquidMorph {
+        .glass-bubble::before {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle at center,
+            transparent 55%,
+            rgba(255, 230, 120, 0.15) 65%,
+            rgba(255, 215, 100, 0.25) 75%,
+            rgba(255, 200, 85, 0.2) 85%,
+            rgba(255, 185, 70, 0.12) 92%,
+            transparent 100%
+          );
+          animation: innerGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes crystalBreathe {
           0%, 100% {
-            border-radius: 48% 52% 53% 47% / 51% 49% 51% 49%;
-          }
-          25% {
-            border-radius: 52% 48% 47% 53% / 49% 51% 49% 51%;
+            transform: translate(-50%, -50%) scale(1);
+            box-shadow:
+              0 0 30px rgba(255, 240, 150, 0.9),
+              0 0 50px rgba(255, 220, 100, 0.7),
+              0 0 80px rgba(255, 200, 80, 0.5),
+              0 0 120px rgba(240, 180, 60, 0.3),
+              inset 0 0 50px rgba(255, 245, 200, 0.4),
+              inset 0 0 25px rgba(255, 255, 255, 0.6);
           }
           50% {
-            border-radius: 47% 53% 52% 48% / 53% 47% 53% 47%;
+            transform: translate(-50%, -50%) scale(1.08);
+            box-shadow:
+              0 0 45px rgba(255, 245, 180, 1),
+              0 0 75px rgba(255, 230, 120, 0.85),
+              0 0 110px rgba(255, 210, 95, 0.65),
+              0 0 160px rgba(245, 190, 75, 0.45),
+              inset 0 0 65px rgba(255, 250, 220, 0.55),
+              inset 0 0 35px rgba(255, 255, 255, 0.75);
           }
-          75% {
-            border-radius: 53% 47% 48% 52% / 47% 53% 47% 53%;
+        }
+
+        @keyframes energyPulse {
+          0%, 100% {
+            filter: brightness(1.05);
+          }
+          50% {
+            filter: brightness(1.3);
+          }
+        }
+
+        @keyframes innerGlow {
+          0%, 100% {
+            opacity: 0.6;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.1);
           }
         }
 
         .emotion-bubble {
-          width: 75px;
-          height: 75px;
+          width: 100px;
+          height: 100px;
         }
 
         .body-bubble {
-          width: 60px;
-          height: 60px;
+          width: 80px;
+          height: 80px;
         }
 
         .mandala-bubble {
@@ -669,30 +725,9 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         }
 
         .glass-bubble.dimmed {
-          opacity: 0.2 !important;
-          transform: translate(-50%, -50%) scale(0.95) !important;
+          opacity: 0.3 !important;
+          transform: translate(-50%, -50%) scale(0.9) !important;
           transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-
-        .glass-bubble::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), transparent 60%);
-          pointer-events: none;
-          z-index: 1;
-          animation: specularFlow 4s ease-in-out infinite;
-        }
-
-        @keyframes specularFlow {
-          0%, 100% {
-            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), transparent 60%);
-          }
-          50% {
-            background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.5), transparent 65%);
-          }
         }
 
         .glass-bubble.popping {
@@ -715,151 +750,63 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           }
         }
 
-        .golden-halo {
-          position: absolute;
-          inset: -10px;
-          border-radius: 50%;
-          background: transparent;
-          border: 1px solid rgba(247, 231, 206, 0.35);
-          opacity: 0.6;
-          animation: haloBreath 4s ease-in-out infinite;
-          pointer-events: none;
-          box-shadow:
-            0 0 20px rgba(247, 231, 206, 0.4),
-            0 0 35px rgba(247, 231, 206, 0.2);
-        }
-
-        .glass-bubble:hover .golden-halo {
-          border-color: rgba(247, 231, 206, 0.65);
-          opacity: 0.9;
-          transform: scale(1.08);
-          box-shadow:
-            0 0 28px rgba(247, 231, 206, 0.6),
-            0 0 50px rgba(247, 231, 206, 0.35);
-        }
-
-        .glass-bubble:hover .bubble-content {
-          transform: scale(1.08);
-          color: #FFFFFF;
-          text-shadow:
-            0 1px 3px rgba(0, 0, 0, 1),
-            0 2px 10px rgba(0, 0, 0, 0.8),
-            0 0 20px rgba(255, 255, 255, 0.6);
-        }
-
         .glass-bubble:hover {
-          background: transparent;
-          border-color: rgba(255, 255, 255, 0.7);
+          transform: translate(-50%, -50%) scale(1.05);
           box-shadow:
-            0 0 25px rgba(247, 231, 206, 0.6),
-            0 0 50px rgba(247, 231, 206, 0.3),
-            inset 0 0 40px rgba(255, 255, 255, 0.1);
+            0 0 40px rgba(255, 245, 180, 1),
+            0 0 70px rgba(255, 225, 110, 0.8),
+            0 0 110px rgba(255, 205, 90, 0.6),
+            0 0 150px rgba(245, 185, 70, 0.4),
+            inset 0 0 60px rgba(255, 250, 220, 0.5),
+            inset 0 0 35px rgba(255, 255, 255, 0.7);
+          border-color: rgba(255, 235, 130, 1);
         }
 
         .glass-bubble.selected {
-          background: rgba(247, 231, 206, 0.1);
-          border-color: rgba(247, 231, 206, 0.95);
-          box-shadow:
-            0 0 20px rgba(247, 231, 206, 0.6),
-            0 0 40px rgba(247, 231, 206, 0.4),
-            0 0 60px rgba(235, 200, 98, 0.25),
-            inset 0 0 30px rgba(255, 255, 255, 0.2);
-          transform: translate(-50%, -50%) scale(1.15) !important;
-          animation: bubbleFloat 1.2s ease-out forwards, selectedTremor 0.15s ease-in-out infinite, selectedGlow 2.5s ease-in-out infinite !important;
+          transform: translate(-50%, -50%) scale(1.12) !important;
+          animation: bubbleFloat 1.2s ease-out forwards, crystalBreathe 4s ease-in-out infinite, energyPulse 2s ease-in-out infinite, selectedPulse 1s ease-in-out infinite !important;
         }
 
-        .glass-bubble.selected::before {
-          transform: scale(1.15);
-        }
-
-        .glass-bubble.selected .golden-halo {
-          border-color: rgba(247, 231, 206, 0.85);
-          opacity: 1;
-          box-shadow:
-            0 0 30px rgba(247, 231, 206, 0.75),
-            0 0 55px rgba(247, 231, 206, 0.45);
-          animation: haloBreath 4s ease-in-out infinite, haloTremor 0.15s ease-in-out infinite;
-        }
-
-        @keyframes selectedTremor {
+        @keyframes selectedPulse {
           0%, 100% {
             box-shadow:
-              0 0 20px rgba(247, 231, 206, 0.6),
-              0 0 40px rgba(247, 231, 206, 0.4),
-              0 0 60px rgba(235, 200, 98, 0.25),
-              inset 0 0 30px rgba(255, 255, 255, 0.2);
+              0 0 35px rgba(255, 245, 180, 1),
+              0 0 60px rgba(255, 230, 120, 0.85),
+              0 0 100px rgba(255, 210, 95, 0.65),
+              0 0 140px rgba(245, 190, 75, 0.45),
+              inset 0 0 55px rgba(255, 250, 220, 0.55),
+              inset 0 0 30px rgba(255, 255, 255, 0.75);
           }
           50% {
             box-shadow:
-              0 0 24px rgba(247, 231, 206, 0.65),
-              0 0 45px rgba(247, 231, 206, 0.45),
-              0 0 65px rgba(235, 200, 98, 0.3),
-              inset 0 0 35px rgba(255, 255, 255, 0.22);
-          }
-        }
-
-        @keyframes haloTremor {
-          0%, 100% {
-            box-shadow:
-              0 0 30px rgba(247, 231, 206, 0.75),
-              0 0 55px rgba(247, 231, 206, 0.45);
-          }
-          50% {
-            box-shadow:
-              0 0 35px rgba(247, 231, 206, 0.8),
-              0 0 60px rgba(247, 231, 206, 0.5);
+              0 0 45px rgba(255, 245, 180, 1),
+              0 0 75px rgba(255, 230, 120, 0.9),
+              0 0 115px rgba(255, 210, 95, 0.7),
+              0 0 165px rgba(245, 190, 75, 0.5),
+              inset 0 0 70px rgba(255, 250, 220, 0.6),
+              inset 0 0 40px rgba(255, 255, 255, 0.8);
           }
         }
 
         .bubble-content {
           font-family: 'Georgia', 'Times New Roman', serif;
-          font-weight: 500;
-          letter-spacing: 0.25em;
-          color: #FFFFFF;
-          text-shadow:
-            0 2px 4px rgba(0, 0, 0, 0.5),
-            0 1px 2px rgba(0, 0, 0, 0.8);
+          font-weight: 400;
+          letter-spacing: 0.2em;
+          color: #1a1a1a;
+          text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
           position: relative;
           z-index: 10;
-          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease, text-shadow 0.3s ease;
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           filter: none !important;
         }
 
         .emotion-bubble .bubble-content {
-          font-size: 13px;
+          font-size: 14px;
         }
 
         .body-bubble .bubble-content {
-          font-size: 11px;
-          font-weight: 500;
-        }
-
-        @keyframes haloBreath {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 0.6;
-          }
-          50% {
-            transform: scale(1.05);
-            opacity: 0.85;
-          }
-        }
-
-        @keyframes selectedGlow {
-          0%, 100% {
-            box-shadow:
-              0 0 20px rgba(247, 231, 206, 0.6),
-              0 0 40px rgba(247, 231, 206, 0.4),
-              0 0 60px rgba(235, 200, 98, 0.25),
-              inset 0 0 30px rgba(255, 255, 255, 0.2);
-          }
-          50% {
-            box-shadow:
-              0 0 28px rgba(247, 231, 206, 0.75),
-              0 0 55px rgba(247, 231, 206, 0.5),
-              0 0 80px rgba(235, 200, 98, 0.35),
-              inset 0 0 40px rgba(255, 255, 255, 0.25);
-          }
+          font-size: 12px;
+          font-weight: 400;
         }
 
         .golden-breath {
