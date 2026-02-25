@@ -282,7 +282,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               <button
                 key={emotion.label}
                 onClick={(e) => toggleEmotion(emotion.label, emotion.hue, e)}
-                className={`glass-bubble emotion-bubble mandala-bubble ${poppedBubbles.has(emotion.label) ? 'popping' : ''} ${selectedEmotions.includes(emotion.label) ? 'selected' : ''}`}
+                className={`glass-bubble emotion-bubble mandala-bubble ${emotion.label === '其他' ? 'other-bubble' : ''} ${poppedBubbles.has(emotion.label) ? 'popping' : ''} ${selectedEmotions.includes(emotion.label) ? 'selected' : ''}`}
                 style={{
                   position: 'absolute',
                   left: `${emotion.position.x}%`,
@@ -294,7 +294,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
                 {[...Array(6)].map((_, i) => (
                   <div
                     key={i}
-                    className="golden-particle-inner"
+                    className={`golden-particle-inner ${emotion.label === '其他' ? 'silver-particle' : ''}`}
                     style={{
                       animationDelay: `${i * 1.3}s`,
                       animationDuration: `${7 + (i % 3)}s`,
@@ -383,7 +383,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               <button
                 key={state.label}
                 onClick={(e) => toggleBodyState(state.label, e)}
-                className={`glass-bubble body-bubble mandala-bubble ${poppedBubbles.has(state.label) ? 'popping' : ''} ${selectedBodyStates.includes(state.label) ? 'selected' : ''}`}
+                className={`glass-bubble body-bubble mandala-bubble ${state.label === '其他' ? 'other-bubble' : ''} ${poppedBubbles.has(state.label) ? 'popping' : ''} ${selectedBodyStates.includes(state.label) ? 'selected' : ''}`}
                 style={{
                   position: 'absolute',
                   left: `${state.position.x}%`,
@@ -395,7 +395,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
                 {[...Array(5)].map((_, i) => (
                   <div
                     key={i}
-                    className="golden-particle-inner"
+                    className={`golden-particle-inner ${state.label === '其他' ? 'silver-particle' : ''}`}
                     style={{
                       animationDelay: `${i * 1.5}s`,
                       animationDuration: `${6.5 + (i % 3)}s`,
@@ -486,6 +486,16 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               className="w-full golden-breath"
             >
               继续
+            </GoldButton>
+          </div>
+
+          <div className={`w-full max-w-md mx-auto mt-6 transition-all duration-700 ${selectedEmotions.length > 0 && selectedBodyStates.length > 0 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+            <GoldButton
+              onClick={handleSubmit}
+              disabled={selectedEmotions.length === 0 || selectedBodyStates.length === 0}
+              className="w-full"
+            >
+              完成
             </GoldButton>
           </div>
         </div>
@@ -1094,6 +1104,81 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         .continue-button-wrapper {
           position: relative;
           z-index: 100;
+        }
+
+        .other-bubble .golden-particle-inner,
+        .silver-particle {
+          background: radial-gradient(
+            circle at center,
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(230, 245, 255, 0.7) 30%,
+            rgba(200, 220, 240, 0.5) 60%,
+            transparent 100%
+          ) !important;
+          box-shadow:
+            0 0 8px rgba(200, 220, 255, 0.6),
+            0 0 15px rgba(180, 200, 230, 0.4),
+            0 0 25px rgba(160, 180, 210, 0.2) !important;
+        }
+
+        .other-bubble {
+          background:
+            radial-gradient(
+              circle at center,
+              rgba(255, 255, 255, 1) 0%,
+              rgba(250, 252, 255, 0.98) 10%,
+              rgba(230, 240, 250, 0.5) 18%,
+              rgba(210, 230, 245, 0.35) 35%,
+              rgba(190, 215, 235, 0.2) 55%,
+              rgba(170, 200, 225, 0.1) 75%,
+              transparent 100%
+            ) !important;
+          border: 2px solid rgba(200, 220, 255, 0.6) !important;
+          box-shadow:
+            0 0 15px rgba(220, 235, 255, 0.5),
+            0 0 30px rgba(200, 220, 240, 0.3),
+            0 0 45px rgba(180, 205, 225, 0.15),
+            inset 0 0 30px rgba(240, 248, 255, 0.3),
+            inset 0 0 15px rgba(255, 255, 255, 0.4) !important;
+        }
+
+        .other-bubble::before {
+          background: radial-gradient(
+            circle at center,
+            transparent 55%,
+            rgba(210, 230, 255, 0.15) 65%,
+            rgba(190, 215, 240, 0.25) 75%,
+            rgba(170, 200, 225, 0.2) 85%,
+            rgba(150, 185, 210, 0.12) 92%,
+            transparent 100%
+          ) !important;
+        }
+
+        .other-bubble::after {
+          background: rgba(240, 248, 255, 1) !important;
+          box-shadow:
+            0 0 10px rgba(220, 235, 255, 1),
+            0 0 20px rgba(200, 220, 240, 0.7),
+            0 0 30px rgba(180, 205, 225, 0.4) !important;
+        }
+
+        .other-bubble:hover {
+          box-shadow:
+            0 0 20px rgba(225, 240, 255, 0.7),
+            0 0 35px rgba(205, 225, 245, 0.4),
+            0 0 50px rgba(185, 210, 235, 0.2),
+            inset 0 0 35px rgba(245, 250, 255, 0.4),
+            inset 0 0 20px rgba(255, 255, 255, 0.5) !important;
+          border-color: rgba(210, 230, 255, 0.8) !important;
+        }
+
+        .other-bubble.selected {
+          box-shadow:
+            0 0 25px rgba(230, 245, 255, 0.9),
+            0 0 45px rgba(210, 230, 250, 0.6),
+            0 0 65px rgba(190, 215, 240, 0.3),
+            inset 0 0 40px rgba(245, 250, 255, 0.5),
+            inset 0 0 25px rgba(255, 255, 255, 0.6) !important;
         }
       `}</style>
     </div>
