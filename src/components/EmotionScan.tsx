@@ -1,6 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
+
+interface Particle {
+  id: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+}
 
 interface EmotionScanProps {
   onNext: (emotions: string[], bodyStates: string[]) => void;
@@ -48,6 +57,10 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [customBodyState, setCustomBodyState] = useState('');
   const [showEmotionInput, setShowEmotionInput] = useState(false);
   const [showBodyStateInput, setShowBodyStateInput] = useState(false);
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const [poppedBubbles, setPoppedBubbles] = useState<Set<string>>(new Set());
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [backgroundBlur, setBackgroundBlur] = useState(13);
 
   const emotionPositions = useMemo(() =>
     EMOTIONS.map((emotion, index) => ({
@@ -67,7 +80,53 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
   const hasAnySelection = selectedEmotions.length > 0 || selectedBodyStates.length > 0;
 
-  const toggleEmotion = (emotion: string, hue: number) => {
+  useEffect(() => {
+    if (particles.length === 0) return;
+
+    const interval = setInterval(() => {
+      setParticles(prev => prev.filter(p => p.life > 0).map(p => ({
+        ...p,
+        x: p.x + p.vx,
+        y: p.y + p.vy,
+        vy: p.vy + 0.2,
+        vx: p.vx * 0.98,
+        life: p.life - 0.016,
+      })));
+    }, 16);
+
+    return () => clearInterval(interval);
+  }, [particles.length]);
+
+  const createParticles = (x: number, y: number) => {
+    const newParticles: Particle[] = [];
+    const count = 12 + Math.floor(Math.random() * 6);
+
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+      const speed = 2 + Math.random() * 3;
+      newParticles.push({
+        id: `${Date.now()}-${i}`,
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 2,
+        life: 1,
+      });
+    }
+
+    setParticles(prev => [...prev, ...newParticles]);
+  };
+
+  const triggerHaptic = () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
+  };
+
+  const toggleEmotion = (emotion: string, hue: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
     if (emotion === '其他') {
       setShowEmotionInput(true);
       return;
@@ -77,14 +136,28 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
     if (isSelected) {
       setSelectedEmotions(prev => prev.filter(e => e !== emotion));
+      setPoppedBubbles(prev => {
+        const next = new Set(prev);
+        next.delete(emotion);
+        return next;
+      });
       setActiveHue(0);
     } else {
-      setSelectedEmotions(prev => [...prev, emotion]);
-      setActiveHue(hue);
+      triggerHaptic();
+      createParticles(x, y);
+      setPoppedBubbles(prev => new Set([...prev, emotion]));
+
+      setTimeout(() => {
+        setSelectedEmotions(prev => [...prev, emotion]);
+        setActiveHue(hue);
+      }, 150);
     }
   };
 
-  const toggleBodyState = (state: string) => {
+  const toggleBodyState = (state: string, event: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
     if (state === '其他') {
       setShowBodyStateInput(true);
       return;
@@ -94,8 +167,19 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
     if (isSelected) {
       setSelectedBodyStates(prev => prev.filter(s => s !== state));
+      setPoppedBubbles(prev => {
+        const next = new Set(prev);
+        next.delete(state);
+        return next;
+      });
     } else {
-      setSelectedBodyStates(prev => [...prev, state]);
+      triggerHaptic();
+      createParticles(x, y);
+      setPoppedBubbles(prev => new Set([...prev, state]));
+
+      setTimeout(() => {
+        setSelectedBodyStates(prev => [...prev, state]);
+      }, 150);
     }
   };
 
@@ -116,8 +200,23 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   };
 
   const handleContinueToWriting = () => {
-    if (selectedEmotions.length > 0 || selectedBodyStates.length > 0) {
-      setStep('writing');
+    if (selectedEmotions.length > 0 && selectedBodyStates.length > 0) {
+      setIsTransitioning(true);
+
+      const blurInterval = setInterval(() => {
+        setBackgroundBlur(prev => {
+          if (prev >= 40) {
+            clearInterval(blurInterval);
+            return 40;
+          }
+          return prev + 1;
+        });
+      }, 30);
+
+      setTimeout(() => {
+        setStep('writing');
+        setIsTransitioning(false);
+      }, 1200);
     }
   };
 
@@ -134,7 +233,20 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative">
-      <div className="forest-background-layer" />
+      <div className="forest-background-layer" style={{ filter: `blur(${backgroundBlur}px)` }} />
+
+      {particles.map(particle => (
+        <div
+          key={particle.id}
+          className="particle"
+          style={{
+            left: particle.x,
+            top: particle.y,
+            opacity: particle.life,
+            transform: `translate(-50%, -50%) scale(${particle.life})`,
+          }}
+        />
+      ))}
 
       {onBack && (
         <button
@@ -168,8 +280,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             {emotionPositions.map((emotion, index) => (
               <button
                 key={emotion.label}
-                onClick={() => toggleEmotion(emotion.label, emotion.hue)}
-                className={`glass-bubble emotion-bubble mandala-bubble ${selectedEmotions.includes(emotion.label) ? 'selected' : ''} ${hasAnySelection && !selectedEmotions.includes(emotion.label) ? 'dimmed' : ''}`}
+                onClick={(e) => toggleEmotion(emotion.label, emotion.hue, e)}
+                className={`glass-bubble emotion-bubble mandala-bubble ${poppedBubbles.has(emotion.label) ? 'popping' : ''} ${selectedEmotions.includes(emotion.label) ? 'selected' : ''} ${hasAnySelection && !selectedEmotions.includes(emotion.label) && !poppedBubbles.has(emotion.label) ? 'dimmed' : ''}`}
                 style={{
                   position: 'absolute',
                   left: `${emotion.position.x}%`,
@@ -260,8 +372,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             {bodyPositions.map((state, index) => (
               <button
                 key={state.label}
-                onClick={() => toggleBodyState(state.label)}
-                className={`glass-bubble body-bubble mandala-bubble ${selectedBodyStates.includes(state.label) ? 'selected' : ''} ${hasAnySelection && !selectedBodyStates.includes(state.label) ? 'dimmed' : ''}`}
+                onClick={(e) => toggleBodyState(state.label, e)}
+                className={`glass-bubble body-bubble mandala-bubble ${poppedBubbles.has(state.label) ? 'popping' : ''} ${selectedBodyStates.includes(state.label) ? 'selected' : ''} ${hasAnySelection && !selectedBodyStates.includes(state.label) && !poppedBubbles.has(state.label) ? 'dimmed' : ''}`}
                 style={{
                   position: 'absolute',
                   left: `${state.position.x}%`,
@@ -359,9 +471,9 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col justify-center items-center max-w-2xl mx-auto w-full">
+        <div className={`flex-1 flex flex-col justify-center items-center max-w-2xl mx-auto w-full ${isTransitioning ? 'transitioning' : 'active'}`}>
           <div className="w-full mb-8 relative">
-            <div className="consciousness-line" />
+            <div className={`consciousness-line ${step === 'writing' && !isTransitioning ? 'line-grow' : ''}`} />
             <textarea
               value={journalContent}
               onChange={(e) => setJournalContent(e.target.value)}
@@ -388,6 +500,18 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
       )}
 
       <style>{`
+        .particle {
+          position: fixed;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(247, 231, 206, 1) 0%, rgba(235, 200, 98, 0.8) 50%, transparent 100%);
+          pointer-events: none;
+          z-index: 1000;
+          box-shadow: 0 0 8px rgba(247, 231, 206, 0.8), 0 0 12px rgba(235, 200, 98, 0.6);
+          will-change: transform, opacity;
+        }
+
         .forest-background-layer {
           position: fixed;
           top: 0;
@@ -398,11 +522,12 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
-          filter: blur(13px);
           opacity: 0.65;
           z-index: 1;
           pointer-events: none;
           animation: forestBreath 8s ease-in-out infinite;
+          transition: filter 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+          will-change: filter;
         }
 
         @keyframes forestBreath {
@@ -422,7 +547,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         }
 
         .glass-bubble {
-          border-radius: 50%;
           background: transparent;
           backdrop-filter: none;
           border: 0.5px solid rgba(255, 255, 255, 0.6);
@@ -439,6 +563,24 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           position: absolute;
           overflow: hidden;
           flex-shrink: 0;
+          border-radius: 48% 52% 53% 47% / 51% 49% 51% 49%;
+          animation: liquidMorph 6s ease-in-out infinite;
+          will-change: transform, opacity, border-radius;
+        }
+
+        @keyframes liquidMorph {
+          0%, 100% {
+            border-radius: 48% 52% 53% 47% / 51% 49% 51% 49%;
+          }
+          25% {
+            border-radius: 52% 48% 47% 53% / 49% 51% 49% 51%;
+          }
+          50% {
+            border-radius: 47% 53% 52% 48% / 53% 47% 53% 47%;
+          }
+          75% {
+            border-radius: 53% 47% 48% 52% / 47% 53% 47% 53%;
+          }
         }
 
         .emotion-bubble {
@@ -542,10 +684,40 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           content: '';
           position: absolute;
           inset: 0;
-          border-radius: 50%;
-          background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), transparent 50%);
+          border-radius: inherit;
+          background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), transparent 60%);
           pointer-events: none;
           z-index: 1;
+          animation: specularFlow 4s ease-in-out infinite;
+        }
+
+        @keyframes specularFlow {
+          0%, 100% {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), transparent 60%);
+          }
+          50% {
+            background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.5), transparent 65%);
+          }
+        }
+
+        .glass-bubble.popping {
+          animation: popExpand 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+          pointer-events: none;
+        }
+
+        @keyframes popExpand {
+          0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1.3);
+            opacity: 0.8;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(1.5);
+            opacity: 0;
+          }
         }
 
         .golden-halo {
@@ -716,8 +888,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
         .consciousness-line {
           position: absolute;
-          left: 0;
-          right: 0;
+          left: 50%;
+          right: 50%;
           top: 50%;
           height: 0.5px;
           background: linear-gradient(
@@ -731,6 +903,33 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           transform: translateY(-50%);
           pointer-events: none;
           z-index: 1;
+          transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s, right 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s;
+        }
+
+        .consciousness-line.line-grow {
+          left: 0;
+          right: 0;
+        }
+
+        .transitioning {
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .active {
+          animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+          opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .conscious-writing {
