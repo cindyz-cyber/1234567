@@ -38,7 +38,34 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'linear-gradient(180deg, #1A352F 0%, #0D1814 100%)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-6 book-of-answers-container">
+      <div className="home-background-layer">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="home-background-video"
+        >
+          <source src="https://cdn.midjourney.com/video/48fc39c6-3c66-4f02-a3e2-3445b7fec438/1.mp4" type="video/mp4" />
+        </video>
+        <div className="home-background-overlay" />
+      </div>
+
+      <div className="portal-video-container">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="portal-video"
+        >
+          <source src="https://cdn.midjourney.com/video/7e901a1c-929f-466d-8def-ac47f9d0c15b/3.mp4" type="video/mp4" />
+        </video>
+        <div className="portal-glow-effect" />
+        <div className="mesh-gradient-transition" />
+      </div>
+
       {onBack && (
         <button
           onClick={onBack}
@@ -181,6 +208,109 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
       </div>
 
       <style>{`
+        .book-of-answers-container {
+          position: relative;
+        }
+
+        .home-background-layer {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: -1;
+          overflow: hidden;
+        }
+
+        .home-background-video {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          filter: brightness(0.7) contrast(1.15) saturate(0.9);
+        }
+
+        .home-background-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgba(5, 10, 20, 0.4) 66.666vh,
+            rgba(2, 5, 12, 0.7) 100%
+          );
+        }
+
+        .portal-video-container {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 33.333vh;
+          overflow: hidden;
+          z-index: 1;
+        }
+
+        .portal-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          filter: brightness(0.95) contrast(1.05) saturate(1.15);
+        }
+
+        .portal-glow-effect {
+          position: absolute;
+          bottom: -80px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 140%;
+          height: 160px;
+          background: radial-gradient(
+            ellipse at center,
+            rgba(180, 200, 255, 0.18) 0%,
+            rgba(150, 170, 220, 0.12) 30%,
+            rgba(120, 140, 180, 0.06) 50%,
+            transparent 70%
+          );
+          filter: blur(60px);
+          pointer-events: none;
+          animation: portalGlowPulse 5s ease-in-out infinite;
+        }
+
+        @keyframes portalGlowPulse {
+          0%, 100% {
+            opacity: 0.5;
+            transform: translateX(-50%) scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: translateX(-50%) scale(1.15);
+          }
+        }
+
+        .mesh-gradient-transition {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 50%;
+          background: linear-gradient(
+            180deg,
+            transparent 0%,
+            rgba(180, 200, 255, 0.02) 15%,
+            rgba(150, 170, 220, 0.03) 30%,
+            rgba(120, 140, 180, 0.04) 50%,
+            rgba(90, 110, 140, 0.06) 70%,
+            rgba(5, 10, 20, 0.4) 100%
+          );
+          pointer-events: none;
+        }
+
         .card-container {
           cursor: pointer;
           perspective: 1200px;
