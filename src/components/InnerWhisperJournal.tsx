@@ -118,7 +118,8 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
       <div
         className="fixed inset-0 w-full h-full"
         style={{
-          zIndex: 1,
+          zIndex: -1,
+          background: 'transparent'
         }}
       >
         <video
@@ -136,6 +137,8 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
           style={{ backgroundColor: 'rgba(2, 13, 10, 0.15)' }}
         />
       </div>
+
+      <div className="absolute top-0 left-0 w-full h-[30vh] z-20 pointer-events-none top-vignette" />
 
       <div className="absolute top-6 left-6 z-50">
         {onBack && (
@@ -215,6 +218,17 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
       </div>
 
       <style>{`
+        .top-vignette {
+          background: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 0.95) 25%,
+            rgba(0, 0, 0, 0.8) 50%,
+            rgba(0, 0, 0, 0.4) 75%,
+            transparent 100%
+          );
+        }
+
         .journal-title {
           animation: titleGlow 4s ease-in-out infinite;
         }
@@ -324,8 +338,8 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
 
         .voice-button {
           position: relative;
-          width: 80px;
-          height: 80px;
+          width: 280px;
+          height: 280px;
           border: none;
           background: transparent;
           cursor: pointer;
@@ -342,85 +356,157 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
 
         .voice-button-ring {
           position: absolute;
-          width: 100%;
-          height: 100%;
+          width: 420px;
+          height: 420px;
           border-radius: 50%;
-          border: 2px solid rgba(247, 231, 206, 0.6);
-          box-shadow:
-            0 0 20px rgba(247, 231, 206, 0.5),
-            0 0 40px rgba(235, 200, 98, 0.3),
-            inset 0 0 20px rgba(247, 231, 206, 0.2);
-          transition: all 0.15s ease;
+          background: radial-gradient(
+            circle,
+            rgba(255, 245, 200, 0.5) 0%,
+            rgba(255, 230, 130, 0.4) 20%,
+            rgba(255, 215, 100, 0.3) 40%,
+            rgba(245, 195, 80, 0.2) 60%,
+            transparent 75%
+          );
+          animation: auraPulse 4s ease-in-out infinite, auraRotate 20s linear infinite;
+          z-index: 1;
+          filter: blur(60px);
+          pointer-events: none;
         }
 
-        .voice-button.listening .voice-button-ring {
-          animation: pulseRing 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulseRing {
+        @keyframes auraPulse {
           0%, 100% {
             transform: scale(1);
-            opacity: 0.8;
+            opacity: 0.6;
           }
           50% {
             transform: scale(1.15);
-            opacity: 1;
+            opacity: 0.9;
           }
+        }
+
+        @keyframes auraRotate {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .voice-button.listening .voice-button-ring {
+          animation: auraPulse 2s ease-in-out infinite, auraRotate 15s linear infinite;
         }
 
         .voice-button-inner {
           position: relative;
           z-index: 2;
-          width: 56px;
-          height: 56px;
+          width: 280px;
+          height: 280px;
           border-radius: 50%;
-          background: linear-gradient(
-            135deg,
-            rgba(247, 231, 206, 0.25) 0%,
-            rgba(235, 200, 98, 0.15) 100%
-          );
-          backdrop-filter: blur(10px);
+          background:
+            radial-gradient(
+              circle at center,
+              rgba(255, 255, 255, 1) 0%,
+              rgba(255, 255, 255, 0.98) 10%,
+              rgba(255, 245, 200, 0.5) 18%,
+              rgba(255, 225, 120, 0.35) 35%,
+              rgba(250, 210, 100, 0.2) 55%,
+              rgba(240, 195, 80, 0.1) 75%,
+              transparent 100%
+            );
+          backdrop-filter: blur(0.5px);
+          border: 2.5px solid rgba(255, 230, 120, 0.8);
+          animation: crystalBreathe 4s ease-in-out infinite, energyPulse 2s ease-in-out infinite;
           display: flex;
           align-items: center;
           justify-content: center;
           color: #F7E7CE;
           box-shadow:
-            0 4px 20px rgba(0, 0, 0, 0.3),
-            inset 0 0 20px rgba(255, 255, 255, 0.1);
-          transition: all 0.3s ease;
+            0 0 30px rgba(255, 240, 150, 0.9),
+            0 0 50px rgba(255, 220, 100, 0.7),
+            0 0 80px rgba(255, 200, 80, 0.5),
+            0 0 120px rgba(240, 180, 60, 0.3),
+            inset 0 0 50px rgba(255, 245, 200, 0.4),
+            inset 0 0 25px rgba(255, 255, 255, 0.6);
+          transition: all 0.5s ease;
+          overflow: hidden;
+        }
+
+        .voice-button-inner::before {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle at center,
+            transparent 55%,
+            rgba(255, 230, 120, 0.15) 65%,
+            rgba(255, 215, 100, 0.25) 75%,
+            rgba(255, 200, 85, 0.2) 85%,
+            rgba(255, 185, 70, 0.12) 92%,
+            transparent 100%
+          );
+          animation: innerGlowPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes innerGlowPulse {
+          0%, 100% {
+            opacity: 0.6;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.1);
+          }
+        }
+
+        @keyframes crystalBreathe {
+          0%, 100% {
+            transform: scale(1);
+            box-shadow:
+              0 0 30px rgba(255, 240, 150, 0.9),
+              0 0 50px rgba(255, 220, 100, 0.7),
+              0 0 80px rgba(255, 200, 80, 0.5),
+              0 0 120px rgba(240, 180, 60, 0.3),
+              inset 0 0 50px rgba(255, 245, 200, 0.4),
+              inset 0 0 25px rgba(255, 255, 255, 0.6);
+          }
+          50% {
+            transform: scale(1.08);
+            box-shadow:
+              0 0 45px rgba(255, 245, 180, 1),
+              0 0 75px rgba(255, 230, 120, 0.85),
+              0 0 110px rgba(255, 210, 95, 0.65),
+              0 0 160px rgba(245, 190, 75, 0.45),
+              inset 0 0 65px rgba(255, 250, 220, 0.55),
+              inset 0 0 35px rgba(255, 255, 255, 0.75);
+          }
+        }
+
+        @keyframes energyPulse {
+          0%, 100% {
+            filter: brightness(1.05);
+          }
+          50% {
+            filter: brightness(1.3);
+          }
         }
 
         .voice-button:hover .voice-button-inner {
-          background: linear-gradient(
-            135deg,
-            rgba(247, 231, 206, 0.35) 0%,
-            rgba(235, 200, 98, 0.25) 100%
-          );
+          transform: scale(1.05);
           box-shadow:
-            0 6px 25px rgba(247, 231, 206, 0.3),
-            inset 0 0 25px rgba(255, 255, 255, 0.15);
+            0 0 40px rgba(255, 245, 180, 1),
+            0 0 70px rgba(255, 225, 110, 0.8),
+            0 0 110px rgba(255, 205, 90, 0.6),
+            0 0 150px rgba(245, 185, 70, 0.4),
+            inset 0 0 60px rgba(255, 250, 220, 0.5),
+            inset 0 0 35px rgba(255, 255, 255, 0.7);
+          border-color: rgba(255, 235, 130, 1);
         }
 
         .voice-button.listening .voice-button-inner {
-          background: linear-gradient(
-            135deg,
-            rgba(247, 231, 206, 0.45) 0%,
-            rgba(235, 200, 98, 0.35) 100%
-          );
-          animation: innerGlow 2s ease-in-out infinite;
-        }
-
-        @keyframes innerGlow {
-          0%, 100% {
-            box-shadow:
-              0 4px 20px rgba(247, 231, 206, 0.4),
-              inset 0 0 20px rgba(255, 255, 255, 0.2);
-          }
-          50% {
-            box-shadow:
-              0 6px 30px rgba(247, 231, 206, 0.6),
-              inset 0 0 30px rgba(255, 255, 255, 0.3);
-          }
+          animation: crystalBreathe 2s ease-in-out infinite, energyPulse 1.5s ease-in-out infinite;
         }
 
         .listening-indicator {
