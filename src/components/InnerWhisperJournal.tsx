@@ -119,11 +119,28 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{
-      background: 'linear-gradient(to bottom, rgba(20, 25, 20, 1) 0%, rgba(35, 40, 30, 1) 50%, rgba(25, 30, 25, 1) 100%)'
-    }}>
-      <div className="cave-background" />
-      <div className="light-rays" />
+    <div className="min-h-screen relative overflow-hidden">
+      <div
+        className="fixed inset-0 w-full h-full"
+        style={{
+          zIndex: 1,
+        }}
+      >
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ filter: 'contrast(1.2) brightness(1.1) saturate(1.1)' }}
+        >
+          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
+        </video>
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{ backgroundColor: 'rgba(2, 13, 10, 0.15)' }}
+        />
+      </div>
 
       <div className="absolute top-6 left-6 z-50">
         {onBack && (
@@ -211,59 +228,6 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
       </div>
 
       <style>{`
-        .cave-background {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background:
-            radial-gradient(ellipse at center top, rgba(80, 70, 50, 0.3) 0%, transparent 60%),
-            radial-gradient(ellipse at 30% 40%, rgba(60, 50, 40, 0.4) 0%, transparent 50%),
-            radial-gradient(ellipse at 70% 50%, rgba(50, 60, 45, 0.3) 0%, transparent 50%);
-          animation: caveBreath 15s ease-in-out infinite;
-        }
-
-        @keyframes caveBreath {
-          0%, 100% {
-            opacity: 0.6;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.8;
-            transform: scale(1.05);
-          }
-        }
-
-        .light-rays {
-          position: fixed;
-          top: -20%;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 200%;
-          height: 140%;
-          background:
-            conic-gradient(
-              from 0deg at 50% 0%,
-              transparent 0deg,
-              rgba(247, 231, 206, 0.03) 45deg,
-              transparent 90deg,
-              rgba(235, 200, 98, 0.02) 135deg,
-              transparent 180deg,
-              rgba(247, 231, 206, 0.03) 225deg,
-              transparent 270deg,
-              rgba(235, 200, 98, 0.02) 315deg,
-              transparent 360deg
-            );
-          animation: rayRotate 60s linear infinite;
-          pointer-events: none;
-        }
-
-        @keyframes rayRotate {
-          from { transform: translateX(-50%) rotate(0deg); }
-          to { transform: translateX(-50%) rotate(360deg); }
-        }
-
         .journal-title {
           animation: titleGlow 4s ease-in-out infinite;
         }

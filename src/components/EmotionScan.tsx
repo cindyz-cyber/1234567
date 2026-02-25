@@ -242,27 +242,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative">
-      <div
-        className="fixed inset-0 w-full h-full"
-        style={{
-          zIndex: 1,
-        }}
-      >
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ filter: 'contrast(1.2) brightness(1.1) saturate(1.1)' }}
-        >
-          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
-        </video>
-        <div
-          className="absolute inset-0 w-full h-full"
-          style={{ backgroundColor: `rgba(2, 13, 10, ${0.15 + backgroundDarkness})` }}
-        />
-      </div>
+      <div className="forest-background-layer" />
+      <div className="background-overlay" style={{ opacity: backgroundDarkness }} />
 
       {particles.map(particle => (
         <div
@@ -559,6 +540,45 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           will-change: transform, opacity;
         }
 
+        .forest-background-layer {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100vh;
+          background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
+          z-index: 1;
+          pointer-events: none;
+          animation: cameraBreath 20s ease-in-out infinite;
+          will-change: transform;
+        }
+
+        .background-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100vh;
+          background: rgba(0, 0, 0, 0.25);
+          z-index: 2;
+          pointer-events: none;
+          transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes cameraBreath {
+          0%, 100% {
+            transform: scale(1) translate(0, 0);
+          }
+          33% {
+            transform: scale(1.05) translate(-1%, -0.5%);
+          }
+          66% {
+            transform: scale(1.03) translate(0.5%, 1%);
+          }
+        }
 
         .mandala-container {
           position: relative;
