@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Mic, Square, RotateCcw } from 'lucide-react';
 import { VoiceAnalyzer, VoiceAnalysisResult } from '../utils/voiceAnalysis';
 import { supabase } from '../lib/supabase';
 
@@ -94,7 +94,7 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
       const normalized = average / 255;
 
       setAudioLevel(normalized);
-      setRippleScale(1 + normalized * 0.5);
+      setRippleScale(1 + normalized * 2);
 
       animationFrameRef.current = requestAnimationFrame(animate);
     };
@@ -168,14 +168,25 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
     }, 100);
   };
 
-  const handleScreenClick = () => {
+  const handleStartRecording = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (recordingState === 'idle') {
       startRecording();
-    } else if (recordingState === 'result') {
-      setRecordingState('idle');
-      setResult(null);
-      setRippleScale(1);
     }
+  };
+
+  const handleStopRecording = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (recordingState === 'recording') {
+      stopRecording();
+    }
+  };
+
+  const handleRestart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecordingState('idle');
+    setResult(null);
+    setRippleScale(1);
   };
 
   const getBreathingScale = () => {
@@ -185,10 +196,7 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
   };
 
   return (
-    <div
-      className="voice-recognition-container"
-      onClick={handleScreenClick}
-    >
+    <div className="voice-recognition-container">
       <div className="portal-background-layer">
         <video
           autoPlay
@@ -209,57 +217,13 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           }}
           className="back-button"
         >
-          <ChevronLeft size={24} color="rgba(200, 220, 255, 0.9)" />
+          <ChevronLeft size={24} color="rgba(255, 255, 255, 0.95)" />
         </button>
       )}
 
-      <div className="content-container">
-        {recordingState === 'idle' && (
-          <div className="instruction-text">
-            点击屏幕，开始录音
-          </div>
-        )}
-
-        {recordingState === 'recording' && (
-          <div className="instruction-text">
-            正在聆听你的声音...
-          </div>
-        )}
-
-        {recordingState === 'analyzing' && (
-          <div className="instruction-text">
-            正在解析...
-          </div>
-        )}
-
-        <div className="orb-container">
-          <div className={`blue-orb ${getBreathingScale()}`} style={{ transform: `scale(${rippleScale})` }}>
-            <div className="orb-core" />
-            <div className="orb-glow" />
-          </div>
-
-          {recordingState === 'recording' && (
-            <>
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="ripple-wave"
-                  style={{
-                    animationDelay: `${i * 0.4}s`,
-                    opacity: audioLevel * 0.6
-                  }}
-                />
-              ))}
-            </>
-          )}
-
-          {recordingState === 'analyzing' && (
-            <div className="collapse-effect" />
-          )}
-        </div>
-
-        {recordingState === 'result' && result && (
-          <div className="result-container">
+      {recordingState === 'result' && result ? (
+        <div className="result-full-page">
+          <div className="result-content">
             <div className="result-profile-id">
               ID {result.profileId}
             </div>
@@ -270,20 +234,100 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
               {result.message}
             </div>
             <div className="result-details">
-              <div className="energy-info">
-                发音源: {result.source === 'brain' ? '脑部' : result.source === 'throat' ? '喉部' : '心部'}
-                {' • '}
-                质地: {result.quality === 'smooth' ? '流畅' : result.quality === 'rough' ? '粗糙' : '平坦'}
-                {' • '}
-                相位: {result.phase === 'grounded' ? '稳定' : result.phase === 'floating' ? '悬浮' : '散开'}
+              <div className="detail-item">
+                <div className="detail-label">发音源</div>
+                <div className="detail-value">
+                  {result.source === 'brain' ? '脑部发声' : result.source === 'throat' ? '喉部发声' : '心部发声'}
+                </div>
+              </div>
+              <div className="detail-item">
+                <div className="detail-label">情绪纹理</div>
+                <div className="detail-value">
+                  {result.quality === 'smooth' ? '流畅平滑' : result.quality === 'rough' ? '粗糙带刺' : '平坦逻辑'}
+                </div>
+              </div>
+              <div className="detail-item">
+                <div className="detail-label">能量相位</div>
+                <div className="detail-value">
+                  {result.phase === 'grounded' ? '稳定扎根' : result.phase === 'floating' ? '悬浮上升' : '横向散开'}
+                </div>
               </div>
             </div>
-            <div className="tap-hint">
-              点击屏幕继续
-            </div>
+            <button onClick={handleRestart} className="restart-button">
+              <RotateCcw size={18} />
+              <span>重新测试</span>
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="content-container">
+          {recordingState === 'idle' && (
+            <div className="instruction-text">
+              点击下方按钮开始录音
+            </div>
+          )}
+
+          {recordingState === 'recording' && (
+            <div className="instruction-text recording-active">
+              正在聆听你的声音...
+            </div>
+          )}
+
+          {recordingState === 'analyzing' && (
+            <div className="instruction-text">
+              正在解析频谱数据...
+            </div>
+          )}
+
+          <div className="orb-container">
+            <div className={`blue-orb ${getBreathingScale()}`} style={{ transform: `scale(${rippleScale})` }}>
+              <div className="orb-core" />
+              <div className="orb-glow" />
+            </div>
+
+            {recordingState === 'recording' && (
+              <>
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="ripple-wave"
+                    style={{
+                      animationDelay: `${i * 0.3}s`,
+                      opacity: Math.max(0.3, audioLevel * 1.5)
+                    }}
+                  />
+                ))}
+              </>
+            )}
+
+            {recordingState === 'analyzing' && (
+              <div className="collapse-effect" />
+            )}
+          </div>
+
+          <div className="control-buttons">
+            {recordingState === 'idle' && (
+              <button onClick={handleStartRecording} className="control-button start-button">
+                <Mic size={24} />
+                <span>开始录音</span>
+              </button>
+            )}
+
+            {recordingState === 'recording' && (
+              <button onClick={handleStopRecording} className="control-button stop-button">
+                <Square size={20} />
+                <span>停止录音</span>
+              </button>
+            )}
+
+            {recordingState === 'analyzing' && (
+              <div className="analyzing-text">
+                正在分析声音特征...
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <style>{`
         .voice-recognition-container {
@@ -292,7 +336,6 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           display: flex;
           align-items: center;
           justify-content: center;
-          cursor: pointer;
           overflow: hidden;
         }
 
@@ -346,22 +389,40 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
 
         .instruction-text {
           position: absolute;
-          top: -120px;
+          top: -150px;
           left: 50%;
           transform: translateX(-50%);
-          color: rgba(200, 220, 255, 0.9);
-          font-size: 16px;
-          font-weight: 200;
+          color: rgba(255, 255, 255, 0.95);
+          font-size: 18px;
+          font-weight: 300;
           letter-spacing: 0.2em;
           font-family: 'Noto Serif SC', serif;
-          text-shadow: 0 0 20px rgba(200, 220, 255, 0.4);
+          text-shadow:
+            0 0 30px rgba(200, 220, 255, 0.8),
+            0 2px 10px rgba(0, 0, 0, 0.5);
           white-space: nowrap;
-          animation: fadeInOut 2s ease-in-out infinite;
+          background: rgba(20, 30, 50, 0.4);
+          backdrop-filter: blur(20px);
+          padding: 12px 32px;
+          border-radius: 24px;
+          border: 1px solid rgba(200, 220, 255, 0.3);
         }
 
-        @keyframes fadeInOut {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 1; }
+        .recording-active {
+          animation: recordingPulse 1.5s ease-in-out infinite;
+          color: rgba(255, 220, 100, 1);
+          border-color: rgba(255, 220, 100, 0.4);
+        }
+
+        @keyframes recordingPulse {
+          0%, 100% {
+            opacity: 0.8;
+            transform: translateX(-50%) scale(1);
+          }
+          50% {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.05);
+          }
         }
 
         .orb-container {
@@ -459,20 +520,27 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
 
         .ripple-wave {
           position: absolute;
-          inset: -40px;
+          inset: -50px;
           border-radius: 50%;
-          border: 1px solid rgba(200, 220, 255, 0.4);
-          animation: rippleExpand 1.2s ease-out infinite;
+          border: 2px solid rgba(200, 220, 255, 0.6);
+          box-shadow: 0 0 20px rgba(200, 220, 255, 0.4);
+          animation: rippleExpand 1s ease-out infinite;
         }
 
         @keyframes rippleExpand {
           0% {
-            transform: scale(0.8);
+            transform: scale(0.7);
+            opacity: 1;
+            border-width: 3px;
+          }
+          50% {
             opacity: 0.8;
+            border-width: 2px;
           }
           100% {
-            transform: scale(1.8);
+            transform: scale(2.2);
             opacity: 0;
+            border-width: 1px;
           }
         }
 
@@ -507,85 +575,224 @@ export default function VoiceRecognition({ onBack }: VoiceRecognitionProps) {
           }
         }
 
-        .result-container {
+        .control-buttons {
           position: absolute;
-          bottom: -280px;
+          bottom: -200px;
           left: 50%;
           transform: translateX(-50%);
-          width: 100%;
-          max-width: 500px;
-          text-align: center;
-          animation: resultFadeIn 1s ease-out;
+          display: flex;
+          gap: 16px;
+          align-items: center;
+          justify-content: center;
         }
 
-        @keyframes resultFadeIn {
+        .control-button {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 16px 40px;
+          font-size: 16px;
+          font-weight: 300;
+          letter-spacing: 0.15em;
+          font-family: 'Noto Serif SC', serif;
+          border-radius: 50px;
+          border: 2px solid;
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(30px);
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .start-button {
+          color: rgba(255, 255, 255, 0.95);
+          border-color: rgba(200, 220, 255, 0.6);
+          box-shadow: 0 0 30px rgba(200, 220, 255, 0.3);
+        }
+
+        .start-button:hover {
+          background: rgba(200, 220, 255, 0.15);
+          border-color: rgba(200, 220, 255, 0.9);
+          transform: scale(1.05);
+          box-shadow: 0 0 50px rgba(200, 220, 255, 0.5);
+        }
+
+        .stop-button {
+          color: rgba(255, 200, 200, 0.95);
+          border-color: rgba(255, 150, 150, 0.6);
+          box-shadow: 0 0 30px rgba(255, 150, 150, 0.3);
+          animation: stopButtonPulse 1.5s ease-in-out infinite;
+        }
+
+        .stop-button:hover {
+          background: rgba(255, 150, 150, 0.15);
+          border-color: rgba(255, 150, 150, 0.9);
+          transform: scale(1.05);
+        }
+
+        @keyframes stopButtonPulse {
+          0%, 100% {
+            box-shadow: 0 0 30px rgba(255, 150, 150, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 50px rgba(255, 150, 150, 0.6);
+          }
+        }
+
+        .analyzing-text {
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 16px;
+          font-weight: 300;
+          letter-spacing: 0.2em;
+          font-family: 'Noto Serif SC', serif;
+          text-shadow: 0 0 20px rgba(200, 220, 255, 0.6);
+          animation: analyzingPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes analyzingPulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
+        }
+
+        .result-full-page {
+          position: fixed;
+          inset: 0;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px;
+          animation: resultPageFadeIn 0.8s ease-out;
+        }
+
+        @keyframes resultPageFadeIn {
           from {
             opacity: 0;
-            transform: translateX(-50%) translateY(20px);
           }
           to {
             opacity: 1;
-            transform: translateX(-50%) translateY(0);
+          }
+        }
+
+        .result-content {
+          max-width: 600px;
+          width: 100%;
+          text-align: center;
+          animation: resultContentSlideIn 0.8s ease-out;
+        }
+
+        @keyframes resultContentSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
 
         .result-profile-id {
-          color: rgba(200, 220, 255, 0.6);
-          font-size: 13px;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 14px;
           font-weight: 300;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.3em;
           font-family: 'Noto Serif SC', serif;
-          margin-bottom: 12px;
+          margin-bottom: 20px;
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .result-label {
-          color: rgba(200, 220, 255, 0.95);
-          font-size: 26px;
+          color: rgba(255, 255, 255, 0.98);
+          font-size: 36px;
           font-weight: 200;
-          letter-spacing: 0.25em;
+          letter-spacing: 0.3em;
           font-family: 'Noto Serif SC', serif;
-          text-shadow: 0 0 30px rgba(200, 220, 255, 0.5);
-          margin-bottom: 24px;
+          text-shadow:
+            0 0 40px rgba(200, 220, 255, 0.6),
+            0 4px 20px rgba(0, 0, 0, 0.5);
+          margin-bottom: 32px;
         }
 
         .result-message {
-          color: rgba(255, 255, 255, 0.85);
-          font-size: 15px;
-          font-weight: 200;
-          line-height: 2;
-          letter-spacing: 0.1em;
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 17px;
+          font-weight: 300;
+          line-height: 2.2;
+          letter-spacing: 0.12em;
           font-family: 'Noto Serif SC', serif;
-          padding: 0 32px;
-          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-          margin-bottom: 20px;
+          padding: 0 40px;
+          text-shadow: 0 2px 15px rgba(0, 0, 0, 0.6);
+          margin-bottom: 48px;
         }
 
         .result-details {
-          margin-top: 20px;
-          padding: 16px 24px;
-          background: rgba(255, 255, 255, 0.02);
-          backdrop-filter: blur(20px);
-          border-radius: 12px;
-          border: 1px solid rgba(200, 220, 255, 0.1);
+          margin: 48px auto;
+          padding: 32px;
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(30px);
+          border-radius: 20px;
+          border: 1.5px solid rgba(200, 220, 255, 0.2);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
         }
 
-        .energy-info {
+        .detail-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 0;
+          border-bottom: 1px solid rgba(200, 220, 255, 0.1);
+        }
+
+        .detail-item:last-child {
+          border-bottom: none;
+        }
+
+        .detail-label {
           color: rgba(200, 220, 255, 0.7);
-          font-size: 12px;
+          font-size: 14px;
           font-weight: 300;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.2em;
           font-family: 'Noto Serif SC', serif;
-          line-height: 1.8;
         }
 
-        .tap-hint {
-          margin-top: 32px;
-          color: rgba(200, 220, 255, 0.5);
-          font-size: 13px;
-          font-weight: 200;
+        .detail-value {
+          color: rgba(255, 255, 255, 0.95);
+          font-size: 15px;
+          font-weight: 300;
           letter-spacing: 0.15em;
           font-family: 'Noto Serif SC', serif;
-          animation: fadeInOut 2s ease-in-out infinite;
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .restart-button {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          padding: 18px 48px;
+          margin-top: 32px;
+          font-size: 16px;
+          font-weight: 300;
+          letter-spacing: 0.2em;
+          font-family: 'Noto Serif SC', serif;
+          color: rgba(255, 255, 255, 0.95);
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(30px);
+          border: 2px solid rgba(200, 220, 255, 0.4);
+          border-radius: 50px;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 0 30px rgba(200, 220, 255, 0.2);
+        }
+
+        .restart-button:hover {
+          background: rgba(200, 220, 255, 0.15);
+          border-color: rgba(200, 220, 255, 0.7);
+          transform: scale(1.05);
+          box-shadow: 0 0 50px rgba(200, 220, 255, 0.4);
         }
       `}</style>
     </div>
