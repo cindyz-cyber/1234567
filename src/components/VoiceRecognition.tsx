@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, Mic, Square, RotateCcw, FileText, Activity, Heart, Zap, ListChecks, Music } from 'lucide-react';
+import { ChevronLeft, Mic, Square, RotateCcw, FileText, Activity, Heart, Zap, ListChecks, Music, AlertTriangle } from 'lucide-react';
 import { VoiceAnalyzer, VoiceAnalysisResult } from '../utils/voiceAnalysis';
 import { supabase } from '../lib/supabase';
 import { getProfileWithDynamicBalance, EnergyProfile } from '../data/energyDatabase';
 import { generateReport, ReportData } from '../utils/reportGenerator';
 import ReportSection from './ReportSection';
 import HealingStation from './HealingStation';
+import { AudioPreprocessor } from '../utils/audioPreprocessor';
 
 interface VoiceRecognitionProps {
   onBack?: () => void;
@@ -25,16 +26,20 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const [report, setReport] = useState<ReportData | null>(null);
   const [rippleScale, setRippleScale] = useState(1);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [showNoiseWarning, setShowNoiseWarning] = useState(false);
+  const [noiseWarningMessage, setNoiseWarningMessage] = useState('');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const voiceAnalyzerRef = useRef<VoiceAnalyzer | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const audioPreprocessorRef = useRef<AudioPreprocessor | null>(null);
 
   useEffect(() => {
     console.log('[VoiceRecognition] Component MOUNTED');
     voiceAnalyzerRef.current = new VoiceAnalyzer();
+    audioPreprocessorRef.current = new AudioPreprocessor();
 
     return () => {
       console.log('[VoiceRecognition] Component UNMOUNTING - cleaning up');
@@ -46,6 +51,9 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       }
       if (voiceAnalyzerRef.current) {
         voiceAnalyzerRef.current.destroy();
+      }
+      if (audioPreprocessorRef.current) {
+        audioPreprocessorRef.current.destroy();
       }
     };
   }, []);
@@ -117,13 +125,37 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const analyzeVoice = async (audioBlob: Blob) => {
     try {
       console.log('[VoiceRecognition] Starting voice analysis...');
-      if (!voiceAnalyzerRef.current) {
-        console.error('[VoiceRecognition] No voice analyzer available');
+      if (!voiceAnalyzerRef.current || !audioPreprocessorRef.current) {
+        console.error('[VoiceRecognition] No analyzer or preprocessor available');
         return;
       }
 
-      console.log('[VoiceRecognition] Analyzing audio buffer...');
-      const analysisResult = await voiceAnalyzerRef.current.analyzeAudioBuffer(audioBlob);
+      console.log('[VoiceRecognition] Step 1: Preprocessing audio...');
+      const preprocessingResult = await audioPreprocessorRef.current.preprocessAudio(audioBlob);
+      console.log('[VoiceRecognition] Preprocessing complete:', {
+        noiseLevel: preprocessingResult.noiseLevel,
+        isNoisy: preprocessingResult.isNoisy,
+        signalToNoiseRatio: preprocessingResult.signalToNoiseRatio,
+        averageAmplitude: preprocessingResult.averageAmplitude
+      });
+
+      if (preprocessingResult.isNoisy || preprocessingResult.signalToNoiseRatio < 3) {
+        console.warn('[VoiceRecognition] Environment too noisy, showing warning');
+        setNoiseWarningMessage('环境较嘈杂，请到安静处重新录制，以获得更精准的能量报告');
+        setShowNoiseWarning(true);
+        setRecordingState('idle');
+        setRippleScale(1);
+        if (onResultStateChange) {
+          onResultStateChange(false);
+        }
+        return;
+      }
+
+      console.log('[VoiceRecognition] Step 2: Converting preprocessed audio to blob...');
+      const processedBlob = await audioPreprocessorRef.current.audioBufferToBlob(preprocessingResult.processedBuffer);
+
+      console.log('[VoiceRecognition] Step 3: Analyzing processed audio...');
+      const analysisResult = await voiceAnalyzerRef.current.analyzeAudioBuffer(processedBlob);
       console.log('[VoiceRecognition] Analysis result:', analysisResult);
 
       console.log('[VoiceRecognition] Saving to database...');
@@ -539,6 +571,32 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
         </div>
       ) : (
         <div className="content-container">
+          {showNoiseWarning && (
+            <div
+              className="noise-warning-overlay"
+              onClick={() => setShowNoiseWarning(false)}
+            >
+              <div
+                className="noise-warning-modal"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="noise-warning-icon">
+                  <AlertTriangle size={48} color="#FFB800" />
+                </div>
+                <div className="noise-warning-title">环境噪音过大</div>
+                <div className="noise-warning-message">
+                  {noiseWarningMessage}
+                </div>
+                <button
+                  className="noise-warning-button"
+                  onClick={() => setShowNoiseWarning(false)}
+                >
+                  我知道了
+                </button>
+              </div>
+            </div>
+          )}
+
           {recordingState === 'idle' && (
             <div className="instruction-text">
               点击下方按钮开始录音
