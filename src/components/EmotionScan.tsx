@@ -282,7 +282,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               <button
                 key={emotion.label}
                 onClick={(e) => toggleEmotion(emotion.label, emotion.hue, e)}
-                className={`glass-bubble emotion-bubble mandala-bubble ${poppedBubbles.has(emotion.label) ? 'popping' : ''} ${selectedEmotions.includes(emotion.label) ? 'selected' : ''} ${hasAnySelection && !selectedEmotions.includes(emotion.label) && !poppedBubbles.has(emotion.label) ? 'dimmed' : ''}`}
+                className={`glass-bubble emotion-bubble mandala-bubble ${poppedBubbles.has(emotion.label) ? 'popping' : ''} ${selectedEmotions.includes(emotion.label) ? 'selected' : ''}`}
                 style={{
                   position: 'absolute',
                   left: `${emotion.position.x}%`,
@@ -383,7 +383,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               <button
                 key={state.label}
                 onClick={(e) => toggleBodyState(state.label, e)}
-                className={`glass-bubble body-bubble mandala-bubble ${poppedBubbles.has(state.label) ? 'popping' : ''} ${selectedBodyStates.includes(state.label) ? 'selected' : ''} ${hasAnySelection && !selectedBodyStates.includes(state.label) && !poppedBubbles.has(state.label) ? 'dimmed' : ''}`}
+                className={`glass-bubble body-bubble mandala-bubble ${poppedBubbles.has(state.label) ? 'popping' : ''} ${selectedBodyStates.includes(state.label) ? 'selected' : ''}`}
                 style={{
                   position: 'absolute',
                   left: `${state.position.x}%`,
