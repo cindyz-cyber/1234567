@@ -87,19 +87,23 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
 
     setIsSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const userName = localStorage.getItem('userName');
+      const higherSelfName = localStorage.getItem('higherSelfName');
 
-      if (user) {
+      if (userName && higherSelfName) {
         const { error } = await supabase
           .from('journal_entries')
           .insert({
-            user_id: user.id,
-            content: journalText,
+            user_name: userName,
+            higher_self_name: higherSelfName,
+            journal_content: journalText,
             emotions: emotions,
             body_states: bodyStates
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database error:', error);
+        }
       }
 
       if (onNext) {
@@ -107,7 +111,9 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
       }
     } catch (error) {
       console.error('Error saving journal:', error);
-      alert('保存失败，请重试');
+      if (onNext) {
+        onNext();
+      }
     } finally {
       setIsSaving(false);
     }
