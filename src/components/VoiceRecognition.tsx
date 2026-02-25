@@ -127,7 +127,7 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
 
         setRecordingState('result');
         setRippleScale(1);
-      }, 1500);
+      }, 2000);
 
     } catch (error) {
       console.error('Error analyzing voice:', error);
@@ -360,11 +360,9 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
                 <RotateCcw size={18} />
                 <span>重新测试</span>
               </button>
-              {onNext && (
-                <button onClick={onNext} className="restart-button primary">
-                  <span>继续探索</span>
-                </button>
-              )}
+              <button onClick={onBack || (() => {})} className="restart-button primary">
+                <span>完成</span>
+              </button>
             </div>
           </div>
         </div>
