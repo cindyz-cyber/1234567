@@ -233,7 +233,14 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   };
 
   return (
-    <div className="voice-recognition-container">
+    <div
+      className="voice-recognition-container"
+      onClick={(e) => {
+        if (recordingState === 'result') {
+          e.stopPropagation();
+        }
+      }}
+    >
       <div className="portal-background-layer">
         <video
           autoPlay
@@ -259,7 +266,11 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       )}
 
       {recordingState === 'result' && result && energyProfile ? (
-        <div className="result-full-page">
+        <div
+          className="result-full-page"
+          onClick={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
           <button
             onClick={(e) => {
               e.stopPropagation();

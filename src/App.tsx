@@ -196,6 +196,9 @@ function App() {
   }
 
   function handleTabChange(tab: TabType) {
+    if (isShowingVoiceResult) {
+      return;
+    }
     setCurrentTab(tab);
     if (tab === 'breath') {
       setCurrentStep('home');
