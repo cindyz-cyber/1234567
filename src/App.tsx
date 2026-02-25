@@ -3,7 +3,6 @@ import NamingRitual from './components/NamingRitual';
 import HomePage from './components/HomePage';
 import EmotionScan from './components/EmotionScan';
 import InnerWhisperJournal from './components/InnerWhisperJournal';
-import JournalEntry from './components/JournalEntry';
 import GoldenTransition from './components/GoldenTransition';
 import HigherSelfDialogue from './components/HigherSelfDialogue';
 import Header from './components/Header';
@@ -19,7 +18,7 @@ import VideoBackground from './components/VideoBackground';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
-type FlowStep = 'home' | 'emotion' | 'innerWhisper' | 'journal' | 'transition' | 'dialogue' | 'answers';
+type FlowStep = 'home' | 'emotion' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
 type TabType = 'breath' | 'energy' | 'archive' | 'profile' | 'admin';
 
 interface JourneyData {
@@ -113,11 +112,6 @@ function App() {
   }
 
   function handleInnerWhisperComplete() {
-    setCurrentStep('journal');
-  }
-
-  function handleJournalComplete(content: string) {
-    setJourneyData(prev => ({ ...prev, journalContent: content }));
     setCurrentStep('transition');
   }
 
@@ -170,10 +164,6 @@ function App() {
     setCurrentStep('emotion');
   }
 
-  function handleBackToJournal() {
-    setCurrentStep('journal');
-  }
-
   function handleBackToInnerWhisper() {
     setCurrentStep('innerWhisper');
   }
@@ -210,7 +200,7 @@ function App() {
     return <NamingRitual onComplete={handleNamingComplete} />;
   }
 
-  if (currentStep === 'emotion' || currentStep === 'innerWhisper' || currentStep === 'journal' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
+  if (currentStep === 'emotion' || currentStep === 'innerWhisper' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
     if (currentStep === 'emotion') {
       return <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />;
     }
@@ -224,10 +214,6 @@ function App() {
           onNext={handleInnerWhisperComplete}
         />
       );
-    }
-
-    if (currentStep === 'journal') {
-      return <JournalEntry onNext={handleJournalComplete} userName={userNames.userName} onBack={handleBackToInnerWhisper} />;
     }
 
     if (currentStep === 'transition') {
@@ -248,7 +234,7 @@ function App() {
           journalContent={journeyData.journalContent}
           backgroundMusic={backgroundAudio}
           onComplete={handleDialogueComplete}
-          onBack={handleBackToJournal}
+          onBack={handleBackToInnerWhisper}
         />
       );
     }
