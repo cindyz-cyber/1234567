@@ -118,8 +118,8 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
 
         const profile = getProfileWithDynamicBalance(
           analysisResult.profileId,
-          analysisResult.dominantCenter,
-          analysisResult.gapCenter,
+          analysisResult.dominantChakra,
+          analysisResult.gapChakras,
           analysisResult.quality,
           analysisResult.phase
         );
@@ -142,8 +142,8 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
 
       const profile = getProfileWithDynamicBalance(
         analysis.profileId,
-        analysis.dominantCenter,
-        analysis.gapCenter,
+        analysis.dominantChakra,
+        analysis.gapChakras,
         analysis.quality,
         analysis.phase
       );
@@ -296,42 +296,90 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
             <div className="frequency-distribution-card">
               <div className="frequency-card-header">
                 <Activity size={20} />
-                <span>能量频率分布</span>
+                <span>7脉轮能量分布</span>
               </div>
               <div className="frequency-bars">
                 <div className="frequency-bar-item">
                   <div className="frequency-bar-label">
-                    <span>心轮 (342Hz)</span>
-                    <span className="frequency-percentage">{result.frequencyDistribution.heart}%</span>
+                    <span>海底轮 (194Hz)</span>
+                    <span className="frequency-percentage">{result.chakraDistribution.root}%</span>
+                  </div>
+                  <div className="frequency-bar-track">
+                    <div
+                      className="frequency-bar-fill root-bar"
+                      style={{ width: `${result.chakraDistribution.root}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="frequency-bar-item">
+                  <div className="frequency-bar-label">
+                    <span>脐轮 (417Hz)</span>
+                    <span className="frequency-percentage">{result.chakraDistribution.sacral}%</span>
+                  </div>
+                  <div className="frequency-bar-track">
+                    <div
+                      className="frequency-bar-fill sacral-bar"
+                      style={{ width: `${result.chakraDistribution.sacral}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="frequency-bar-item">
+                  <div className="frequency-bar-label">
+                    <span>太阳轮 (528Hz)</span>
+                    <span className="frequency-percentage">{result.chakraDistribution.solar}%</span>
+                  </div>
+                  <div className="frequency-bar-track">
+                    <div
+                      className="frequency-bar-fill solar-bar"
+                      style={{ width: `${result.chakraDistribution.solar}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="frequency-bar-item">
+                  <div className="frequency-bar-label">
+                    <span>心轮 (639Hz)</span>
+                    <span className="frequency-percentage">{result.chakraDistribution.heart}%</span>
                   </div>
                   <div className="frequency-bar-track">
                     <div
                       className="frequency-bar-fill heart-bar"
-                      style={{ width: `${result.frequencyDistribution.heart}%` }}
+                      style={{ width: `${result.chakraDistribution.heart}%` }}
                     />
                   </div>
                 </div>
                 <div className="frequency-bar-item">
                   <div className="frequency-bar-label">
-                    <span>喉轮 (384Hz)</span>
-                    <span className="frequency-percentage">{result.frequencyDistribution.throat}%</span>
+                    <span>喉轮 (741Hz)</span>
+                    <span className="frequency-percentage">{result.chakraDistribution.throat}%</span>
                   </div>
                   <div className="frequency-bar-track">
                     <div
                       className="frequency-bar-fill throat-bar"
-                      style={{ width: `${result.frequencyDistribution.throat}%` }}
+                      style={{ width: `${result.chakraDistribution.throat}%` }}
                     />
                   </div>
                 </div>
                 <div className="frequency-bar-item">
                   <div className="frequency-bar-label">
-                    <span>脑轮 (432Hz)</span>
-                    <span className="frequency-percentage">{result.frequencyDistribution.brain}%</span>
+                    <span>眉心轮 (852Hz)</span>
+                    <span className="frequency-percentage">{result.chakraDistribution.thirdEye}%</span>
                   </div>
                   <div className="frequency-bar-track">
                     <div
-                      className="frequency-bar-fill brain-bar"
-                      style={{ width: `${result.frequencyDistribution.brain}%` }}
+                      className="frequency-bar-fill thirdeye-bar"
+                      style={{ width: `${result.chakraDistribution.thirdEye}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="frequency-bar-item">
+                  <div className="frequency-bar-label">
+                    <span>顶轮 (963Hz)</span>
+                    <span className="frequency-percentage">{result.chakraDistribution.crown}%</span>
+                  </div>
+                  <div className="frequency-bar-track">
+                    <div
+                      className="frequency-bar-fill crown-bar"
+                      style={{ width: `${result.chakraDistribution.crown}%` }}
                     />
                   </div>
                 </div>
@@ -1029,19 +1077,39 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
           overflow: hidden;
         }
 
+        .root-bar {
+          background: linear-gradient(90deg, rgba(200, 50, 50, 0.8), rgba(230, 80, 80, 0.9));
+          box-shadow: 0 0 15px rgba(200, 50, 50, 0.5);
+        }
+
+        .sacral-bar {
+          background: linear-gradient(90deg, rgba(255, 120, 50, 0.8), rgba(255, 150, 80, 0.9));
+          box-shadow: 0 0 15px rgba(255, 120, 50, 0.5);
+        }
+
+        .solar-bar {
+          background: linear-gradient(90deg, rgba(255, 200, 50, 0.8), rgba(255, 220, 100, 0.9));
+          box-shadow: 0 0 15px rgba(255, 200, 50, 0.5);
+        }
+
         .heart-bar {
-          background: linear-gradient(90deg, rgba(255, 100, 150, 0.8), rgba(255, 150, 180, 0.9));
-          box-shadow: 0 0 15px rgba(255, 100, 150, 0.5);
+          background: linear-gradient(90deg, rgba(100, 220, 100, 0.8), rgba(120, 240, 120, 0.9));
+          box-shadow: 0 0 15px rgba(100, 220, 100, 0.5);
         }
 
         .throat-bar {
-          background: linear-gradient(90deg, rgba(100, 180, 255, 0.8), rgba(150, 200, 255, 0.9));
-          box-shadow: 0 0 15px rgba(100, 180, 255, 0.5);
+          background: linear-gradient(90deg, rgba(80, 160, 255, 0.8), rgba(120, 190, 255, 0.9));
+          box-shadow: 0 0 15px rgba(80, 160, 255, 0.5);
         }
 
-        .brain-bar {
-          background: linear-gradient(90deg, rgba(180, 140, 255, 0.8), rgba(200, 170, 255, 0.9));
-          box-shadow: 0 0 15px rgba(180, 140, 255, 0.5);
+        .thirdeye-bar {
+          background: linear-gradient(90deg, rgba(100, 100, 200, 0.8), rgba(130, 130, 230, 0.9));
+          box-shadow: 0 0 15px rgba(100, 100, 200, 0.5);
+        }
+
+        .crown-bar {
+          background: linear-gradient(90deg, rgba(200, 150, 255, 0.8), rgba(220, 180, 255, 0.9));
+          box-shadow: 0 0 15px rgba(200, 150, 255, 0.5);
         }
 
         .healing-station-card {
@@ -1127,6 +1195,7 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
         }
 
         .energy-flow-content {
+          white-space: pre-line;
           color: rgba(255, 255, 255, 0.85);
           font-size: 14px;
           font-weight: 300;

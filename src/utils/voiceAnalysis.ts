@@ -1,3 +1,13 @@
+export interface ChakraEnergy {
+  root: number;
+  sacral: number;
+  solar: number;
+  heart: number;
+  throat: number;
+  thirdEye: number;
+  crown: number;
+}
+
 export interface VoiceAnalysisResult {
   source: 'brain' | 'throat' | 'heart' | 'lower';
   quality: 'smooth' | 'rough' | 'flat';
@@ -5,26 +15,16 @@ export interface VoiceAnalysisResult {
   profileId: string;
   profileName: string;
   message: string;
-  dominantCenter: 'brain' | 'throat' | 'heart';
-  gapCenter: 'brain' | 'throat' | 'heart';
-  energyData: {
-    freq432Hz: number;
-    freq384Hz: number;
-    freq342Hz: number;
-    roughness: number;
-    smoothness: number;
-    brainEnergy: number;
-    throatEnergy: number;
-    heartEnergy: number;
-  };
-  frequencyDistribution: {
-    heart: number;
-    throat: number;
-    brain: number;
+  dominantChakra: keyof ChakraEnergy;
+  gapChakras: Array<keyof ChakraEnergy>;
+  chakraEnergy: ChakraEnergy;
+  chakraDistribution: ChakraEnergy;
+  organMapping: {
+    [K in keyof ChakraEnergy]: string[];
   };
   recommendedFrequency: {
     hz: number;
-    center: 'brain' | 'throat' | 'heart';
+    chakra: keyof ChakraEnergy;
     reason: string;
   };
 }
@@ -73,10 +73,30 @@ const EMOTION_PROFILES: EmotionProfile[] = [
   }
 ];
 
+const CHAKRA_FREQUENCIES = {
+  root: { base: 194, range: [100, 380] },
+  sacral: { base: 417, range: [380, 480] },
+  solar: { base: 528, range: [480, 600] },
+  heart: { base: 639, range: [600, 700] },
+  throat: { base: 741, range: [700, 820] },
+  thirdEye: { base: 852, range: [820, 920] },
+  crown: { base: 963, range: [920, 1200] }
+};
+
+const ORGAN_MAPPING = {
+  root: ['肾', '小肠'],
+  sacral: ['膀胱', '肾'],
+  solar: ['脾', '胃', '肝'],
+  heart: ['心', '小肠'],
+  throat: ['肺', '大肠'],
+  thirdEye: ['膀胱'],
+  crown: ['小肠']
+};
+
 export class VoiceAnalyzer {
   private audioContext: AudioContext;
   private analyzer: AnalyserNode;
-  private fftSize: number = 4096;
+  private fftSize: number = 8192;
 
   constructor() {
     this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -93,15 +113,15 @@ export class VoiceAnalyzer {
     const sampleRate = audioBuffer.sampleRate;
 
     const fftData = this.performFFT(channelData, sampleRate);
-    const energyData = this.extractEnergyData(fftData, sampleRate);
+    const chakraEnergy = this.extractChakraEnergy(fftData, sampleRate);
 
-    const source = this.determineSource(energyData);
-    const quality = this.determineQuality(fftData, energyData);
-    const phase = this.determinePhase(energyData);
+    const source = this.determineSourceFromChakras(chakraEnergy);
+    const quality = this.determineQuality(fftData, chakraEnergy);
+    const phase = this.determinePhase(chakraEnergy);
 
-    const { dominantCenter, gapCenter } = this.findDominantAndGap(energyData);
-    const frequencyDistribution = this.calculateFrequencyDistribution(energyData);
-    const recommendedFrequency = this.getRecommendedFrequency(dominantCenter, gapCenter);
+    const { dominantChakra, gapChakras } = this.findDominantAndGaps(chakraEnergy);
+    const chakraDistribution = this.calculateChakraDistribution(chakraEnergy);
+    const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
 
     const profile = this.matchProfile(source, quality, phase);
 
@@ -112,10 +132,11 @@ export class VoiceAnalyzer {
       profileId: profile.id,
       profileName: profile.name,
       message: profile.message,
-      dominantCenter,
-      gapCenter,
-      energyData,
-      frequencyDistribution,
+      dominantChakra,
+      gapChakras,
+      chakraEnergy,
+      chakraDistribution,
+      organMapping: ORGAN_MAPPING,
       recommendedFrequency
     };
   }
@@ -129,23 +150,17 @@ export class VoiceAnalyzer {
     const frequencyData = new Uint8Array(this.analyzer.frequencyBinCount);
     this.analyzer.getByteFrequencyData(frequencyData);
 
-    const timeData = new Float32Array(this.analyzer.frequencyBinCount);
-    this.analyzer.getFloatTimeDomainData(timeData);
-
     const sampleRate = this.audioContext.sampleRate;
     const fftData = this.convertFrequencyData(frequencyData);
-    const energyData = this.extractEnergyData(fftData, sampleRate);
+    const chakraEnergy = this.extractChakraEnergy(fftData, sampleRate);
 
-    energyData.roughness = this.calculateRoughness(timeData);
-    energyData.smoothness = this.calculateSmoothness(timeData);
+    const sourceType = this.determineSourceFromChakras(chakraEnergy);
+    const quality = this.determineQuality(fftData, chakraEnergy);
+    const phase = this.determinePhase(chakraEnergy);
 
-    const sourceType = this.determineSource(energyData);
-    const quality = this.determineQuality(fftData, energyData);
-    const phase = this.determinePhase(energyData);
-
-    const { dominantCenter, gapCenter } = this.findDominantAndGap(energyData);
-    const frequencyDistribution = this.calculateFrequencyDistribution(energyData);
-    const recommendedFrequency = this.getRecommendedFrequency(dominantCenter, gapCenter);
+    const { dominantChakra, gapChakras } = this.findDominantAndGaps(chakraEnergy);
+    const chakraDistribution = this.calculateChakraDistribution(chakraEnergy);
+    const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
 
     const profile = this.matchProfile(sourceType, quality, phase);
 
@@ -158,10 +173,11 @@ export class VoiceAnalyzer {
       profileId: profile.id,
       profileName: profile.name,
       message: profile.message,
-      dominantCenter,
-      gapCenter,
-      energyData,
-      frequencyDistribution,
+      dominantChakra,
+      gapChakras,
+      chakraEnergy,
+      chakraDistribution,
+      organMapping: ORGAN_MAPPING,
       recommendedFrequency
     };
   }
@@ -204,34 +220,41 @@ export class VoiceAnalyzer {
     return result;
   }
 
-  private extractEnergyData(fftData: Float32Array, sampleRate: number): VoiceAnalysisResult['energyData'] {
-    const freq342Hz = this.getEnergyAtFrequency(fftData, 342, sampleRate);
-    const freq384Hz = this.getEnergyAtFrequency(fftData, 384, sampleRate);
-    const freq432Hz = this.getEnergyAtFrequency(fftData, 432, sampleRate);
-
-    const heartEnergy = this.getEnergyInRange(fftData, 300, 380, sampleRate);
-    const throatEnergy = this.getEnergyInRange(fftData, 360, 410, sampleRate);
-    const brainEnergy = this.getEnergyInRange(fftData, 410, 500, sampleRate);
-
-    const roughness = this.calculateRoughnessFromFFT(fftData);
-    const smoothness = this.calculateSmoothnessFromFFT(fftData);
-
-    return {
-      freq432Hz,
-      freq384Hz,
-      freq342Hz,
-      roughness,
-      smoothness,
-      brainEnergy,
-      throatEnergy,
-      heartEnergy
+  private extractChakraEnergy(fftData: Float32Array, sampleRate: number): ChakraEnergy {
+    const chakraEnergy: ChakraEnergy = {
+      root: 0,
+      sacral: 0,
+      solar: 0,
+      heart: 0,
+      throat: 0,
+      thirdEye: 0,
+      crown: 0
     };
+
+    for (const chakra in CHAKRA_FREQUENCIES) {
+      const chakraKey = chakra as keyof ChakraEnergy;
+      const { base, range } = CHAKRA_FREQUENCIES[chakraKey];
+
+      const baseEnergy = this.getEnergyAtFrequency(fftData, base, sampleRate);
+      const harmonic2Energy = this.getEnergyAtFrequency(fftData, base * 2, sampleRate);
+      const harmonic3Energy = this.getEnergyAtFrequency(fftData, base * 3, sampleRate);
+      const rangeEnergy = this.getEnergyInRange(fftData, range[0], range[1], sampleRate);
+
+      chakraEnergy[chakraKey] = (
+        baseEnergy * 0.5 +
+        harmonic2Energy * 0.25 +
+        harmonic3Energy * 0.15 +
+        rangeEnergy * 0.1
+      );
+    }
+
+    return chakraEnergy;
   }
 
   private getEnergyAtFrequency(fftData: Float32Array, frequency: number, sampleRate: number): number {
     const binIndex = Math.round((frequency * fftData.length) / (sampleRate / 2));
-    const startBin = Math.max(0, binIndex - 2);
-    const endBin = Math.min(fftData.length - 1, binIndex + 2);
+    const startBin = Math.max(0, binIndex - 3);
+    const endBin = Math.min(fftData.length - 1, binIndex + 3);
 
     let energy = 0;
     for (let i = startBin; i <= endBin; i++) {
@@ -251,6 +274,103 @@ export class VoiceAnalyzer {
     }
 
     return energy / (maxBin - minBin + 1);
+  }
+
+  private determineSourceFromChakras(chakraEnergy: ChakraEnergy): 'brain' | 'throat' | 'heart' | 'lower' {
+    const upperChakras = chakraEnergy.thirdEye + chakraEnergy.crown;
+    const throatChakra = chakraEnergy.throat;
+    const heartChakra = chakraEnergy.heart;
+    const lowerChakras = chakraEnergy.root + chakraEnergy.sacral + chakraEnergy.solar;
+
+    const maxEnergy = Math.max(upperChakras, throatChakra, heartChakra, lowerChakras);
+
+    if (maxEnergy === upperChakras) return 'brain';
+    if (maxEnergy === throatChakra) return 'throat';
+    if (maxEnergy === heartChakra) return 'heart';
+    return 'lower';
+  }
+
+  private findDominantAndGaps(chakraEnergy: ChakraEnergy): {
+    dominantChakra: keyof ChakraEnergy;
+    gapChakras: Array<keyof ChakraEnergy>;
+  } {
+    const chakras = Object.entries(chakraEnergy).map(([name, energy]) => ({
+      name: name as keyof ChakraEnergy,
+      energy
+    }));
+
+    chakras.sort((a, b) => b.energy - a.energy);
+
+    return {
+      dominantChakra: chakras[0].name,
+      gapChakras: [chakras[chakras.length - 1].name, chakras[chakras.length - 2].name]
+    };
+  }
+
+  private calculateChakraDistribution(chakraEnergy: ChakraEnergy): ChakraEnergy {
+    const total = Object.values(chakraEnergy).reduce((sum, energy) => sum + energy, 0);
+
+    if (total === 0) {
+      return {
+        root: 14.29,
+        sacral: 14.29,
+        solar: 14.29,
+        heart: 14.29,
+        throat: 14.29,
+        thirdEye: 14.28,
+        crown: 14.28
+      };
+    }
+
+    return {
+      root: Math.round((chakraEnergy.root / total) * 100),
+      sacral: Math.round((chakraEnergy.sacral / total) * 100),
+      solar: Math.round((chakraEnergy.solar / total) * 100),
+      heart: Math.round((chakraEnergy.heart / total) * 100),
+      throat: Math.round((chakraEnergy.throat / total) * 100),
+      thirdEye: Math.round((chakraEnergy.thirdEye / total) * 100),
+      crown: Math.round((chakraEnergy.crown / total) * 100)
+    };
+  }
+
+  private getRecommendedFrequency(
+    dominant: keyof ChakraEnergy,
+    gaps: Array<keyof ChakraEnergy>
+  ): { hz: number; chakra: keyof ChakraEnergy; reason: string } {
+    const chakraNames = {
+      root: '海底轮',
+      sacral: '脐轮',
+      solar: '太阳轮',
+      heart: '心轮',
+      throat: '喉轮',
+      thirdEye: '眉心轮',
+      crown: '顶轮'
+    };
+
+    const primaryGap = gaps[0];
+    const gapHz = CHAKRA_FREQUENCIES[primaryGap].base;
+    const gapOrgans = ORGAN_MAPPING[primaryGap].join('、');
+
+    const reason = `你的${chakraNames[dominant]}能量过盛，而${chakraNames[primaryGap]}能量最弱。损有余而补不足，建议以 ${gapHz}Hz 频率滋养${chakraNames[primaryGap]}，调理${gapOrgans}系统，恢复整体能量平衡。`;
+
+    return {
+      hz: gapHz,
+      chakra: primaryGap,
+      reason
+    };
+  }
+
+  private determineQuality(fftData: Float32Array, chakraEnergy: ChakraEnergy): 'smooth' | 'rough' | 'flat' {
+    const roughness = this.calculateRoughnessFromFFT(fftData);
+    const smoothness = this.calculateSmoothnessFromFFT(fftData);
+
+    if (roughness > 0.15) {
+      return 'rough';
+    } else if (smoothness > 0.85 && roughness < 0.05) {
+      return 'flat';
+    } else {
+      return 'smooth';
+    }
   }
 
   private calculateRoughnessFromFFT(fftData: Float32Array): number {
@@ -282,142 +402,14 @@ export class VoiceAnalyzer {
     return 1 / (1 + variance);
   }
 
-  private calculateRoughness(timeData: Float32Array): number {
-    let jitter = 0;
+  private determinePhase(chakraEnergy: ChakraEnergy): 'grounded' | 'floating' | 'scattering' {
+    const upperEnergy = chakraEnergy.crown + chakraEnergy.thirdEye;
+    const lowerEnergy = chakraEnergy.root + chakraEnergy.sacral;
+    const throatEnergy = chakraEnergy.throat;
 
-    for (let i = 1; i < timeData.length; i++) {
-      jitter += Math.abs(timeData[i] - timeData[i - 1]);
-    }
-
-    return jitter / timeData.length;
-  }
-
-  private calculateSmoothness(timeData: Float32Array): number {
-    let variance = 0;
-    let mean = 0;
-
-    for (let i = 0; i < timeData.length; i++) {
-      mean += timeData[i];
-    }
-    mean /= timeData.length;
-
-    for (let i = 0; i < timeData.length; i++) {
-      variance += Math.pow(timeData[i] - mean, 2);
-    }
-
-    return 1 / (1 + Math.sqrt(variance / timeData.length));
-  }
-
-  private determineSource(energyData: VoiceAnalysisResult['energyData']): 'brain' | 'throat' | 'heart' | 'lower' {
-    const { brainEnergy, throatEnergy, heartEnergy } = energyData;
-
-    const maxEnergy = Math.max(brainEnergy, throatEnergy, heartEnergy);
-
-    if (maxEnergy < 0.1) {
-      return 'lower';
-    }
-
-    if (brainEnergy === maxEnergy) {
-      return 'brain';
-    } else if (throatEnergy === maxEnergy) {
-      return 'throat';
-    } else {
-      return 'heart';
-    }
-  }
-
-  private findDominantAndGap(energyData: VoiceAnalysisResult['energyData']): {
-    dominantCenter: 'brain' | 'throat' | 'heart';
-    gapCenter: 'brain' | 'throat' | 'heart';
-  } {
-    const centers = [
-      { name: 'heart' as const, energy: energyData.heartEnergy },
-      { name: 'throat' as const, energy: energyData.throatEnergy },
-      { name: 'brain' as const, energy: energyData.brainEnergy }
-    ];
-
-    centers.sort((a, b) => b.energy - a.energy);
-
-    return {
-      dominantCenter: centers[0].name,
-      gapCenter: centers[2].name
-    };
-  }
-
-  private calculateFrequencyDistribution(energyData: VoiceAnalysisResult['energyData']): {
-    heart: number;
-    throat: number;
-    brain: number;
-  } {
-    const total = energyData.heartEnergy + energyData.throatEnergy + energyData.brainEnergy;
-
-    if (total === 0) {
-      return { heart: 33.33, throat: 33.33, brain: 33.33 };
-    }
-
-    return {
-      heart: Math.round((energyData.heartEnergy / total) * 100),
-      throat: Math.round((energyData.throatEnergy / total) * 100),
-      brain: Math.round((energyData.brainEnergy / total) * 100)
-    };
-  }
-
-  private getRecommendedFrequency(
-    dominant: 'brain' | 'throat' | 'heart',
-    gap: 'brain' | 'throat' | 'heart'
-  ): { hz: number; center: 'brain' | 'throat' | 'heart'; reason: string } {
-    const frequencyMap = {
-      heart: { hz: 342, name: '心轮' },
-      throat: { hz: 384, name: '喉轮' },
-      brain: { hz: 432, name: '脑轮' }
-    };
-
-    const dominantName = frequencyMap[dominant].name;
-    const gapInfo = frequencyMap[gap];
-
-    let reason = '';
-
-    if (dominant === 'heart' && gap === 'brain') {
-      reason = `你的${dominantName}能量充沛，但${gapInfo.name}较弱。建议补充 ${gapInfo.hz}Hz 频率，帮助理清思绪，平衡感性与理性。`;
-    } else if (dominant === 'brain' && gap === 'heart') {
-      reason = `你的${dominantName}能量活跃，但${gapInfo.name}能量不足。建议补充 ${gapInfo.hz}Hz 频率，连接内在情感，减少过度思考。`;
-    } else if (dominant === 'throat' && gap === 'heart') {
-      reason = `你的${dominantName}能量强劲，但${gapInfo.name}需要滋养。建议补充 ${gapInfo.hz}Hz 频率，让表达更有温度和深度。`;
-    } else if (dominant === 'throat' && gap === 'brain') {
-      reason = `你的${dominantName}能量旺盛，但${gapInfo.name}需要加强。建议补充 ${gapInfo.hz}Hz 频率，让表达更具条理性。`;
-    } else if (dominant === 'heart' && gap === 'throat') {
-      reason = `你的${dominantName}饱满，但${gapInfo.name}表达受阻。建议补充 ${gapInfo.hz}Hz 频率，帮助情感顺畅流动和表达。`;
-    } else if (dominant === 'brain' && gap === 'throat') {
-      reason = `你的${dominantName}能量高涨，但${gapInfo.name}沟通不畅。建议补充 ${gapInfo.hz}Hz 频率，让想法更容易传递出来。`;
-    } else {
-      reason = `建议补充 ${gapInfo.hz}Hz 频率，平衡整体能量场。`;
-    }
-
-    return {
-      hz: gapInfo.hz,
-      center: gap,
-      reason
-    };
-  }
-
-  private determineQuality(fftData: Float32Array, energyData: VoiceAnalysisResult['energyData']): 'smooth' | 'rough' | 'flat' {
-    const { roughness, smoothness } = energyData;
-
-    if (roughness > 0.15) {
-      return 'rough';
-    } else if (smoothness > 0.85 && roughness < 0.05) {
-      return 'flat';
-    } else {
-      return 'smooth';
-    }
-  }
-
-  private determinePhase(energyData: VoiceAnalysisResult['energyData']): 'grounded' | 'floating' | 'scattering' {
-    const { brainEnergy, heartEnergy, throatEnergy } = energyData;
-
-    if (brainEnergy > heartEnergy * 2) {
+    if (upperEnergy > lowerEnergy * 2) {
       return 'floating';
-    } else if (throatEnergy > brainEnergy && throatEnergy > heartEnergy) {
+    } else if (throatEnergy > upperEnergy && throatEnergy > lowerEnergy) {
       return 'scattering';
     } else {
       return 'grounded';

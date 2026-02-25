@@ -6,6 +6,8 @@ export interface EnergyProfile {
   healingAudioId?: string;
 }
 
+type ChakraKey = 'root' | 'sacral' | 'solar' | 'heart' | 'throat' | 'thirdEye' | 'crown';
+
 export const energyDatabase: Record<string, EnergyProfile> = {
   "001": {
     id: "001",
@@ -51,70 +53,81 @@ export const energyDatabase: Record<string, EnergyProfile> = {
   }
 };
 
+const chakraNames: Record<ChakraKey, string> = {
+  root: '海底轮',
+  sacral: '脐轮',
+  solar: '太阳轮',
+  heart: '心轮',
+  throat: '喉轮',
+  thirdEye: '眉心轮',
+  crown: '顶轮'
+};
+
+const organMapping: Record<ChakraKey, string[]> = {
+  root: ['肾', '小肠'],
+  sacral: ['膀胱', '肾'],
+  solar: ['脾', '胃', '肝'],
+  heart: ['心', '小肠'],
+  throat: ['肺', '大肠'],
+  thirdEye: ['膀胱'],
+  crown: ['小肠']
+};
+
 export function getEnergyProfile(id: string): EnergyProfile | null {
   return energyDatabase[id] || null;
 }
 
-export function generateDynamicEnergyFlow(
-  dominantCenter: 'brain' | 'throat' | 'heart',
-  gapCenter: 'brain' | 'throat' | 'heart',
+export function generateDynamicEnergyFlowFor7Chakras(
+  dominantChakra: ChakraKey,
+  gapChakras: ChakraKey[],
   quality: 'smooth' | 'rough' | 'flat',
   phase: 'grounded' | 'floating' | 'dispersed'
 ): Pick<EnergyProfile, 'energyFlowAdvice' | 'hopeNote'> {
   let energyFlowAdvice = '';
   let hopeNote = '';
 
-  const centerNames = {
-    heart: '心轮',
-    throat: '喉轮',
-    brain: '脑轮'
-  };
+  const primaryGap = gapChakras[0];
+  const secondaryGap = gapChakras[1];
 
-  if (dominantCenter === gapCenter) {
-    energyFlowAdvice = `你的能量分布较为均衡。建议保持当前状态，通过冥想和呼吸练习维持内在平衡。`;
-    hopeNote = '你的能量正在寻找新的平衡点，信任这个过程。';
-  } else {
-    const dominant = centerNames[dominantCenter];
-    const gap = centerNames[gapCenter];
+  const dominantName = chakraNames[dominantChakra];
+  const primaryGapName = chakraNames[primaryGap];
+  const secondaryGapName = chakraNames[secondaryGap];
+  const primaryGapOrgans = organMapping[primaryGap].join('、');
+  const secondaryGapOrgans = organMapping[secondaryGap].join('、');
 
-    if (dominantCenter === 'brain' && gapCenter === 'heart') {
-      energyFlowAdvice = `你的${dominant}能量过载（思维过度活跃），而${gap}能量不足（情感连接薄弱）。建议通过腹式呼吸、听音乐或接触大自然，将过多的脑部能量引导到心轮，重建情感连接。`;
-      hopeNote = '你的理性很强大，但别忘了心也需要被倾听。当思维与情感和谐共舞，你会更加完整。';
-    } else if (dominantCenter === 'brain' && gapCenter === 'throat') {
-      energyFlowAdvice = `你的${dominant}能量充沛（想法很多），但${gap}能量受阻（表达困难）。建议通过朗读、唱歌或与他人倾诉，打通思维到表达的通道，让想法流畅地传递出来。`;
-      hopeNote = '你有很多宝贵的想法，它们值得被听见。给自己更多表达的机会。';
-    } else if (dominantCenter === 'heart' && gapCenter === 'brain') {
-      energyFlowAdvice = `你的${dominant}能量饱满（情感丰富），但${gap}能量薄弱（思路不清）。建议通过书写、整理思绪或学习新知识，激活脑部能量，为情感提供理性的支持。`;
-      hopeNote = '你的感受力是天赋，配合清晰的思维，会让你更有力量。';
-    } else if (dominantCenter === 'heart' && gapCenter === 'throat') {
-      energyFlowAdvice = `你的${dominant}能量充盈（内心丰富），但${gap}能量不足（难以表达）。建议通过写日记、艺术创作或声音练习，建立从心到喉的能量通道，让内在感受能够自如地流淌出来。`;
-      hopeNote = '你的内心有很多话想说，给它们一个出口，世界会因你的表达而更美好。';
-    } else if (dominantCenter === 'throat' && gapCenter === 'heart') {
-      energyFlowAdvice = `你的${dominant}能量强劲（善于表达），但${gap}能量匮乏（缺乏情感深度）。建议在说话前先感受内心，让表达来自真实的情感，而不只是语言的组合。`;
-      hopeNote = '你的声音很有力量，当它与心连接时，会更有温度和感染力。';
-    } else if (dominantCenter === 'throat' && gapCenter === 'brain') {
-      energyFlowAdvice = `你的${dominant}能量旺盛（表达流畅），但${gap}能量不足（逻辑性弱）。建议在表达前先整理思路，通过阅读和思考训练，让言语更具条理性和说服力。`;
-      hopeNote = '你的表达很流畅，配合清晰的逻辑，会让你的话语更有分量。';
-    }
+  energyFlowAdvice = `【7脉轮对冲诊断】\n\n你的${dominantName}能量过盛，形成能量堆积。根据"损有余而补不足"原则：\n\n• 主要缺口：${primaryGapName}能量最弱，对应脏腑为${primaryGapOrgans}。建议优先通过相应频率音乐、食疗和经络疏通来滋养此轮。\n\n• 次要缺口：${secondaryGapName}也需关注，对应${secondaryGapOrgans}系统。可在主要缺口得到改善后进行调理。\n\n`;
+
+  if (dominantChakra === 'crown' || dominantChakra === 'thirdEye') {
+    energyFlowAdvice += '• 上焦过盛处理：你的能量过度集中在头部，容易导致思虑过度、失眠。建议通过泡脚、按摩涌泉穴，将能量引导下行至海底轮和脐轮，重建上下平衡。\n\n';
+  } else if (dominantChakra === 'root' || dominantChakra === 'sacral') {
+    energyFlowAdvice += '• 下焦过盛处理：你的能量过度沉降在下焦，可能感到沉重、迟钝。建议通过伸展运动、深呼吸打开上焦通道，让能量向心轮和喉轮上升。\n\n';
+  } else if (dominantChakra === 'throat') {
+    energyFlowAdvice += '• 喉轮过盛处理：表达欲过强或喉部紧张。建议减少过度说话，多做颈部放松，将能量导向心轮和下丹田储存。\n\n';
+  } else if (dominantChakra === 'heart') {
+    energyFlowAdvice += '• 心轮过盛处理：情绪波动大或心火上扬。建议通过腹式呼吸将心火能量下沉至太阳轮和脐轮，平复情绪波动。\n\n';
+  } else if (dominantChakra === 'solar') {
+    energyFlowAdvice += '• 太阳轮过盛处理：控制欲强或消化系统紧张。建议通过冥想放松腹部，平衡意志力与柔软度。\n\n';
   }
 
+  hopeNote = `${dominantName}的能量虽然充沛，但平衡才是健康之道。当你滋养了${primaryGapName}和${secondaryGapName}，整个能量系统会进入更和谐的状态，身心都会感到轻盈和完整。`;
+
   if (quality === 'rough') {
-    energyFlowAdvice += ' 你的声音质地粗糙，说明内在有未疏解的紧张或防御。建议通过按摩、放松训练或情绪释放，软化这些紧绷的部分。';
-    hopeNote += ' 那些粗糙的部分，都承载着你的故事。温柔地对待它们，它们会慢慢软化。';
+    energyFlowAdvice += '• 声音质地粗糙：说明内在有未疏解的紧张、愤怒或防御机制。建议通过按摩、情绪释放或声音疗愈，软化这些紧绷的能量结。\n\n';
+    hopeNote += ' 那些粗糙带刺的部分，都是你曾经的保护盔甲。当你准备好放下，温柔会自然流淌。';
   } else if (quality === 'flat') {
-    energyFlowAdvice += ' 你的声音过于平坦，说明能量缺乏波动和活力。建议通过运动、大笑或情绪表达，激活身体的能量流动。';
-    hopeNote += ' 允许自己有更多的情绪起伏，生命的色彩就藏在这些波动里。';
+    energyFlowAdvice += '• 声音质地平坦：能量场缺乏波动和情绪流动性，可能过度压抑或麻木。建议通过运动、大笑、唱歌或情绪表达，重新激活能量的生命力。\n\n';
+    hopeNote += ' 允许自己有更丰富的情绪起伏，生命的色彩就藏在这些自然的波动里。';
   } else {
-    energyFlowAdvice += ' 你的声音流畅自然，说明能量流动良好。继续保持这种状态，并留意身体的反馈。';
-    hopeNote += ' 你正走在平衡的路上，保持这份觉察和流动。';
+    energyFlowAdvice += '• 声音质地流畅：能量流动自然，说明你的表达通道较为畅通。继续保持这种觉察和流动性。\n\n';
+    hopeNote += ' 你的能量流动顺畅，这是很好的状态基础。';
   }
 
   if (phase === 'floating') {
-    energyFlowAdvice += ' 你的能量悬浮在上焦，需要接地。建议赤脚踩地、抱树或练习蹲马步，让能量回归大地。';
+    energyFlowAdvice += '• 能量相位：悬浮上升。能量过度集中在上焦，缺乏接地性。建议赤脚踩地、抱树或练习蹲马步，让能量重新扎根大地。';
   } else if (phase === 'dispersed') {
-    energyFlowAdvice += ' 你的能量向外分散，需要向内收摄。建议通过站桩、打坐或腹式呼吸，将能量聚拢到中轴线。';
+    energyFlowAdvice += '• 能量相位：横向散开。能量向外分散，中轴线薄弱。建议通过站桩、打坐或腹式呼吸，将分散的能量收摄回中脉。';
   } else {
-    energyFlowAdvice += ' 你的能量相位稳定，根基扎实，这是很好的状态。';
+    energyFlowAdvice += '• 能量相位：稳定扎根。你的根基扎实，能量相对稳定，这是很好的基础状态。';
   }
 
   return { energyFlowAdvice, hopeNote };
@@ -127,8 +140,8 @@ export function getHealingAudio(id: string): string | null {
 
 export function getProfileWithDynamicBalance(
   id: string,
-  dominantCenter: 'brain' | 'throat' | 'heart',
-  gapCenter: 'brain' | 'throat' | 'heart',
+  dominantChakra: ChakraKey,
+  gapChakras: ChakraKey[],
   quality: 'smooth' | 'rough' | 'flat',
   phase: 'grounded' | 'floating' | 'dispersed'
 ): EnergyProfile {
@@ -138,7 +151,7 @@ export function getProfileWithDynamicBalance(
     return existingProfile;
   }
 
-  const dynamicFlow = generateDynamicEnergyFlow(dominantCenter, gapCenter, quality, phase);
+  const dynamicFlow = generateDynamicEnergyFlowFor7Chakras(dominantChakra, gapChakras, quality, phase);
 
   return {
     id,
