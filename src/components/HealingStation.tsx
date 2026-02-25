@@ -63,7 +63,8 @@ export default function HealingStation({ frequencyHz, chakraName }: HealingStati
     }
   };
 
-  const handleShuffle = () => {
+  const handleShuffle = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (tracks.length === 0) return;
 
     const newTrack = getRandomTrack(tracks, currentTrack?.id);
@@ -76,7 +77,8 @@ export default function HealingStation({ frequencyHz, chakraName }: HealingStati
     }
   };
 
-  const togglePlayPause = () => {
+  const togglePlayPause = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!audioRef.current || !currentTrack) return;
 
     if (isPlaying) {
@@ -109,6 +111,7 @@ export default function HealingStation({ frequencyHz, chakraName }: HealingStati
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     if (!audioRef.current || !duration) return;
 
     const rect = e.currentTarget.getBoundingClientRect();

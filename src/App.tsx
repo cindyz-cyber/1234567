@@ -272,7 +272,19 @@ function App() {
   }
 
   return (
-    <>
+    <div
+      onClick={(e) => {
+        if (isShowingVoiceResult) {
+          e.stopPropagation();
+        }
+      }}
+      onTouchStart={(e) => {
+        if (isShowingVoiceResult) {
+          e.stopPropagation();
+        }
+      }}
+      style={{ width: '100%', height: '100%' }}
+    >
       <VideoBackground />
       <GoldenDust />
       {currentTab !== 'breath' && <Header />}
@@ -311,9 +323,11 @@ function App() {
 
       {currentTab === 'admin' && isAdmin && <AdminPanel />}
 
-      {!isShowingVoiceResult && (
-        <Navigation currentTab={currentTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
-      )}
+      <div style={{ pointerEvents: isShowingVoiceResult ? 'none' : 'auto' }}>
+        {!isShowingVoiceResult && (
+          <Navigation currentTab={currentTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
+        )}
+      </div>
 
       {showPremiumModal && (
         <PremiumModal
@@ -321,7 +335,7 @@ function App() {
           onSubscribe={handleSubscribe}
         />
       )}
-    </>
+    </div>
   );
 }
 

@@ -42,7 +42,10 @@ export default function ReportSection({
             <>
               <button
                 className="report-expand-button"
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
               >
                 {isExpanded ? '收起详细说明' : '查看详细说明'}
                 {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -58,7 +61,10 @@ export default function ReportSection({
         <>
           <button
             className="report-expand-button"
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
           >
             {isExpanded ? '收起详细报告' : '查看详细报告'}
             {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
