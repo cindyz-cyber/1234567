@@ -115,7 +115,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
             maxWidth: '400px',
           }}
         >
-          带上你刚才的问题，请闭上眼 ，打开心 。。。
+          带着问题，闭上眼， 打开心。。。
         </p>
       </div>
 

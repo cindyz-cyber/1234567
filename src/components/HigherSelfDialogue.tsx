@@ -250,8 +250,8 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           margin-bottom: 40px;
           text-shadow: 0 2px 20px rgba(247, 231, 206, 0.4);
           font-family: 'STSong', 'Songti SC', 'SimSun', serif;
-          transition: opacity 1.5s ease-out;
-          animation: greetingFadeIn 1.5s ease-out 0.5s both;
+          transition: opacity 0.3s ease-out;
+          animation: greetingFadeIn 0.3s ease-out 0.1s both;
         }
 
         @keyframes greetingFadeIn {
