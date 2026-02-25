@@ -113,7 +113,7 @@ function App() {
       emotions,
       bodyStates,
     }));
-    setCurrentStep('voice');
+    setCurrentStep('innerWhisper');
   }
 
   function handleVoiceComplete() {
@@ -167,6 +167,10 @@ function App() {
     });
     setBackgroundAudio(null);
     setCurrentStep('home');
+  }
+
+  function handleBackToEmotion() {
+    setCurrentStep('emotion');
   }
 
   function handleBackToVoice() {
@@ -229,7 +233,7 @@ function App() {
         <InnerWhisperJournal
           emotions={journeyData.emotions}
           bodyStates={journeyData.bodyStates}
-          onBack={handleBackToVoice}
+          onBack={handleBackToEmotion}
           onNext={handleInnerWhisperComplete}
         />
       );
