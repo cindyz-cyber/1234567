@@ -114,6 +114,8 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
       await saveAnalysisToDatabase(analysisResult);
 
       setTimeout(() => {
+        console.log('===== Setting result state =====');
+        console.log('Analysis result:', analysisResult);
         setResult(analysisResult);
 
         const profile = getProfileWithDynamicBalance(
@@ -123,8 +125,10 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
           analysisResult.quality,
           analysisResult.phase
         );
+        console.log('Energy profile:', profile);
         setEnergyProfile(profile);
 
+        console.log('Setting recordingState to result');
         setRecordingState('result');
         setRippleScale(1);
       }, 2000);
@@ -218,6 +222,12 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
     return '';
   };
 
+  console.log('===== VoiceRecognition Render =====');
+  console.log('recordingState:', recordingState);
+  console.log('result:', result);
+  console.log('energyProfile:', energyProfile);
+  console.log('Condition check:', recordingState === 'result' && result && energyProfile);
+
   return (
     <div className="voice-recognition-container">
       <div className="portal-background-layer">
@@ -236,6 +246,7 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
         <button
           onClick={(e) => {
             e.stopPropagation();
+            console.log('===== Back button clicked =====');
             onBack();
           }}
           className="back-button"
@@ -356,11 +367,19 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
             </div>
 
             <div className="result-action-buttons">
-              <button onClick={handleRestart} className="restart-button secondary">
+              <button onClick={(e) => {
+                e.stopPropagation();
+                console.log('===== Restart button clicked =====');
+                handleRestart(e);
+              }} className="restart-button secondary">
                 <RotateCcw size={18} />
                 <span>重新测试</span>
               </button>
-              <button onClick={onBack || (() => {})} className="restart-button primary">
+              <button onClick={(e) => {
+                e.stopPropagation();
+                console.log('===== Complete button clicked =====');
+                if (onBack) onBack();
+              }} className="restart-button primary">
                 <span>完成</span>
               </button>
             </div>
