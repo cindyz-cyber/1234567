@@ -70,10 +70,6 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           muted
           playsInline
           className="portal-video"
-          style={{
-            opacity: showEntrance ? 0 : 1,
-            transform: showEntrance ? 'scale(1.2)' : 'scale(1)',
-          }}
         >
           <source src="https://cdn.midjourney.com/video/7e901a1c-929f-466d-8def-ac47f9d0c15b/3.mp4" type="video/mp4" />
         </video>
@@ -99,12 +95,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
       <div className="dialogue-content-container">
         <div className="dialogue-inner">
-          <h2
-            className="dialogue-greeting"
-            style={{
-              opacity: showEntrance ? 0 : 1,
-            }}
-          >
+          <h2 className="dialogue-greeting">
             亲爱的 <span className="user-name-highlight">{userName}</span>，下面是我想对你说的话：
           </h2>
 
@@ -172,7 +163,6 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: all 2s cubic-bezier(0.4, 0, 0.2, 1);
           filter: brightness(0.8) contrast(1.1) saturate(1.2);
         }
 
@@ -250,19 +240,6 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           margin-bottom: 40px;
           text-shadow: 0 2px 20px rgba(247, 231, 206, 0.4);
           font-family: 'STSong', 'Songti SC', 'SimSun', serif;
-          transition: opacity 0.3s ease-out;
-          animation: greetingFadeIn 0.3s ease-out 0.1s both;
-        }
-
-        @keyframes greetingFadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
         }
 
         .user-name-highlight {
