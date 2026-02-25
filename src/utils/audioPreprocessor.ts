@@ -20,11 +20,17 @@ export class AudioPreprocessor {
     const noiseLevel = this.detectNoiseLevel(audioBuffer);
     const isNoisy = noiseLevel > 0.05;
 
-    const gatedBuffer = this.applyNoiseGate(audioBuffer, -40);
+    const noiseProfile = this.estimateNoiseProfile(audioBuffer);
 
-    const filteredBuffer = this.applyBandpassFilter(gatedBuffer, 100, 1100);
+    const spectralSubtractedBuffer = await this.applySpectralSubtraction(audioBuffer, noiseProfile);
 
-    const normalizedBuffer = this.normalizeAudio(filteredBuffer);
+    const gatedBuffer = this.applyNoiseGate(spectralSubtractedBuffer, -35);
+
+    const filteredBuffer = this.applyBandpassFilter(gatedBuffer, 80, 1200);
+
+    const smoothedBuffer = await this.applySpectralSmoothing(filteredBuffer);
+
+    const normalizedBuffer = this.normalizeAudio(smoothedBuffer);
 
     const averageAmplitude = this.calculateAverageAmplitude(normalizedBuffer);
     const signalToNoiseRatio = averageAmplitude / (noiseLevel + 0.001);
@@ -55,6 +61,139 @@ export class AudioPreprocessor {
     }
 
     return silentSamples > 0 ? silentAmplitudeSum / silentSamples : 0;
+  }
+
+  private estimateNoiseProfile(buffer: AudioBuffer): Float32Array {
+    const channelData = buffer.getChannelData(0);
+    const fftSize = 2048;
+    const noiseProfileLength = fftSize / 2;
+    const noiseProfile = new Float32Array(noiseProfileLength);
+    const silenceThreshold = 0.015;
+
+    let silentFrameCount = 0;
+
+    for (let i = 0; i < channelData.length - fftSize; i += fftSize) {
+      let frameAmplitude = 0;
+      for (let j = 0; j < fftSize; j++) {
+        frameAmplitude += Math.abs(channelData[i + j]);
+      }
+      frameAmplitude /= fftSize;
+
+      if (frameAmplitude < silenceThreshold) {
+        const spectrum = this.computeFFT(channelData.slice(i, i + fftSize));
+        for (let k = 0; k < noiseProfileLength; k++) {
+          noiseProfile[k] += spectrum[k];
+        }
+        silentFrameCount++;
+      }
+    }
+
+    if (silentFrameCount > 0) {
+      for (let i = 0; i < noiseProfileLength; i++) {
+        noiseProfile[i] /= silentFrameCount;
+      }
+    }
+
+    return noiseProfile;
+  }
+
+  private computeFFT(signal: Float32Array): Float32Array {
+    const n = signal.length;
+    const magnitude = new Float32Array(n / 2);
+
+    for (let k = 0; k < n / 2; k++) {
+      let real = 0;
+      let imag = 0;
+      for (let t = 0; t < n; t++) {
+        const angle = (2 * Math.PI * k * t) / n;
+        real += signal[t] * Math.cos(angle);
+        imag -= signal[t] * Math.sin(angle);
+      }
+      magnitude[k] = Math.sqrt(real * real + imag * imag);
+    }
+
+    return magnitude;
+  }
+
+  private async applySpectralSubtraction(buffer: AudioBuffer, noiseProfile: Float32Array): Promise<AudioBuffer> {
+    const offlineContext = new OfflineAudioContext(
+      buffer.numberOfChannels,
+      buffer.length,
+      buffer.sampleRate
+    );
+
+    const channelData = buffer.getChannelData(0);
+    const processedData = new Float32Array(channelData.length);
+    const fftSize = 2048;
+    const hopSize = fftSize / 4;
+    const overSubtractionFactor = 1.8;
+
+    for (let i = 0; i < channelData.length - fftSize; i += hopSize) {
+      const frame = channelData.slice(i, i + fftSize);
+      const spectrum = this.computeFFT(frame);
+
+      for (let k = 0; k < spectrum.length; k++) {
+        const noiseMagnitude = noiseProfile[k] * overSubtractionFactor;
+        spectrum[k] = Math.max(0, spectrum[k] - noiseMagnitude);
+      }
+
+      const cleanFrame = this.inverseFFT(spectrum, fftSize);
+      for (let j = 0; j < Math.min(hopSize, cleanFrame.length); j++) {
+        if (i + j < processedData.length) {
+          processedData[i + j] += cleanFrame[j] * 0.5;
+        }
+      }
+    }
+
+    const processedBuffer = offlineContext.createBuffer(
+      buffer.numberOfChannels,
+      buffer.length,
+      buffer.sampleRate
+    );
+
+    processedBuffer.copyToChannel(processedData, 0);
+
+    return processedBuffer;
+  }
+
+  private inverseFFT(magnitude: Float32Array, size: number): Float32Array {
+    const signal = new Float32Array(size);
+
+    for (let t = 0; t < size; t++) {
+      let sum = 0;
+      for (let k = 0; k < magnitude.length; k++) {
+        const angle = (2 * Math.PI * k * t) / size;
+        sum += magnitude[k] * Math.cos(angle);
+      }
+      signal[t] = sum / size;
+    }
+
+    return signal;
+  }
+
+  private async applySpectralSmoothing(buffer: AudioBuffer): Promise<AudioBuffer> {
+    const offlineContext = new OfflineAudioContext(
+      buffer.numberOfChannels,
+      buffer.length,
+      buffer.sampleRate
+    );
+
+    const source = offlineContext.createBufferSource();
+    source.buffer = buffer;
+
+    const compressor = offlineContext.createDynamicsCompressor();
+    compressor.threshold.value = -30;
+    compressor.knee.value = 15;
+    compressor.ratio.value = 4;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.05;
+
+    source.connect(compressor);
+    compressor.connect(offlineContext.destination);
+
+    source.start(0);
+
+    return offlineContext.startRendering();
   }
 
   private applyNoiseGate(buffer: AudioBuffer, thresholdDb: number): AudioBuffer {
