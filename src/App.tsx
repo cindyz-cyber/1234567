@@ -196,7 +196,10 @@ function App() {
   }
 
   function handleTabChange(tab: TabType) {
+    console.log('[App] handleTabChange called with tab:', tab, 'isShowingVoiceResult:', isShowingVoiceResult);
+    console.trace('[App] Stack trace for handleTabChange');
     if (isShowingVoiceResult) {
+      console.log('[App] Blocked tab change because isShowingVoiceResult is true');
       return;
     }
     setCurrentTab(tab);
@@ -300,11 +303,16 @@ function App() {
       {currentTab === 'voice' && currentStep === 'voice' && (
         <VoiceRecognition
           onBack={() => {
+            console.log('[App] VoiceRecognition onBack called');
             setCurrentTab('breath');
             setCurrentStep('home');
             setIsShowingVoiceResult(false);
           }}
-          onResultStateChange={(isShowingResult) => setIsShowingVoiceResult(isShowingResult)}
+          onResultStateChange={(isShowingResult) => {
+            console.log('[App] onResultStateChange called with:', isShowingResult);
+            console.trace('[App] Stack trace for onResultStateChange');
+            setIsShowingVoiceResult(isShowingResult);
+          }}
         />
       )}
 

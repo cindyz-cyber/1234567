@@ -112,13 +112,22 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
 
   const analyzeVoice = async (audioBlob: Blob) => {
     try {
-      if (!voiceAnalyzerRef.current) return;
+      console.log('[VoiceRecognition] Starting voice analysis...');
+      if (!voiceAnalyzerRef.current) {
+        console.error('[VoiceRecognition] No voice analyzer available');
+        return;
+      }
 
+      console.log('[VoiceRecognition] Analyzing audio buffer...');
       const analysisResult = await voiceAnalyzerRef.current.analyzeAudioBuffer(audioBlob);
+      console.log('[VoiceRecognition] Analysis result:', analysisResult);
 
+      console.log('[VoiceRecognition] Saving to database...');
       await saveAnalysisToDatabase(analysisResult);
+      console.log('[VoiceRecognition] Saved to database successfully');
 
       setTimeout(() => {
+        console.log('[VoiceRecognition] Setting result state...');
         setResult(analysisResult);
 
         const profile = getProfileWithDynamicBalance(
@@ -135,15 +144,20 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
 
         setRecordingState('result');
         setRippleScale(1);
+        console.log('[VoiceRecognition] About to call onResultStateChange(true)');
         if (onResultStateChange) {
           onResultStateChange(true);
+          console.log('[VoiceRecognition] Called onResultStateChange(true)');
         }
       }, 2000);
 
     } catch (error) {
-      console.error('Error analyzing voice:', error);
+      console.error('[VoiceRecognition] Error analyzing voice:', error);
       setRecordingState('idle');
       setRippleScale(1);
+      if (onResultStateChange) {
+        onResultStateChange(false);
+      }
     }
   };
 
@@ -217,11 +231,13 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
 
   const handleRestart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log('[VoiceRecognition] handleRestart called');
     setRecordingState('idle');
     setResult(null);
     setEnergyProfile(null);
     setRippleScale(1);
     if (onResultStateChange) {
+      console.log('[VoiceRecognition] Calling onResultStateChange(false) from handleRestart');
       onResultStateChange(false);
     }
   };
