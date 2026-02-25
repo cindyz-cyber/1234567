@@ -15,7 +15,6 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
   const [isListening, setIsListening] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [pulseIntensity, setPulseIntensity] = useState(0);
-  const [showSuccess, setShowSuccess] = useState(false);
   const recognitionRef = useRef<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -103,13 +102,9 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
         if (error) throw error;
       }
 
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        if (onNext) {
-          onNext();
-        }
-      }, 1500);
+      if (onNext) {
+        onNext();
+      }
     } catch (error) {
       console.error('Error saving journal:', error);
       alert('保存失败，请重试');
@@ -217,14 +212,6 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
             </GoldButton>
           </div>
         </div>
-
-        {showSuccess && (
-          <div className="success-overlay">
-            <div className="success-message">
-              已保存
-            </div>
-          </div>
-        )}
       </div>
 
       <style>{`
@@ -463,61 +450,6 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
           }
           50% {
             height: 20px;
-            opacity: 1;
-          }
-        }
-
-        .success-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(0, 0, 0, 0.6);
-          backdrop-filter: blur(10px);
-          z-index: 1000;
-          animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        .success-message {
-          padding: 32px 64px;
-          background: linear-gradient(
-            135deg,
-            rgba(247, 231, 206, 0.2) 0%,
-            rgba(235, 200, 98, 0.15) 100%
-          );
-          backdrop-filter: blur(20px);
-          border-radius: 20px;
-          border: 1px solid rgba(247, 231, 206, 0.3);
-          color: #F7E7CE;
-          font-size: 24px;
-          letter-spacing: 0.3em;
-          text-shadow: 0 0 20px rgba(247, 231, 206, 0.8);
-          box-shadow:
-            0 0 40px rgba(247, 231, 206, 0.4),
-            0 0 80px rgba(235, 200, 98, 0.2);
-          animation: successPulse 1.5s ease-in-out;
-        }
-
-        @keyframes successPulse {
-          0% {
-            transform: scale(0.8);
-            opacity: 0;
-          }
-          50% {
-            transform: scale(1.05);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(1);
             opacity: 1;
           }
         }

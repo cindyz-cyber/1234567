@@ -9,6 +9,7 @@ import HigherSelfDialogue from './components/HigherSelfDialogue';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
 import EnergyCenter from './components/EnergyCenter';
+import Archive from './components/Archive';
 import Profile from './components/Profile';
 import BookOfAnswers from './components/BookOfAnswers';
 import PremiumModal from './components/PremiumModal';
@@ -19,7 +20,7 @@ import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
 type FlowStep = 'home' | 'emotion' | 'innerWhisper' | 'journal' | 'transition' | 'dialogue' | 'answers';
-type TabType = 'breath' | 'energy' | 'profile' | 'admin';
+type TabType = 'breath' | 'energy' | 'archive' | 'profile' | 'admin';
 
 interface JourneyData {
   emotions: string[];
@@ -278,12 +279,15 @@ function App() {
         />
       )}
 
+      {currentTab === 'archive' && <Archive />}
+
       {currentTab === 'profile' && (
         <Profile
           userName={userNames.userName}
           higherSelfName={userNames.higherSelfName}
           isPremium={isPremium}
           onShowPremium={() => setShowPremiumModal(true)}
+          onNavigateArchive={() => setCurrentTab('archive')}
           onResetIdentity={handleResetIdentity}
         />
       )}
