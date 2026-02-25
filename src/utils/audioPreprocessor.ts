@@ -40,13 +40,13 @@ export class AudioPreprocessor {
 
   private detectNoiseLevel(buffer: AudioBuffer): number {
     const channelData = buffer.getChannelData(0);
-    const sampleRate = buffer.sampleRate;
-    const silenceThreshold = 0.01;
+    const silenceThreshold = 0.02;
+    const sampleSize = Math.min(44100, channelData.length);
 
     let silentSamples = 0;
     let silentAmplitudeSum = 0;
 
-    for (let i = 0; i < channelData.length; i++) {
+    for (let i = 0; i < sampleSize; i++) {
       const amplitude = Math.abs(channelData[i]);
       if (amplitude < silenceThreshold) {
         silentSamples++;

@@ -131,17 +131,38 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       }
 
       console.log('[VoiceRecognition] Step 1: Preprocessing audio...');
-      const preprocessingResult = await audioPreprocessorRef.current.preprocessAudio(audioBlob);
-      console.log('[VoiceRecognition] Preprocessing complete:', {
-        noiseLevel: preprocessingResult.noiseLevel,
-        isNoisy: preprocessingResult.isNoisy,
-        signalToNoiseRatio: preprocessingResult.signalToNoiseRatio,
-        averageAmplitude: preprocessingResult.averageAmplitude
-      });
+      let processedBlob = audioBlob;
+      let shouldShowWarning = false;
+      let warningMessage = '';
 
-      if (preprocessingResult.isNoisy || preprocessingResult.signalToNoiseRatio < 3) {
-        console.warn('[VoiceRecognition] Environment too noisy, showing warning');
-        setNoiseWarningMessage('环境较嘈杂，请到安静处重新录制，以获得更精准的能量报告');
+      try {
+        const preprocessingResult = await audioPreprocessorRef.current.preprocessAudio(audioBlob);
+        console.log('[VoiceRecognition] Preprocessing complete:', {
+          noiseLevel: preprocessingResult.noiseLevel,
+          isNoisy: preprocessingResult.isNoisy,
+          signalToNoiseRatio: preprocessingResult.signalToNoiseRatio,
+          averageAmplitude: preprocessingResult.averageAmplitude
+        });
+
+        if (preprocessingResult.averageAmplitude < 0.002) {
+          console.warn('[VoiceRecognition] No valid voice detected');
+          shouldShowWarning = true;
+          warningMessage = '未检测到有效人声，请确保环境安静并靠近麦克风重新录制';
+        } else if (preprocessingResult.signalToNoiseRatio < 1.5) {
+          console.warn('[VoiceRecognition] Environment quite noisy but processing anyway');
+        }
+
+        if (!shouldShowWarning) {
+          console.log('[VoiceRecognition] Step 2: Converting preprocessed audio to blob...');
+          processedBlob = await audioPreprocessorRef.current.audioBufferToBlob(preprocessingResult.processedBuffer);
+        }
+      } catch (preprocessError) {
+        console.error('[VoiceRecognition] Preprocessing error, using original audio:', preprocessError);
+        processedBlob = audioBlob;
+      }
+
+      if (shouldShowWarning) {
+        setNoiseWarningMessage(warningMessage);
         setShowNoiseWarning(true);
         setRecordingState('idle');
         setRippleScale(1);
@@ -150,9 +171,6 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
         }
         return;
       }
-
-      console.log('[VoiceRecognition] Step 2: Converting preprocessed audio to blob...');
-      const processedBlob = await audioPreprocessorRef.current.audioBufferToBlob(preprocessingResult.processedBuffer);
 
       console.log('[VoiceRecognition] Step 3: Analyzing processed audio...');
       const analysisResult = await voiceAnalyzerRef.current.analyzeAudioBuffer(processedBlob);
