@@ -9,15 +9,18 @@ interface BookOfAnswersProps {
 }
 
 const WISDOMS = [
-  '在静默中，你会听见真实的答案',
-  '放下执念，才能看见新的可能',
-  '每一次呼吸，都是重生的机会',
-  '你所寻找的，其实一直都在',
-  '勇气不是没有恐惧，而是带着恐惧前行',
-  '最深的智慧，来自内心的宁静',
-  '接纳当下，才能创造未来',
-  '你比你想象的更强大',
-  '转变始于觉察',
+  '向东，在黎明前启程',
+  '停止，当下即是转折点',
+  '继续前行，答案在第三次尝试中',
+  '向左转，你忽略的选项才是正解',
+  '等待七天，时机未至',
+  '立即行动，犹豫会错失良机',
+  '回到起点，重新审视第一步',
+  '寻找水的方向，流动带来答案',
+  '在静默中决策，喧嚣会误导你',
+  '选择困难的路，它通往你要去的地方',
+  '放弃当前方案，另辟蹊径',
+  '坚持到底，最后一刻见分晓',
 ];
 
 export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: BookOfAnswersProps) {
@@ -79,13 +82,13 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           <ChevronLeft size={24} color="#EBC862" />
         </button>
       )}
-      <div className="w-full max-w-md flex flex-col" style={{ height: '100vh', justifyContent: 'space-between', paddingTop: '80px', paddingBottom: '40px' }}>
-        <div className="space-y-2 text-center">
-          <h2 className="text-3xl font-light" style={{ color: '#EBC862', letterSpacing: '0.1em' }}>
+      <div className="w-full max-w-md flex flex-col" style={{ height: '100vh', justifyContent: 'space-between', paddingTop: '80px', paddingBottom: '40px', position: 'relative', zIndex: 10 }}>
+        <div className="space-y-4 text-center">
+          <h2 className="book-title">
             答案之书
           </h2>
-          <p className="text-sm font-light" style={{ color: '#E0E0D0', opacity: 0.8, letterSpacing: '0.04em' }}>
-            {flippedCard === null ? '植本人，选择一张卡片，接收智慧的指引' : '植本人，请接收你的智慧回响'}
+          <p className="book-subtitle">
+            {flippedCard === null ? '选择一张卡片，接收指引' : '这是你的方向'}
           </p>
         </div>
 
@@ -148,16 +151,17 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
                 <div
                   className="card-face card-front"
                   style={{
-                    background: 'radial-gradient(circle at center, rgba(235, 200, 98, 0.15) 0%, rgba(2, 10, 9, 0.95) 100%)',
-                    border: '1px solid #EBC862',
+                    background: 'rgba(5, 10, 20, 0.95)',
+                    border: '0.5px solid rgba(200, 220, 255, 0.2)',
                     borderRadius: '12px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
                     padding: '20px 16px',
-                    boxShadow: '0 0 40px rgba(235, 200, 98, 0.5), 0 0 60px rgba(235, 200, 98, 0.3), 0 0 80px rgba(235, 200, 98, 0.2)',
+                    boxShadow: '0 0 40px rgba(180, 200, 255, 0.3), 0 0 60px rgba(180, 200, 255, 0.2)',
                     position: 'relative',
+                    backdropFilter: 'blur(40px)',
                   }}
                 >
                   <div
@@ -165,19 +169,12 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
                       position: 'absolute',
                       inset: 0,
                       borderRadius: '12px',
-                      background: 'radial-gradient(circle at center, transparent 40%, rgba(235, 200, 98, 0.05) 100%)',
+                      background: 'radial-gradient(circle at center, rgba(200, 220, 255, 0.08) 0%, transparent 70%)',
                       pointerEvents: 'none',
                     }}
                   />
                   <p
-                    className="text-xs font-light leading-relaxed text-center wisdom-text"
-                    style={{
-                      color: '#EBC862',
-                      letterSpacing: '0.04em',
-                      textShadow: '0 0 15px rgba(235, 200, 98, 0.6), 0 0 25px rgba(235, 200, 98, 0.4)',
-                      position: 'relative',
-                      zIndex: 1,
-                    }}
+                    className="wisdom-text"
                   >
                     {selectedWisdom}
                   </p>
@@ -191,15 +188,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           <div className="text-center">
             <button
               onClick={handleComplete}
-              className="px-8 py-3 rounded-full font-light transition-all hover:scale-105"
-              style={{
-                border: '1px solid #EBC862',
-                color: '#EBC862',
-                backgroundColor: 'transparent',
-                letterSpacing: '0.05em',
-                boxShadow: '0 0 20px rgba(235, 200, 98, 0.2)',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
+              className="complete-button"
             >
               我已接收
             </button>
@@ -210,6 +199,55 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
       <style>{`
         .book-of-answers-container {
           position: relative;
+        }
+
+        .book-title {
+          color: rgba(200, 220, 255, 0.95);
+          font-size: 28px;
+          font-weight: 200;
+          letter-spacing: 0.25em;
+          font-family: 'Noto Serif SC', serif;
+          text-shadow: 0 0 30px rgba(200, 220, 255, 0.4);
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+        .book-subtitle {
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 15px;
+          font-weight: 200;
+          letter-spacing: 0.15em;
+          font-family: 'Noto Serif SC', serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+        .complete-button {
+          padding: 12px 36px;
+          border-radius: 4px;
+          font-weight: 200;
+          font-size: 15px;
+          letter-spacing: 0.2em;
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(40px) saturate(120%);
+          -webkit-backdrop-filter: blur(40px) saturate(120%);
+          border: 0.5px solid rgba(200, 220, 255, 0.15);
+          color: rgba(200, 220, 255, 0.9);
+          font-family: 'Noto Serif SC', serif;
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow:
+            inset 0 0 20px rgba(180, 200, 255, 0.03),
+            0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .complete-button:hover {
+          background: rgba(255, 255, 255, 0.04);
+          border-color: rgba(200, 220, 255, 0.25);
+          transform: scale(1.05);
+          box-shadow:
+            inset 0 0 30px rgba(180, 200, 255, 0.05),
+            0 6px 30px rgba(0, 0, 0, 0.4),
+            0 0 40px rgba(200, 220, 255, 0.15);
         }
 
         .home-background-layer {
@@ -371,15 +409,27 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
         }
 
         .wisdom-text {
-          animation: wisdomGlow 2.5s ease-in-out infinite;
+          color: rgba(200, 220, 255, 0.95);
+          font-size: 13px;
+          font-weight: 200;
+          line-height: 1.8;
+          text-align: center;
+          letter-spacing: 0.15em;
+          font-family: 'Noto Serif SC', serif;
+          text-shadow: 0 0 20px rgba(200, 220, 255, 0.5);
+          position: relative;
+          z-index: 1;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          animation: wisdomGlow 3s ease-in-out infinite;
         }
 
         @keyframes wisdomGlow {
           0%, 100% {
-            text-shadow: 0 0 15px rgba(235, 200, 98, 0.6), 0 0 25px rgba(235, 200, 98, 0.4);
+            text-shadow: 0 0 20px rgba(200, 220, 255, 0.5), 0 0 30px rgba(180, 200, 240, 0.3);
           }
           50% {
-            text-shadow: 0 0 20px rgba(235, 200, 98, 0.8), 0 0 35px rgba(235, 200, 98, 0.5), 0 0 45px rgba(235, 200, 98, 0.3);
+            text-shadow: 0 0 30px rgba(200, 220, 255, 0.7), 0 0 45px rgba(180, 200, 240, 0.4);
           }
         }
       `}</style>
