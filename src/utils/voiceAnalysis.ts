@@ -51,31 +51,31 @@ const EMOTION_PROFILES: EmotionProfile[] = [
     source: 'heart',
     quality: 'smooth',
     phase: 'grounded',
-    message: '保持这种心口合一，你现在非常有感染力。'
+    message: '您正处于心气通达的状态，保持这种能量流动'
   },
   {
     id: '065',
-    name: '带刺的防御者',
+    name: '能量守护者',
     source: 'throat',
     quality: 'rough',
     phase: 'scattering',
-    message: '这种尖锐是在保护你，试着对自己温柔一点。'
+    message: '您正处于表达通道活跃的状态，注意能量的聚焦'
   },
   {
     id: '343',
-    name: '高速运转的处理器',
+    name: '智慧觉察者',
     source: 'brain',
     quality: 'flat',
     phase: 'grounded',
-    message: '逻辑很满，但也别忘了给你的心留一点空位。'
+    message: '您正处于头脑清明的状态，平衡心与脑的能量'
   },
   {
     id: '372',
-    name: '云端漫步的理想家',
+    name: '灵感创造者',
     source: 'brain',
     quality: 'smooth',
     phase: 'floating',
-    message: '你的想法很高级，现在只需要把它带回到地面。'
+    message: '您正处于高维连接的状态，平衡上下能量流'
   }
 ];
 

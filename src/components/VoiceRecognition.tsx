@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, Mic, Square, RotateCcw, FileText, Activity, Heart, Zap, ListChecks, Music, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, Mic, Square, AlertTriangle } from 'lucide-react';
 import { VoiceAnalyzer, VoiceAnalysisResult } from '../utils/voiceAnalysis';
 import { supabase } from '../lib/supabase';
 import { getProfileWithDynamicBalance, EnergyProfile } from '../data/energyDatabase';
-import { generateReport, ReportData } from '../utils/reportGenerator';
-import ReportSection from './ReportSection';
-import HealingStation from './HealingStation';
 import { AudioPreprocessor } from '../utils/audioPreprocessor';
+import VoiceResults from './VoiceResults';
 
 interface VoiceRecognitionProps {
   onBack?: () => void;
@@ -21,9 +19,6 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const [audioLevel, setAudioLevel] = useState(0);
   const [result, setResult] = useState<VoiceAnalysisResult | null>(null);
   const [energyProfile, setEnergyProfile] = useState<EnergyProfile | null>(null);
-
-  console.log('[VoiceRecognition] RENDER - recordingState:', recordingState, 'result:', !!result, 'energyProfile:', !!energyProfile);
-  const [report, setReport] = useState<ReportData | null>(null);
   const [rippleScale, setRippleScale] = useState(1);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [showNoiseWarning, setShowNoiseWarning] = useState(false);
@@ -181,35 +176,12 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       console.log('[VoiceRecognition] Saved to database successfully');
 
       const timeoutId = setTimeout(() => {
-        console.log('[VoiceRecognition] ===== SETTING RESULT STATE (IN TIMEOUT) =====');
-        console.log('[VoiceRecognition] Current recordingState before set:', recordingState);
         setResult(analysisResult);
-        console.log('[VoiceRecognition] Set result to:', analysisResult);
-
-        const profile = getProfileWithDynamicBalance(
-          analysisResult.profileId,
-          analysisResult.dominantChakra,
-          analysisResult.gapChakras,
-          analysisResult.quality,
-          analysisResult.phase
-        );
-        setEnergyProfile(profile);
-        console.log('[VoiceRecognition] Set energyProfile to:', profile);
-
-        const generatedReport = generateReport(analysisResult);
-        setReport(generatedReport);
-        console.log('[VoiceRecognition] Set report');
-
         setRecordingState('result');
-        console.log('[VoiceRecognition] Set recordingState to: result');
-
         setRippleScale(1);
-        console.log('[VoiceRecognition] About to call onResultStateChange(true)');
         if (onResultStateChange) {
           onResultStateChange(true);
-          console.log('[VoiceRecognition] Called onResultStateChange(true)');
         }
-        console.log('[VoiceRecognition] ===== END SETTING RESULT STATE =====');
       }, 2000);
 
       console.log('[VoiceRecognition] Scheduled timeout with ID:', timeoutId);
@@ -292,16 +264,19 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
     }
   };
 
-  const handleRestart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    console.log('[VoiceRecognition] handleRestart called');
-    setRecordingState('idle');
+  const handlePlayAudio = (frequency: number) => {
+    console.log(`Playing healing audio at ${frequency}Hz`);
+  };
+
+  const handleBackFromResult = () => {
     setResult(null);
-    setEnergyProfile(null);
+    setRecordingState('idle');
     setRippleScale(1);
     if (onResultStateChange) {
-      console.log('[VoiceRecognition] Calling onResultStateChange(false) from handleRestart');
       onResultStateChange(false);
+    }
+    if (onBack) {
+      onBack();
     }
   };
 
@@ -344,249 +319,12 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
         </button>
       )}
 
-      {(() => {
-        const shouldShowResult = recordingState === 'result' && result && energyProfile;
-        console.log('[VoiceRecognition] RENDER CHECK - shouldShowResult:', shouldShowResult, {
-          recordingState,
-          hasResult: !!result,
-          hasEnergyProfile: !!energyProfile
-        });
-        return shouldShowResult;
-      })() ? (
-        <div
-          className="result-full-page"
-          onClick={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onResultStateChange) {
-                onResultStateChange(false);
-              }
-              if (onBack) onBack();
-            }}
-            className="back-button"
-            style={{ position: 'fixed', top: '40px', left: '40px', zIndex: 101 }}
-          >
-            <ChevronLeft size={24} color="rgba(255, 255, 255, 0.95)" />
-          </button>
-          <div className="result-content">
-            <div className="result-profile-id">
-              ID {result.profileId}
-            </div>
-            <div className="result-label">
-              {energyProfile.tagName}
-            </div>
-            <div className="result-message">
-              {result.message}
-            </div>
-
-            {report && (
-              <div className="report-container">
-                <ReportSection
-                  title="核心综述"
-                  icon={<FileText size={20} />}
-                  summary={report.coreSummary.summary}
-                  summaryColor="rgba(255, 100, 100, 0.95)"
-                  defaultExpanded={true}
-                >
-                  <div className="report-detail-content">
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">情绪画像</div>
-                      <div style={{ marginTop: '8px' }}>
-                        {report.coreSummary.details.profile}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">发声源定位</div>
-                      <div style={{ marginTop: '8px' }}>
-                        {report.coreSummary.details.sourceAnalysis}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">声音质地</div>
-                      <div style={{ marginTop: '8px' }}>
-                        {report.coreSummary.details.qualityAnalysis}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">能量相位</div>
-                      <div style={{ marginTop: '8px' }}>
-                        {report.coreSummary.details.phaseAnalysis}
-                      </div>
-                    </div>
-                  </div>
-                </ReportSection>
-
-                <ReportSection
-                  title="脉轮能量"
-                  icon={<Activity size={20} />}
-                  summary={report.chakraAnalysis.summary}
-                  summaryColor="rgba(100, 220, 100, 0.95)"
-                >
-                  <div className="report-detail-content">
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">物理计算公式</div>
-                      <div className="report-formula">
-                        {report.chakraAnalysis.details.formula}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">优势脉轮</div>
-                      <div style={{ marginTop: '8px' }}>
-                        {report.chakraAnalysis.details.dominantChakra}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">缺口脉轮</div>
-                      <div style={{ marginTop: '8px' }}>
-                        {report.chakraAnalysis.details.gapChakras}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">完整能量分布</div>
-                      <div className="report-formula" style={{ borderColor: 'rgba(255, 200, 100, 0.3)', color: 'rgba(255, 200, 100, 0.95)' }}>
-                        {report.chakraAnalysis.details.distribution}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">能量流动解析</div>
-                      <div style={{ marginTop: '8px' }}>
-                        {report.chakraAnalysis.details.energyFlow}
-                      </div>
-                    </div>
-                  </div>
-                </ReportSection>
-
-                <ReportSection
-                  title="脏腑调理"
-                  icon={<Heart size={20} />}
-                  summary={report.organTherapy.summary}
-                  summaryColor="rgba(100, 180, 255, 0.95)"
-                >
-                  <div className="report-detail-content">
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">主要调理目标</div>
-                      <div style={{ marginTop: '8px' }}>
-                        {report.organTherapy.details.primaryOrgan}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">次要调理目标</div>
-                      <div style={{ marginTop: '8px' }}>
-                        {report.organTherapy.details.secondaryOrgan}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">调理建议</div>
-                      <ul className="report-list">
-                        {report.organTherapy.details.recommendations.map((rec, index) => (
-                          <li key={index}>{rec}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </ReportSection>
-
-                <ReportSection
-                  title="行动红黑榜"
-                  icon={<ListChecks size={20} />}
-                  summary={report.actionPlan.summary}
-                  summaryColor="rgba(255, 180, 80, 0.95)"
-                >
-                  <div className="report-detail-content">
-                    <div className="report-subsection">
-                      <div className="report-subsection-title" style={{ color: 'rgba(100, 220, 120, 0.95)' }}>
-                        ✓ 建议多做
-                      </div>
-                      <ul className="report-list do-list">
-                        {report.actionPlan.details.doList.map((item, index) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title" style={{ color: 'rgba(255, 100, 100, 0.95)' }}>
-                        ✗ 建议避免
-                      </div>
-                      <ul className="report-list avoid-list">
-                        {report.actionPlan.details.avoidList.map((item, index) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </ReportSection>
-
-                <ReportSection
-                  title="能量补给站"
-                  icon={<Music size={20} />}
-                  summary={report.healingStation.summary}
-                  summaryColor="rgba(200, 150, 255, 0.95)"
-                  customContent={
-                    <HealingStation
-                      frequencyHz={report.healingStation.details.recommendedFrequency}
-                      chakraName={report.healingStation.details.chakraTarget}
-                    />
-                  }
-                >
-                  <div className="report-detail-content">
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">推荐频率</div>
-                      <div className="report-formula" style={{ borderColor: 'rgba(200, 150, 255, 0.3)', color: 'rgba(200, 150, 255, 0.95)' }}>
-                        {report.healingStation.details.recommendedFrequency}Hz → {report.healingStation.details.chakraTarget}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">为什么选择这个频率</div>
-                      <div style={{ marginTop: '8px' }}>
-                        {report.healingStation.details.reason}
-                      </div>
-                    </div>
-
-                    <div className="report-subsection">
-                      <div className="report-subsection-title">使用指南</div>
-                      <ul className="report-list">
-                        {report.healingStation.details.howToUse.map((instruction, index) => (
-                          <li key={index}>{instruction}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </ReportSection>
-              </div>
-            )}
-
-            <div className="hope-note" style={{ marginTop: '32px' }}>
-              {energyProfile.hopeNote}
-            </div>
-
-            <div className="result-action-buttons">
-              <button onClick={handleRestart} className="restart-button secondary">
-                <RotateCcw size={18} />
-                <span>重新测试</span>
-              </button>
-              <button onClick={(e) => {
-                e.stopPropagation();
-                if (onBack) onBack();
-              }} className="restart-button primary">
-                <span>完成</span>
-              </button>
-            </div>
-          </div>
-        </div>
+      {recordingState === 'result' && result ? (
+        <VoiceResults
+          result={result}
+          onPlayAudio={handlePlayAudio}
+          onBack={handleBackFromResult}
+        />
       ) : (
         <div className="content-container">
           {showNoiseWarning && (
@@ -1008,37 +746,40 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
           50% { opacity: 1; }
         }
 
-        .result-full-page {
+        .noise-warning-overlay {
           position: fixed;
           inset: 0;
-          z-index: 100;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-          animation: resultPageFadeIn 0.8s ease-out;
+          z-index: 200;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(0, 0, 0, 0.8);
+          backdrop-filter: blur(10px);
+          animation: fadeIn 0.3s ease-out;
         }
 
-        @keyframes resultPageFadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        .result-content {
-          max-width: 600px;
-          width: 100%;
-          margin: 0 auto;
-          padding: 80px 40px 120px;
+        .noise-warning-modal {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(30px);
+          border-radius: 24px;
+          border: 2px solid rgba(255, 184, 0, 0.3);
+          padding: 40px;
+          max-width: 400px;
+          margin: 0 24px;
           text-align: center;
-          animation: resultContentSlideIn 0.8s ease-out;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+          animation: modalSlideUp 0.4s ease-out;
         }
 
-        @keyframes resultContentSlideIn {
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes modalSlideUp {
           from {
             opacity: 0;
-            transform: translateY(30px);
+            transform: translateY(20px);
           }
           to {
             opacity: 1;
@@ -1046,394 +787,49 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
           }
         }
 
-        .result-profile-id {
-          color: rgba(255, 255, 255, 0.7);
-          font-size: 14px;
-          font-weight: 300;
-          letter-spacing: 0.3em;
-          font-family: 'Noto Serif SC', serif;
+        .noise-warning-icon {
           margin-bottom: 20px;
-          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .result-label {
-          color: rgba(255, 255, 255, 0.98);
-          font-size: 36px;
-          font-weight: 200;
-          letter-spacing: 0.3em;
-          font-family: 'Noto Serif SC', serif;
-          text-shadow:
-            0 0 40px rgba(200, 220, 255, 0.6),
-            0 4px 20px rgba(0, 0, 0, 0.5);
-          margin-bottom: 32px;
-        }
-
-        .result-message {
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 17px;
-          font-weight: 300;
-          line-height: 2.2;
-          letter-spacing: 0.12em;
-          font-family: 'Noto Serif SC', serif;
-          padding: 0 40px;
-          text-shadow: 0 2px 15px rgba(0, 0, 0, 0.6);
-          margin-bottom: 48px;
-        }
-
-        .result-details {
-          margin: 48px auto;
-          padding: 32px;
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(30px);
-          border-radius: 20px;
-          border: 1.5px solid rgba(200, 220, 255, 0.2);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
           display: flex;
-          flex-direction: column;
-          gap: 24px;
-        }
-
-        .detail-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 16px 0;
-          border-bottom: 1px solid rgba(200, 220, 255, 0.1);
-        }
-
-        .detail-item:last-child {
-          border-bottom: none;
-        }
-
-        .detail-label {
-          color: rgba(200, 220, 255, 0.7);
-          font-size: 14px;
-          font-weight: 300;
-          letter-spacing: 0.2em;
-          font-family: 'Noto Serif SC', serif;
-        }
-
-        .detail-value {
-          color: rgba(255, 255, 255, 0.95);
-          font-size: 15px;
-          font-weight: 300;
-          letter-spacing: 0.15em;
-          font-family: 'Noto Serif SC', serif;
-          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .result-action-buttons {
-          display: flex;
-          gap: 16px;
           justify-content: center;
-          margin-top: 32px;
         }
 
-        .restart-button {
-          display: inline-flex;
-          align-items: center;
-          gap: 12px;
-          padding: 18px 48px;
-          font-size: 16px;
-          font-weight: 300;
-          letter-spacing: 0.2em;
-          font-family: 'Noto Serif SC', serif;
+        .noise-warning-title {
           color: rgba(255, 255, 255, 0.95);
-          background: rgba(255, 255, 255, 0.08);
-          backdrop-filter: blur(30px);
-          border: 2px solid rgba(200, 220, 255, 0.4);
-          border-radius: 50px;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 0 30px rgba(200, 220, 255, 0.2);
-        }
-
-        .restart-button.primary {
-          background: linear-gradient(135deg, rgba(247, 231, 206, 0.2), rgba(235, 200, 98, 0.15));
-          border-color: rgba(247, 231, 206, 0.6);
-          box-shadow: 0 0 30px rgba(247, 231, 206, 0.3);
-        }
-
-        .restart-button.primary:hover {
-          background: linear-gradient(135deg, rgba(247, 231, 206, 0.3), rgba(235, 200, 98, 0.25));
-          border-color: rgba(247, 231, 206, 0.9);
-          transform: scale(1.05);
-          box-shadow: 0 0 50px rgba(247, 231, 206, 0.5);
-        }
-
-        .restart-button.secondary:hover {
-          background: rgba(200, 220, 255, 0.15);
-          border-color: rgba(200, 220, 255, 0.7);
-          transform: scale(1.05);
-          box-shadow: 0 0 50px rgba(200, 220, 255, 0.4);
-        }
-
-        .report-container {
-          margin-top: 32px;
-          width: 100%;
-        }
-
-        .energy-flow-hint {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          margin: 24px 0;
-          padding: 12px 24px;
-          color: rgba(255, 220, 150, 0.9);
-          font-size: 13px;
-          font-weight: 300;
-          letter-spacing: 0.1em;
-          font-family: 'Noto Serif SC', serif;
-          background: rgba(255, 220, 100, 0.08);
-          backdrop-filter: blur(20px);
-          border-radius: 20px;
-          border: 1px solid rgba(255, 220, 100, 0.2);
-          animation: flowHintGlow 3s ease-in-out infinite;
-        }
-
-        @keyframes flowHintGlow {
-          0%, 100% {
-            box-shadow: 0 0 20px rgba(255, 220, 100, 0.2);
-          }
-          50% {
-            box-shadow: 0 0 35px rgba(255, 220, 100, 0.4);
-          }
-        }
-
-        .frequency-distribution-card {
-          background: rgba(255, 255, 255, 0.06);
-          backdrop-filter: blur(30px);
-          border-radius: 16px;
-          border: 1.5px solid rgba(200, 220, 255, 0.15);
-          padding: 24px;
-          margin: 24px 0;
-          text-align: left;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .frequency-card-header {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 20px;
-          color: rgba(200, 220, 255, 0.9);
-          font-size: 15px;
+          font-size: 20px;
           font-weight: 400;
-          letter-spacing: 0.15em;
+          letter-spacing: 0.2em;
           font-family: 'Noto Serif SC', serif;
+          margin-bottom: 16px;
         }
 
-        .frequency-bars {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .frequency-bar-item {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .frequency-bar-label {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+        .noise-warning-message {
           color: rgba(255, 255, 255, 0.8);
-          font-size: 13px;
-          font-weight: 300;
-          letter-spacing: 0.1em;
-          font-family: 'Noto Serif SC', serif;
-        }
-
-        .frequency-percentage {
-          color: rgba(200, 220, 255, 0.9);
-          font-weight: 400;
-        }
-
-        .frequency-bar-track {
-          width: 100%;
-          height: 8px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 4px;
-          overflow: hidden;
-        }
-
-        .frequency-bar-fill {
-          height: 100%;
-          border-radius: 4px;
-          transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .root-bar {
-          background: linear-gradient(90deg, rgba(200, 50, 50, 0.8), rgba(230, 80, 80, 0.9));
-          box-shadow: 0 0 15px rgba(200, 50, 50, 0.5);
-        }
-
-        .sacral-bar {
-          background: linear-gradient(90deg, rgba(255, 120, 50, 0.8), rgba(255, 150, 80, 0.9));
-          box-shadow: 0 0 15px rgba(255, 120, 50, 0.5);
-        }
-
-        .solar-bar {
-          background: linear-gradient(90deg, rgba(255, 200, 50, 0.8), rgba(255, 220, 100, 0.9));
-          box-shadow: 0 0 15px rgba(255, 200, 50, 0.5);
-        }
-
-        .heart-bar {
-          background: linear-gradient(90deg, rgba(100, 220, 100, 0.8), rgba(120, 240, 120, 0.9));
-          box-shadow: 0 0 15px rgba(100, 220, 100, 0.5);
-        }
-
-        .throat-bar {
-          background: linear-gradient(90deg, rgba(80, 160, 255, 0.8), rgba(120, 190, 255, 0.9));
-          box-shadow: 0 0 15px rgba(80, 160, 255, 0.5);
-        }
-
-        .thirdeye-bar {
-          background: linear-gradient(90deg, rgba(100, 100, 200, 0.8), rgba(130, 130, 230, 0.9));
-          box-shadow: 0 0 15px rgba(100, 100, 200, 0.5);
-        }
-
-        .crown-bar {
-          background: linear-gradient(90deg, rgba(200, 150, 255, 0.8), rgba(220, 180, 255, 0.9));
-          box-shadow: 0 0 15px rgba(200, 150, 255, 0.5);
-        }
-
-        .healing-station-card {
-          background: rgba(255, 255, 255, 0.06);
-          backdrop-filter: blur(30px);
-          border-radius: 16px;
-          border: 1.5px solid rgba(255, 200, 100, 0.2);
-          padding: 24px;
-          margin: 24px 0;
-          text-align: left;
-          box-shadow: 0 4px 20px rgba(255, 200, 100, 0.15);
-        }
-
-        .healing-station-header {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 16px;
-          color: rgba(255, 220, 150, 0.9);
           font-size: 15px;
-          font-weight: 400;
-          letter-spacing: 0.15em;
-          font-family: 'Noto Serif SC', serif;
-        }
-
-        .healing-station-content {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .recommended-frequency {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .frequency-badge {
-          display: inline-block;
-          padding: 10px 20px;
-          background: linear-gradient(135deg, rgba(255, 200, 100, 0.2), rgba(255, 220, 150, 0.15));
-          border: 1px solid rgba(255, 220, 150, 0.3);
-          border-radius: 20px;
-          color: rgba(255, 240, 200, 0.95);
-          font-size: 14px;
-          font-weight: 400;
-          letter-spacing: 0.1em;
-          font-family: 'Noto Serif SC', serif;
-          box-shadow: 0 2px 10px rgba(255, 200, 100, 0.2);
-        }
-
-        .frequency-reason {
-          color: rgba(255, 255, 255, 0.85);
-          font-size: 14px;
           font-weight: 300;
           line-height: 2;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.1em;
           font-family: 'Noto Serif SC', serif;
-          text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+          margin-bottom: 24px;
         }
 
-        .energy-flow-card {
-          background: rgba(255, 255, 255, 0.06);
-          backdrop-filter: blur(30px);
-          border-radius: 16px;
-          border: 1.5px solid rgba(200, 220, 255, 0.15);
-          padding: 24px;
-          margin: 24px 0;
-          text-align: left;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .energy-flow-header {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 16px;
-          color: rgba(200, 220, 255, 0.9);
-          font-size: 15px;
-          font-weight: 400;
-          letter-spacing: 0.15em;
-          font-family: 'Noto Serif SC', serif;
-        }
-
-        .energy-flow-content {
-          white-space: pre-line;
-          color: rgba(255, 255, 255, 0.85);
-          font-size: 14px;
-          font-weight: 300;
-          line-height: 2;
-          letter-spacing: 0.08em;
-          font-family: 'Noto Serif SC', serif;
-          text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
-        }
-
-        .hope-note {
-          margin: 32px 0;
-          padding: 24px 32px;
-          color: rgba(255, 240, 200, 0.95);
+        .noise-warning-button {
+          padding: 14px 40px;
+          background: rgba(255, 184, 0, 0.2);
+          border: 2px solid rgba(255, 184, 0, 0.5);
+          border-radius: 50px;
+          color: rgba(255, 220, 100, 0.95);
           font-size: 15px;
           font-weight: 300;
-          line-height: 2.2;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.2em;
           font-family: 'Noto Serif SC', serif;
-          background: linear-gradient(
-            135deg,
-            rgba(255, 220, 100, 0.12) 0%,
-            rgba(200, 220, 255, 0.08) 100%
-          );
-          backdrop-filter: blur(25px);
-          border-radius: 16px;
-          border: 1px solid rgba(255, 220, 150, 0.2);
-          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-          box-shadow: 0 4px 20px rgba(255, 220, 100, 0.15);
+          cursor: pointer;
+          transition: all 0.3s ease;
         }
 
-        @media (max-width: 640px) {
-          .result-content {
-            padding: 0 20px;
-          }
-
-          .result-label {
-            font-size: 28px;
-          }
-
-          .healing-card {
-            padding: 20px;
-          }
-
-          .hope-note {
-            padding: 20px 24px;
-            font-size: 14px;
-          }
+        .noise-warning-button:hover {
+          background: rgba(255, 184, 0, 0.3);
+          border-color: rgba(255, 184, 0, 0.7);
+          transform: scale(1.05);
         }
       `}</style>
     </div>
