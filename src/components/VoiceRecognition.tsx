@@ -10,11 +10,12 @@ import HealingStation from './HealingStation';
 interface VoiceRecognitionProps {
   onBack?: () => void;
   onNext?: () => void;
+  onResultStateChange?: (isShowingResult: boolean) => void;
 }
 
 type RecordingState = 'idle' | 'recording' | 'analyzing' | 'result';
 
-export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionProps) {
+export default function VoiceRecognition({ onBack, onNext, onResultStateChange }: VoiceRecognitionProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [audioLevel, setAudioLevel] = useState(0);
   const [result, setResult] = useState<VoiceAnalysisResult | null>(null);
@@ -134,6 +135,9 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
 
         setRecordingState('result');
         setRippleScale(1);
+        if (onResultStateChange) {
+          onResultStateChange(true);
+        }
       }, 2000);
 
     } catch (error) {
@@ -217,6 +221,9 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
     setResult(null);
     setEnergyProfile(null);
     setRippleScale(1);
+    if (onResultStateChange) {
+      onResultStateChange(false);
+    }
   };
 
   const getBreathingScale = () => {
@@ -256,6 +263,9 @@ export default function VoiceRecognition({ onBack, onNext }: VoiceRecognitionPro
           <button
             onClick={(e) => {
               e.stopPropagation();
+              if (onResultStateChange) {
+                onResultStateChange(false);
+              }
               if (onBack) onBack();
             }}
             className="back-button"

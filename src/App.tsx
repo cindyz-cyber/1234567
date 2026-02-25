@@ -42,6 +42,7 @@ function App() {
   const [isPremium, setIsPremium] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
+  const [isShowingVoiceResult, setIsShowingVoiceResult] = useState(false);
   const [journeyData, setJourneyData] = useState<JourneyData>({
     emotions: [],
     bodyStates: [],
@@ -283,7 +284,12 @@ function App() {
 
       {currentTab === 'voice' && currentStep === 'voice' && (
         <VoiceRecognition
-          onBack={() => setCurrentTab('breath')}
+          onBack={() => {
+            setCurrentTab('breath');
+            setCurrentStep('home');
+            setIsShowingVoiceResult(false);
+          }}
+          onResultStateChange={(isShowingResult) => setIsShowingVoiceResult(isShowingResult)}
         />
       )}
 
@@ -302,7 +308,9 @@ function App() {
 
       {currentTab === 'admin' && isAdmin && <AdminPanel />}
 
-      <Navigation currentTab={currentTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
+      {!isShowingVoiceResult && (
+        <Navigation currentTab={currentTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
+      )}
 
       {showPremiumModal && (
         <PremiumModal
