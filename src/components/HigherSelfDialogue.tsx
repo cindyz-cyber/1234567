@@ -17,16 +17,9 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
   const [isTyping, setIsTyping] = useState(false);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(incomingBackgroundMusic || null);
   const [isMusicPlaying, setIsMusicPlaying] = useState(!!incomingBackgroundMusic);
-  const [showEntrance, setShowEntrance] = useState(true);
+  const [rippleTriggered, setRippleTriggered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowEntrance(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     if (response.length > displayedResponse.length) {
@@ -56,12 +49,28 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
   const handleSubmit = () => {
     if (response.trim()) {
-      onComplete(response.trim(), backgroundMusic);
+      setRippleTriggered(true);
+      setTimeout(() => {
+        onComplete(response.trim(), backgroundMusic);
+      }, 800);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
+      <div className="home-background-layer">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="home-background-video"
+        >
+          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
+        </video>
+        <div className="home-background-overlay" />
+      </div>
+
       <div className="portal-video-container">
         <video
           ref={videoRef}
@@ -74,9 +83,9 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           <source src="https://cdn.midjourney.com/video/7e901a1c-929f-466d-8def-ac47f9d0c15b/3.mp4" type="video/mp4" />
         </video>
 
-        <div className="portal-particles" />
+        <div className="portal-glow-effect" />
 
-        <div className="video-gradient-mask" />
+        <div className="mesh-gradient-transition" />
       </div>
 
       {onBack && (
@@ -99,7 +108,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
             亲爱的 <span className="user-name-highlight">{userName}</span>，下面是我想对你说的话：
           </h2>
 
-          <div className="glassmorphic-dialogue-box">
+          <div className="zen-dialogue-box">
             <textarea
               ref={textareaRef}
               value={response}
@@ -108,6 +117,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
               placeholder="倾听内在的声音..."
               autoFocus
             />
+            <div className="breathing-cursor" />
           </div>
 
           <div className="mt-8">
@@ -117,6 +127,8 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           </div>
         </div>
       </div>
+
+      {rippleTriggered && <div className="completion-ripple" />}
 
       <button
         onClick={toggleBackgroundMusic}
@@ -149,65 +161,101 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
       </button>
 
       <style>{`
-        .portal-video-container {
+        .home-background-layer {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: -1;
+          overflow: hidden;
+        }
+
+        .home-background-video {
           position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          filter: brightness(0.9) contrast(1.1) saturate(1.05);
+        }
+
+        .home-background-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgba(10, 31, 28, 0.25) 66.666vh,
+            rgba(4, 20, 18, 0.5) 100%
+          );
+        }
+
+        .portal-video-container {
+          position: fixed;
           top: 0;
           left: 0;
           width: 100%;
           height: 33.333vh;
           overflow: hidden;
-          z-index: 0;
+          z-index: 1;
         }
 
         .portal-video {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          filter: brightness(0.8) contrast(1.1) saturate(1.2);
+          filter: brightness(0.95) contrast(1.05) saturate(1.15);
         }
 
-        .portal-particles {
+        .portal-glow-effect {
           position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
+          bottom: -60px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 120%;
+          height: 120px;
           background: radial-gradient(
-            circle at center,
-            transparent 0%,
-            transparent 40%,
-            rgba(255, 255, 255, 0.03) 60%,
-            rgba(255, 255, 255, 0.05) 80%,
-            transparent 100%
+            ellipse at center,
+            rgba(168, 218, 181, 0.25) 0%,
+            rgba(144, 198, 149, 0.15) 30%,
+            rgba(120, 178, 117, 0.08) 50%,
+            transparent 70%
           );
-          animation: particleConverge 8s ease-in-out infinite;
+          filter: blur(40px);
           pointer-events: none;
+          animation: portalGlowPulse 4s ease-in-out infinite;
         }
 
-        @keyframes particleConverge {
+        @keyframes portalGlowPulse {
           0%, 100% {
-            transform: scale(1);
-            opacity: 0.3;
+            opacity: 0.6;
+            transform: translateX(-50%) scale(1);
           }
           50% {
-            transform: scale(0.95);
-            opacity: 0.6;
+            opacity: 0.9;
+            transform: translateX(-50%) scale(1.1);
           }
         }
 
-        .video-gradient-mask {
+        .mesh-gradient-transition {
           position: absolute;
           bottom: 0;
           left: 0;
           width: 100%;
-          height: 60%;
+          height: 40%;
           background: linear-gradient(
-            to bottom,
+            180deg,
             transparent 0%,
-            rgba(10, 15, 25, 0.3) 20%,
-            rgba(10, 15, 25, 0.7) 50%,
-            rgba(10, 15, 25, 0.95) 80%,
-            #0A0F19 100%
+            rgba(168, 218, 181, 0.03) 20%,
+            rgba(144, 198, 149, 0.05) 40%,
+            rgba(120, 178, 117, 0.06) 60%,
+            rgba(96, 158, 93, 0.08) 80%,
+            rgba(10, 31, 28, 0.3) 100%
           );
           pointer-events: none;
         }
@@ -217,76 +265,155 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           z-index: 10;
           min-height: 100vh;
           padding-top: 33.333vh;
-          background: linear-gradient(
-            to bottom,
-            transparent 0%,
-            #0A0F19 10%
-          );
         }
 
         .dialogue-inner {
           max-width: 600px;
           margin: 0 auto;
-          padding: 48px 24px 80px;
+          padding: 80px 24px 100px;
         }
 
         .dialogue-greeting {
           color: #F7E7CE;
           font-size: 20px;
           font-weight: 300;
-          letter-spacing: 0.08em;
-          line-height: 1.8;
+          letter-spacing: 0.1em;
+          line-height: 2;
           text-align: center;
-          margin-bottom: 40px;
-          text-shadow: 0 2px 20px rgba(247, 231, 206, 0.4);
-          font-family: 'STSong', 'Songti SC', 'SimSun', serif;
+          margin-bottom: 60px;
+          text-shadow: 0 2px 30px rgba(247, 231, 206, 0.3);
+          font-family: 'Noto Serif SC', 'STSong', 'Songti SC', serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
         }
 
         .user-name-highlight {
-          color: #EBC862;
+          color: #D4C5A0;
           font-weight: 400;
-          letter-spacing: 0.12em;
-          text-shadow: 0 0 25px rgba(235, 200, 98, 0.5);
+          letter-spacing: 0.15em;
+          text-shadow: 0 0 20px rgba(212, 197, 160, 0.4);
         }
 
-        .glassmorphic-dialogue-box {
-          background: rgba(15, 20, 35, 0.4);
-          backdrop-filter: blur(40px);
-          border: 1px solid rgba(247, 231, 206, 0.1);
-          border-radius: 16px;
-          padding: 32px;
-          box-shadow:
-            0 8px 32px rgba(0, 0, 0, 0.3),
-            inset 0 1px 0 rgba(255, 255, 255, 0.05);
-          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        .zen-dialogue-box {
+          position: relative;
+          background: transparent;
+          border: 0.5px solid rgba(168, 218, 181, 0.15);
+          border-radius: 2px;
+          padding: 40px;
+          box-shadow: inset 0 0 60px rgba(168, 218, 181, 0.02);
+          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .glassmorphic-dialogue-box:focus-within {
-          border-color: rgba(235, 200, 98, 0.3);
-          box-shadow:
-            0 8px 40px rgba(235, 200, 98, 0.15),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        .zen-dialogue-box::before {
+          content: '';
+          position: absolute;
+          inset: -1px;
+          border-radius: 2px;
+          padding: 1px;
+          background: linear-gradient(
+            135deg,
+            rgba(168, 218, 181, 0.2),
+            rgba(144, 198, 149, 0.1),
+            rgba(120, 178, 117, 0.05),
+            transparent
+          );
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          opacity: 0;
+          transition: opacity 0.8s ease;
+        }
+
+        .zen-dialogue-box:focus-within::before {
+          opacity: 1;
         }
 
         .dialogue-textarea-input {
           width: 100%;
-          min-height: 280px;
+          min-height: 320px;
           background: transparent;
           border: none;
           outline: none;
-          color: #E0E0D0;
+          color: #E8E8DC;
           font-size: 17px;
           font-weight: 300;
-          line-height: 1.9;
-          letter-spacing: 0.03em;
-          font-family: 'STSong', 'Songti SC', 'SimSun', serif;
+          line-height: 2;
+          letter-spacing: 0.05em;
+          font-family: 'Noto Serif SC', 'STSong', 'Songti SC', serif;
           resize: none;
-          transition: all 0.4s ease;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          caret-color: transparent;
+          text-shadow: 0 0 1px rgba(232, 232, 220, 0.1);
+          animation: textAppear 0.3s ease-out;
+        }
+
+        @keyframes textAppear {
+          0% {
+            filter: blur(4px);
+            opacity: 0;
+          }
+          100% {
+            filter: blur(0);
+            opacity: 1;
+          }
         }
 
         .dialogue-textarea-input::placeholder {
-          color: rgba(224, 224, 208, 0.25);
-          letter-spacing: 0.05em;
+          color: rgba(232, 232, 220, 0.2);
+          letter-spacing: 0.08em;
+        }
+
+        .breathing-cursor {
+          position: absolute;
+          width: 2px;
+          height: 20px;
+          background: rgba(168, 218, 181, 0.6);
+          bottom: 40px;
+          left: 40px;
+          animation: breathingCursor 2s ease-in-out infinite;
+          pointer-events: none;
+          filter: blur(0.5px);
+        }
+
+        @keyframes breathingCursor {
+          0%, 100% {
+            opacity: 0;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+
+        .completion-ripple {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: radial-gradient(
+            circle at center,
+            rgba(168, 218, 181, 0.15) 0%,
+            rgba(144, 198, 149, 0.1) 30%,
+            transparent 60%
+          );
+          animation: completionRippleExpand 1.2s ease-out forwards;
+          pointer-events: none;
+          z-index: 1000;
+        }
+
+        @keyframes completionRippleExpand {
+          0% {
+            transform: scale(0);
+            opacity: 0;
+          }
+          30% {
+            opacity: 1;
+          }
+          100% {
+            transform: scale(3);
+            opacity: 0;
+          }
         }
 
         .audio-toggle:hover {
@@ -299,18 +426,28 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
         }
 
         @media (max-width: 640px) {
-          .dialogue-greeting {
-            font-size: 18px;
-            padding: 0 16px;
+          .dialogue-inner {
+            padding: 60px 20px 80px;
           }
 
-          .glassmorphic-dialogue-box {
-            padding: 24px;
+          .dialogue-greeting {
+            font-size: 18px;
+            padding: 0 12px;
+            margin-bottom: 48px;
+          }
+
+          .zen-dialogue-box {
+            padding: 28px 20px;
           }
 
           .dialogue-textarea-input {
             font-size: 16px;
-            min-height: 240px;
+            min-height: 280px;
+          }
+
+          .breathing-cursor {
+            bottom: 28px;
+            left: 20px;
           }
         }
       `}</style>
