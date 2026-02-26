@@ -1,4 +1,5 @@
 import { ChakraEnergy } from './voiceAnalysis';
+import { generatePoeticName, generateEnhancedDescription } from './namingProtocol';
 
 interface ChakraInfo {
   name: string;
@@ -172,19 +173,17 @@ export function generateDynamicPrototype(
   const gapChakras = getGapChakras(chakraEnergy);
 
   const chakraInfo = CHAKRA_MATRIX[dominantChakra];
-  const textureInfo = TEXTURE_DESCRIPTORS[quality];
-  const phaseInfo = PHASE_DESCRIPTORS[mappedPhase];
   const gapChakraInfo = CHAKRA_MATRIX[gapChakras[0]];
 
-  const tagName = `${chakraInfo.colorDesc}·${textureInfo.personality}·${phaseInfo.identity}`;
+  const poeticNaming = generatePoeticName(chakraEnergy, mappedPhase, quality);
+  const tagName = poeticNaming.tagName;
+  const description = poeticNaming.summary;
 
   const id = `DYN${Math.floor(dominantFrequency)}`;
 
-  const description = `物理定义：核心频率${dominantFrequency.toFixed(0)}Hz(${chakraInfo.name})，${textureInfo.quality}，${phaseInfo.direction}。体感意义：${phaseInfo.strength}，${chakraInfo.element}元素主导。`;
-
   const organs = `${chakraInfo.organs.slice(0, 2).join('、')}功能活跃，${gapChakraInfo.organs[0]}需关注`;
 
-  const advice = `${phaseInfo.advice}，${textureInfo.quality.includes('防御') ? '通过温润方式化解能量紧张' : '保持当前能量流动'}。`;
+  const advice = description;
 
   const doList = generateDoList(dominantChakra, mappedPhase, quality);
   const dontList = generateDontList(dominantChakra, mappedPhase, quality);
@@ -193,7 +192,7 @@ export function generateDynamicPrototype(
 
   const harmonicRichness = calculateRichness(chakraEnergy);
 
-  const somaticSensation = `${chakraInfo.name}能量${chakraEnergy[dominantChakra] > 0.8 ? '极强' : '强'}，${gapChakraInfo.name}能量待提升，${textureInfo.quality}`;
+  const somaticSensation = description;
 
   return {
     id,
