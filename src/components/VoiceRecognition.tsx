@@ -97,7 +97,16 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
 
     try {
       audioChunksRef.current = [];
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // 【强制禁用所有音频预处理】Raw PCM 采集
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 1,
+          sampleRate: 48000 // 高采样率确保频率精度
+        }
+      });
 
       const audioContext = new AudioContext();
       audioContextRef.current = audioContext;

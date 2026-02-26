@@ -131,7 +131,7 @@ const ORGAN_MAPPING = {
 export class VoiceAnalyzer {
   private audioContext: AudioContext;
   private analyzer: AnalyserNode;
-  private fftSize: number = 2048; // Reduced from 8192 to fix performance issue
+  private fftSize: number = 4096; // 【修复】匹配第三方软件,提升频率分辨率
   private featureExtractor: any; // AcousticFeatureExtractor instance
 
   constructor() {
@@ -170,9 +170,19 @@ export class VoiceAnalyzer {
 
       // 【诊断模式】输出原始频谱分布
       const spectrumDiagnostics = this.analyzeSpectrumDistribution(frequencyData, audioBuffer.sampleRate);
+
+      // 【新增】提取Top 3 Peak Hz
+      const top3Peaks = this.findTop3Peaks(frequencyData, audioBuffer.sampleRate);
+
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('【开发者模式：频谱排查报告】');
+      console.log('【开发者模式：RAW PCM 频率采集报告】');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('');
+      console.log('🎯 TOP 3 峰值频率 (原始物理测量):');
+      console.log(`   Peak #1: ${top3Peaks[0].frequency}Hz (能量: ${top3Peaks[0].energy.toFixed(4)})`);
+      console.log(`   Peak #2: ${top3Peaks[1].frequency}Hz (能量: ${top3Peaks[1].energy.toFixed(4)})`);
+      console.log(`   Peak #3: ${top3Peaks[2].frequency}Hz (能量: ${top3Peaks[2].energy.toFixed(4)})`);
+      console.log('');
       console.log('📊 原始频谱分布 (Raw Spectrum):');
       console.log(`   100-200Hz: ${spectrumDiagnostics.bands['100-200Hz'].toFixed(2)}%`);
       console.log(`   200-300Hz: ${spectrumDiagnostics.bands['200-300Hz'].toFixed(2)}%`);
@@ -385,6 +395,34 @@ export class VoiceAnalyzer {
   }
 
   /**
+   * 【新增】查找Top 3峰值频率 - 原始物理测量
+   */
+  private findTop3Peaks(frequencyData: Float32Array, sampleRate: number): Array<{frequency: number, energy: number}> {
+    const fftSize = frequencyData.length * 2;
+    const peaks: Array<{frequency: number, energy: number, bin: number}> = [];
+
+    // 只分析100-1000Hz区间（人声核心频段）
+    const minBin = Math.floor((100 * fftSize) / sampleRate);
+    const maxBin = Math.floor((1000 * fftSize) / sampleRate);
+
+    // 收集所有峰值
+    for (let i = minBin; i < maxBin && i < frequencyData.length; i++) {
+      const frequency = Math.round((i * sampleRate) / fftSize);
+      const energy = frequencyData[i];
+      peaks.push({ frequency, energy, bin: i });
+    }
+
+    // 按能量排序
+    peaks.sort((a, b) => b.energy - a.energy);
+
+    // 返回Top 3
+    return peaks.slice(0, 3).map(p => ({
+      frequency: p.frequency,
+      energy: p.energy
+    }));
+  }
+
+  /**
    * 简化的FFT实现 - 提取频谱数据
    */
   /**
@@ -395,8 +433,10 @@ export class VoiceAnalyzer {
 
     // 计算各频段占比
     const getBandEnergy = (startHz: number, endHz: number) => {
-      const startIdx = Math.floor((startHz * frequencyData.length) / (sampleRate / 2));
-      const endIdx = Math.floor((endHz * frequencyData.length) / (sampleRate / 2));
+      // 【修复】正确的频率到bin映射
+      const fftSize = frequencyData.length * 2;
+      const startIdx = Math.floor((startHz * fftSize) / sampleRate);
+      const endIdx = Math.floor((endHz * fftSize) / sampleRate);
       let energy = 0;
       for (let i = startIdx; i < endIdx && i < frequencyData.length; i++) {
         energy += frequencyData[i];
@@ -416,10 +456,12 @@ export class VoiceAnalyzer {
     // 找主导频率
     let maxEnergy = 0;
     let dominantFrequency = 0;
+    const fftSize = frequencyData.length * 2;
     for (let i = 0; i < frequencyData.length; i++) {
       if (frequencyData[i] > maxEnergy) {
         maxEnergy = frequencyData[i];
-        dominantFrequency = Math.floor((i * sampleRate) / (2 * frequencyData.length));
+        // 【修复】bin到Hz正确公式
+        dominantFrequency = Math.floor((i * sampleRate) / fftSize);
       }
     }
 
@@ -505,21 +547,28 @@ export class VoiceAnalyzer {
   }
 
   private performSimpleFFT(audioData: Float32Array): Float32Array {
-    const fftSize = 2048;
+    const fftSize = 4096; // 【修复】使用4096匹配第三方软件
     const frequencyData = new Float32Array(fftSize / 2);
 
     // 取中间部分样本进行分析
     const startSample = Math.floor((audioData.length - fftSize) / 2);
     const segment = audioData.slice(startSample, startSample + fftSize);
 
-    // 简化的频谱能量计算（实际应用中会使用完整的FFT）
-    for (let i = 0; i < frequencyData.length; i++) {
-      let sum = 0;
-      const freqBin = i * 2;
-      for (let j = 0; j < segment.length; j += freqBin + 1) {
-        sum += Math.abs(segment[j]);
+    // 【修复】使用真正的DFT计算(简化版FFT)
+    // 对于人声关键频段(100-1000Hz),使用更精确的计算
+    for (let k = 0; k < frequencyData.length; k++) {
+      let real = 0;
+      let imag = 0;
+
+      // 对每个频率bin进行DFT计算
+      for (let n = 0; n < segment.length; n++) {
+        const angle = (-2 * Math.PI * k * n) / fftSize;
+        real += segment[n] * Math.cos(angle);
+        imag += segment[n] * Math.sin(angle);
       }
-      frequencyData[i] = sum / (segment.length / (freqBin + 1));
+
+      // 计算幅度
+      frequencyData[k] = Math.sqrt(real * real + imag * imag) / fftSize;
     }
 
     return frequencyData;
@@ -679,7 +728,10 @@ export class VoiceAnalyzer {
   }
 
   private getEnergyAtFrequency(fftData: Float32Array, frequency: number, sampleRate: number): number {
-    const binIndex = Math.round((frequency * fftData.length) / (sampleRate / 2));
+    // 【修复】正确的频率到bin的映射公式
+    // binIndex = (frequency * fftSize) / sampleRate
+    const fftSize = fftData.length * 2; // FFT输出是 fftSize/2
+    const binIndex = Math.round((frequency * fftSize) / sampleRate);
     const startBin = Math.max(0, binIndex - 3);
     const endBin = Math.min(fftData.length - 1, binIndex + 3);
 
@@ -692,11 +744,13 @@ export class VoiceAnalyzer {
   }
 
   private getEnergyInRange(fftData: Float32Array, minFreq: number, maxFreq: number, sampleRate: number): number {
-    const minBin = Math.round((minFreq * fftData.length) / (sampleRate / 2));
-    const maxBin = Math.round((maxFreq * fftData.length) / (sampleRate / 2));
+    // 【修复】正确的频率范围映射
+    const fftSize = fftData.length * 2;
+    const minBin = Math.round((minFreq * fftSize) / sampleRate);
+    const maxBin = Math.round((maxFreq * fftSize) / sampleRate);
 
     let energy = 0;
-    for (let i = minBin; i <= maxBin; i++) {
+    for (let i = minBin; i <= maxBin && i < fftData.length; i++) {
       energy += fftData[i] * fftData[i];
     }
 
@@ -754,20 +808,23 @@ export class VoiceAnalyzer {
     maxFreq: number,
     sampleRate: number
   ): number {
-    const minBin = Math.round((minFreq * fftData.length) / (sampleRate / 2));
-    const maxBin = Math.round((maxFreq * fftData.length) / (sampleRate / 2));
+    // 【修复】正确的bin到频率映射
+    const fftSize = fftData.length * 2;
+    const minBin = Math.round((minFreq * fftSize) / sampleRate);
+    const maxBin = Math.round((maxFreq * fftSize) / sampleRate);
 
     let peakBin = minBin;
-    let peakValue = fftData[minBin];
+    let peakValue = fftData[minBin] || 0;
 
-    for (let i = minBin; i <= maxBin; i++) {
+    for (let i = minBin; i <= maxBin && i < fftData.length; i++) {
       if (fftData[i] > peakValue) {
         peakValue = fftData[i];
         peakBin = i;
       }
     }
 
-    return Math.round((peakBin * sampleRate / 2) / fftData.length);
+    // 【修复】bin到Hz的正确公式: Hz = (bin * sampleRate) / fftSize
+    return Math.round((peakBin * sampleRate) / fftSize);
   }
 
   private determineSourceFromChakras(chakraEnergy: ChakraEnergy): 'brain' | 'throat' | 'heart' | 'lower' {
