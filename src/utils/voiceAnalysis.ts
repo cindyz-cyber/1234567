@@ -163,45 +163,65 @@ export class VoiceAnalyzer {
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
       console.log('[VoiceAnalyzer] Audio decoded, duration:', audioBuffer.duration);
 
-      // 2. Perform FFT analysis
-      const channelData = audioBuffer.getChannelData(0);
-      const frequencyData = this.performSimpleFFT(channelData);
-      console.log('[VoiceAnalyzer] FFT analysis complete');
+      // 2. 【重大修复】使用Web Audio API原生FFT
+      const { RealFFTAnalyzer } = await import('./realFFT');
+      const fftAnalyzer = new RealFFTAnalyzer(audioBuffer.sampleRate);
+      const fftResult = await fftAnalyzer.analyzeAudioBuffer(audioBuffer);
+      const frequencyData = fftResult.frequencyData;
+      const sampleRate = fftResult.sampleRate;
+      console.log('[VoiceAnalyzer] Native FFT analysis complete, bins:', frequencyData.length);
 
       // 【诊断模式】输出原始频谱分布
-      const spectrumDiagnostics = this.analyzeSpectrumDistribution(frequencyData, audioBuffer.sampleRate);
+      const spectrumDiagnostics = this.analyzeSpectrumDistribution(frequencyData, sampleRate);
 
-      // 【新增】提取Top 3 Peak Hz
-      const top3Peaks = this.findTop3Peaks(frequencyData, audioBuffer.sampleRate);
+      // 【新增】提取Top 5 Peak Hz (真正的峰值检测)
+      const topPeaks = fftAnalyzer.findTopPeaks(frequencyData, sampleRate, fftResult.fftSize, 5);
+
+      // 计算能量分布
+      const energyDist = fftAnalyzer.calculateEnergyDistribution(frequencyData, sampleRate, fftResult.fftSize);
+
+      // 频谱质心
+      const spectralCentroid = fftAnalyzer.calculateSpectralCentroid(frequencyData, sampleRate, fftResult.fftSize);
+
+      // 估算基频
+      const fundamentalFreq = fftAnalyzer.estimateFundamentalFrequency(fftResult.timeData, sampleRate);
+
+      fftAnalyzer.destroy();
 
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('【开发者模式：RAW PCM 频率采集报告】');
+      console.log('【Web Audio API 原生FFT分析报告】');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('');
-      console.log('🎯 TOP 3 峰值频率 (原始物理测量):');
-      console.log(`   Peak #1: ${top3Peaks[0].frequency}Hz (能量: ${top3Peaks[0].energy.toFixed(4)})`);
-      console.log(`   Peak #2: ${top3Peaks[1].frequency}Hz (能量: ${top3Peaks[1].energy.toFixed(4)})`);
-      console.log(`   Peak #3: ${top3Peaks[2].frequency}Hz (能量: ${top3Peaks[2].energy.toFixed(4)})`);
+      console.log('🎯 TOP 5 峰值频率 (局部最大值检测):');
+      topPeaks.forEach((peak, idx) => {
+        console.log(`   Peak #${idx + 1}: ${peak.frequency}Hz (幅度: ${peak.magnitude.toFixed(4)}, bin: ${peak.binIndex})`);
+      });
       console.log('');
-      console.log('📊 原始频谱分布 (Raw Spectrum):');
-      console.log(`   100-200Hz: ${spectrumDiagnostics.bands['100-200Hz'].toFixed(2)}%`);
-      console.log(`   200-300Hz: ${spectrumDiagnostics.bands['200-300Hz'].toFixed(2)}%`);
-      console.log(`   300-400Hz: ${spectrumDiagnostics.bands['300-400Hz'].toFixed(2)}%`);
-      console.log(`   400-500Hz: ${spectrumDiagnostics.bands['400-500Hz'].toFixed(2)}%`);
-      console.log(`   500-600Hz: ${spectrumDiagnostics.bands['500-600Hz'].toFixed(2)}%`);
-      console.log(`   600Hz+: ${spectrumDiagnostics.bands['600Hz+'].toFixed(2)}%`);
+      console.log('🎵 基频估算 (自相关法):');
+      console.log(`   F0 = ${fundamentalFreq}Hz`);
       console.log('');
-      console.log('🎯 基频偏移检查:');
-      console.log(`   检测到的主导频率: ${spectrumDiagnostics.dominantFrequency}Hz`);
-      console.log(`   260Hz附近能量: ${spectrumDiagnostics.energy260Hz.toFixed(2)}%`);
-      console.log(`   432Hz附近能量: ${spectrumDiagnostics.energy432Hz.toFixed(2)}%`);
-      console.log(`   是否为低频主导: ${spectrumDiagnostics.isLowFreqDominant ? '✓ 是' : '✗ 否'}`);
+      console.log('📊 绝对能量分布 (能量单位):');
+      const totalE = energyDist.totalEnergy;
+      console.log(`   Sub-Bass (20-60Hz):    ${(energyDist.bands['sub-bass'] / totalE * 100).toFixed(2)}%`);
+      console.log(`   Bass (60-250Hz):       ${(energyDist.bands['bass'] / totalE * 100).toFixed(2)}% ← 男声基频区`);
+      console.log(`   Low-Mid (250-500Hz):   ${(energyDist.bands['low-mid'] / totalE * 100).toFixed(2)}% ← 女声基频区`);
+      console.log(`   Mid (500-2kHz):        ${(energyDist.bands['mid'] / totalE * 100).toFixed(2)}% ← 谐波区`);
+      console.log(`   High-Mid (2k-4kHz):    ${(energyDist.bands['high-mid'] / totalE * 100).toFixed(2)}%`);
+      console.log(`   Presence (4k-6kHz):    ${(energyDist.bands['presence'] / totalE * 100).toFixed(2)}%`);
+      console.log(`   Brilliance (6k-20kHz): ${(energyDist.bands['brilliance'] / totalE * 100).toFixed(2)}%`);
+      console.log('');
+      console.log(`   ✓ 主导频段: ${energyDist.dominantBand}`);
+      console.log('');
+      console.log('🌈 频谱质心 (声音亮度):');
+      console.log(`   Centroid = ${spectralCentroid.toFixed(1)}Hz`);
+      console.log('   (质心越高,声音越"亮";质心越低,声音越"暗")');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // 3. Extract chakra energy from frequency data (with weight adjustment)
+      const channelData = audioBuffer.getChannelData(0);
       const chakraEnergy = this.extractChakraEnergyWithDiagnostics(
         frequencyData,
-        audioBuffer.sampleRate,
+        sampleRate,
         spectrumDiagnostics
       );
 
@@ -354,7 +374,7 @@ export class VoiceAnalyzer {
 
       const detectionDetails = this.generateDetectionDetails(
         frequencyData,
-        audioBuffer.sampleRate,
+        sampleRate,
         chakraEnergy
       );
 
