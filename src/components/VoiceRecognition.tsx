@@ -16,7 +16,21 @@ interface VoiceRecognitionProps {
 type RecordingState = 'idle' | 'recording' | 'analyzing' | 'result';
 
 export default function VoiceRecognition({ onBack, onNext, onResultStateChange }: VoiceRecognitionProps) {
-  const [recordingState, setRecordingState] = useState<RecordingState>('idle');
+  // Lock ref must be declared first
+  const resultLockRef = useRef<boolean>(false);
+
+  const [recordingState, setRecordingStateInternal] = useState<RecordingState>('idle');
+
+  // Wrapped setState to protect against unwanted changes
+  const setRecordingState = (newState: RecordingState) => {
+    console.log('[VoiceRecognition] setRecordingState called with:', newState, 'locked:', resultLockRef.current);
+    if (resultLockRef.current && newState !== 'result') {
+      console.warn('[VoiceRecognition] BLOCKED state change from', recordingState, 'to', newState, '- result is locked');
+      console.trace('[VoiceRecognition] Stack trace for blocked state change');
+      return;
+    }
+    setRecordingStateInternal(newState);
+  };
 
   // Debug state changes
   useEffect(() => {
@@ -52,7 +66,6 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const voiceAnalyzerRef = useRef<VoiceAnalyzer | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioPreprocessorRef = useRef<AudioPreprocessor | null>(null);
-  const resultLockRef = useRef<boolean>(false); // Lock to prevent result state from being reset
 
   useEffect(() => {
     console.log('[VoiceRecognition] Component MOUNTED');
@@ -77,6 +90,11 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   }, []);
 
   const startRecording = async () => {
+    if (resultLockRef.current) {
+      console.log('[VoiceRecognition] Result is locked, ignoring startRecording call');
+      return;
+    }
+
     try {
       audioChunksRef.current = [];
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -328,6 +346,11 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   };
 
   const stopRecording = () => {
+    if (resultLockRef.current) {
+      console.log('[VoiceRecognition] Result is locked, ignoring stopRecording call');
+      return;
+    }
+
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
