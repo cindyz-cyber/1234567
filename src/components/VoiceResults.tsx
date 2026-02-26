@@ -26,14 +26,21 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
   const gapChakra = CHAKRA_COLORS[result.gapChakras[0]];
   const gapOrgans = result.organMapping[result.gapChakras[0]].join('、');
 
+  const prototypeColor = result.prototypeMatch?.color;
+  const displayColor = prototypeColor || dominantChakra.text;
+
   const tagName = result.prototypeMatch?.tagName || result.profileName;
 
   const statusMessage = result.prototypeMatch
     ? result.prototypeMatch.description.split('。')[0]
     : `您正处于${dominantChakra.name}通达的状态`;
 
-  const suggestionMessage = `关注${gapOrgans}的滋养平衡`;
+  const suggestionMessage = result.prototypeMatch?.advice || `关注${gapOrgans}的滋养平衡`;
   const benefitMessage = `建议补充${gapChakra.name}能量，补足后您将获得更完整的生命力`;
+
+  const overlayColor = prototypeColor
+    ? `${prototypeColor}33`
+    : gapChakra.bg.replace('0.08', '0.15');
 
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 relative overflow-y-auto">
@@ -51,7 +58,7 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
       <div
         className="chakra-overlay"
         style={{
-          background: `radial-gradient(circle at center, ${gapChakra.bg.replace('0.08', '0.15')} 0%, rgba(0, 0, 0, 0.6) 100%)`
+          background: `radial-gradient(circle at center, ${overlayColor} 0%, rgba(0, 0, 0, 0.6) 100%)`
         }}
       />
 
@@ -60,10 +67,10 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           <p
             className="text-2xl font-light text-center mb-4"
             style={{
-              color: dominantChakra.text,
+              color: displayColor,
               letterSpacing: '0.3em',
               fontFamily: 'Georgia, Times New Roman, serif',
-              textShadow: `0 0 25px ${dominantChakra.text}, 0 2px 10px rgba(0, 0, 0, 0.95)`,
+              textShadow: `0 0 25px ${displayColor}, 0 2px 10px rgba(0, 0, 0, 0.95)`,
               filter: 'brightness(1.4)'
             }}
           >
@@ -77,7 +84,7 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
                 letterSpacing: '0.1em'
               }}
             >
-              原型匹配度：{result.prototypeMatch.similarity.toFixed(1)}%
+              原型锚点 {result.prototypeMatch.id} · 匹配度：{result.prototypeMatch.similarity.toFixed(1)}%
             </div>
           )}
           <p
@@ -125,19 +132,28 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
         </div>
 
         <div className="zen-card frequency-card">
+          {result.prototypeMatch?.organs && (
+            <div className="mb-4 text-center">
+              <p className="text-xs" style={{ color: 'rgba(247, 231, 206, 0.8)', letterSpacing: '0.15em' }}>
+                脏腑对应：{result.prototypeMatch.organs}
+              </p>
+            </div>
+          )}
           <div className="flex items-center justify-center gap-4 mb-4">
             <p
               className="text-center text-sm"
               style={{
-                color: gapChakra.text,
+                color: displayColor,
                 letterSpacing: '0.25em',
                 fontFamily: 'Georgia, Times New Roman, serif',
-                textShadow: `0 0 20px ${gapChakra.text}80, 0 2px 8px rgba(0, 0, 0, 0.95)`,
+                textShadow: `0 0 20px ${displayColor}80, 0 2px 8px rgba(0, 0, 0, 0.95)`,
                 fontWeight: 400,
                 filter: 'brightness(1.3)'
               }}
             >
-              {gapChakra.name}·{result.recommendedFrequency.hz}Hz
+              {result.prototypeMatch?.rechargeHz
+                ? `充电频率·${result.prototypeMatch.rechargeHz}Hz`
+                : `${gapChakra.name}·${result.recommendedFrequency.hz}Hz`}
             </p>
             <button
               onClick={() => {
@@ -151,12 +167,68 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
             </button>
           </div>
           <GoldButton
-            onClick={() => onPlayAudio(result.recommendedFrequency.hz)}
+            onClick={() => {
+              const hz = result.prototypeMatch?.rechargeHz || result.recommendedFrequency.hz;
+              onPlayAudio(hz);
+            }}
             className="w-full py-5"
           >
             <span style={{ letterSpacing: '0.3em', fontSize: '16px' }}>播放调频音频</span>
           </GoldButton>
         </div>
+
+        {result.prototypeMatch && (result.prototypeMatch.doList || result.prototypeMatch.dontList) && (
+          <div className="zen-card suggestion-card">
+            {result.prototypeMatch.doList && result.prototypeMatch.doList.length > 0 && (
+              <div className="mb-3">
+                <p className="text-xs text-center mb-2" style={{ color: '#00FF7F', letterSpacing: '0.2em' }}>
+                  建议做
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {result.prototypeMatch.doList.map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1 text-xs"
+                      style={{
+                        background: 'rgba(0, 255, 127, 0.1)',
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(0, 255, 127, 0.3)',
+                        letterSpacing: '0.1em'
+                      }}
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {result.prototypeMatch.dontList && result.prototypeMatch.dontList.length > 0 && (
+              <div>
+                <p className="text-xs text-center mb-2" style={{ color: '#FF6B6B', letterSpacing: '0.2em' }}>
+                  避免做
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {result.prototypeMatch.dontList.map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1 text-xs"
+                      style={{
+                        background: 'rgba(255, 107, 107, 0.1)',
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(255, 107, 107, 0.3)',
+                        letterSpacing: '0.1em'
+                      }}
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <button
           onClick={() => setShowDetails(!showDetails)}

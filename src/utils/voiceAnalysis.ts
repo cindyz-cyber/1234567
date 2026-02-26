@@ -39,6 +39,12 @@ export interface VoiceAnalysisResult {
     tagName: string;
     similarity: number;
     description: string;
+    color: string;
+    advice?: string;
+    organs?: string;
+    doList?: string[];
+    dontList?: string[];
+    rechargeHz?: number;
   };
 }
 
@@ -533,6 +539,12 @@ export class VoiceAnalyzer {
     tagName: string;
     similarity: number;
     description: string;
+    color: string;
+    advice?: string;
+    organs?: string;
+    doList?: string[];
+    dontList?: string[];
+    rechargeHz?: number;
   } | null> {
     try {
       const { matchPrototype } = await import('./prototypeMatching');
@@ -552,7 +564,13 @@ export class VoiceAnalyzer {
           name: match.prototype.name,
           tagName: match.prototype.tagName,
           similarity: match.similarity,
-          description: match.prototype.description
+          description: match.prototype.description,
+          color: match.prototype.color,
+          advice: match.prototype.advice,
+          organs: match.prototype.organs,
+          doList: match.prototype.doList,
+          dontList: match.prototype.dontList,
+          rechargeHz: match.prototype.rechargeHz
         };
       }
 

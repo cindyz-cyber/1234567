@@ -19,6 +19,12 @@ export interface VoicePrototype {
   phasePattern: 'grounded' | 'floating' | 'dispersed';
   qualityType: 'smooth' | 'rough' | 'flat';
   somaticSensation: string;
+  color: string;
+  advice?: string;
+  organs?: string;
+  doList?: string[];
+  dontList?: string[];
+  rechargeHz?: number;
 }
 
 export interface ChakraEnergy {
@@ -95,7 +101,13 @@ export async function fetchPrototypes(): Promise<VoicePrototype[]> {
     harmonicRichness: parseFloat(row.harmonic_richness),
     phasePattern: row.phase_pattern,
     qualityType: row.quality_type,
-    somaticSensation: row.somatic_sensation
+    somaticSensation: row.somatic_sensation,
+    color: row.color || '#FFFFFF',
+    advice: row.advice,
+    organs: row.organs,
+    doList: row.do_list || [],
+    dontList: row.dont_list || [],
+    rechargeHz: row.recharge_hz
   }));
 }
 
