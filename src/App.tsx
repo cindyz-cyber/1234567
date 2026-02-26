@@ -206,9 +206,8 @@ function App() {
     setCurrentTab(tab);
     if (tab === 'breath') {
       setCurrentStep('home');
-    } else if (tab === 'voice') {
-      setCurrentStep('voice');
     }
+    // Don't set currentStep for voice tab - let VoiceRecognition manage its own state
   }
 
   if (loading) {
@@ -297,7 +296,7 @@ function App() {
         />
       )}
 
-      {currentTab === 'voice' && currentStep === 'voice' && (
+      {currentTab === 'voice' && (
         <VoiceRecognition
           onBack={() => {
             console.log('[App] VoiceRecognition onBack called');
