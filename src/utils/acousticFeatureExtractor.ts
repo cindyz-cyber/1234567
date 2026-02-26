@@ -128,6 +128,35 @@ export class AcousticFeatureExtractor {
   private calculateHarmonicClarity(frequencyData: Float32Array, fundamentalFreq: number): number {
     if (fundamentalFreq === 0) return 50;
 
+    // 【修复】心轮频率（341-360Hz）特殊处理
+    // 心轮频率是纯净的单频能量，倍频不明显是正常的，不应被判为"粗糙"
+    if (fundamentalFreq >= 341 && fundamentalFreq <= 360) {
+      // 检查主频能量
+      const mainIndex = this.frequencyToIndex(fundamentalFreq);
+      const mainEnergy = frequencyData[mainIndex] || 0;
+
+      // 检查高频噪点（不应该有太多）
+      const highFreqStart = this.frequencyToIndex(2000);
+      const highFreqEnd = Math.min(this.frequencyToIndex(4000), frequencyData.length);
+      let highNoiseSum = 0;
+      for (let i = highFreqStart; i < highFreqEnd; i++) {
+        highNoiseSum += frequencyData[i];
+      }
+      const avgHighNoise = highNoiseSum / (highFreqEnd - highFreqStart);
+
+      // 如果主频明显强于高频噪点，就是清晰的
+      const ratio = mainEnergy / (avgHighNoise + 0.0001);
+      const clarity = Math.min(100, ratio * 10);
+
+      console.log(`   ❤️ 心轮频率特殊处理: ${fundamentalFreq}Hz`);
+      console.log(`      主频能量: ${mainEnergy.toFixed(6)}`);
+      console.log(`      高频噪点均值: ${avgHighNoise.toFixed(6)}`);
+      console.log(`      信噪比: ${ratio.toFixed(2)}`);
+      console.log(`      清晰度: ${clarity.toFixed(2)}`);
+
+      return clarity;
+    }
+
     const harmonics = [1, 2, 3, 4, 5, 6]; // 基频的倍频
     let harmonicStrength = 0;
     let noiseStrength = 0;
@@ -195,9 +224,20 @@ export class AcousticFeatureExtractor {
     highFrequencyNoise: number,
     jitter: number
   ): number {
+    console.log('');
+    console.log('🎨 粗糙度计算详情:');
+    console.log(`   谐波清晰度 (harmonicClarity): ${harmonicClarity.toFixed(2)}`);
+    console.log(`   高频噪点 (highFrequencyNoise): ${highFrequencyNoise.toFixed(2)}`);
+    console.log(`   频率抖动 (jitter): ${jitter.toFixed(2)}`);
+
     // 清晰度越低、噪点越多、抖动越大 = 粗糙度越高
     const clarityFactor = 100 - harmonicClarity; // 反转清晰度
     const roughness = (clarityFactor * 0.4) + (highFrequencyNoise * 0.4) + (jitter * 0.2);
+
+    console.log(`   清晰度因子 (100 - ${harmonicClarity.toFixed(2)}): ${clarityFactor.toFixed(2)}`);
+    console.log(`   最终粗糙度: ${roughness.toFixed(2)}`);
+    console.log('');
+
     return Math.min(100, Math.max(0, roughness));
   }
 

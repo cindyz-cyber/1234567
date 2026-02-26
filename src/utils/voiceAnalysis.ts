@@ -635,27 +635,20 @@ export class VoiceAnalyzer {
 
         if (isMatch) {
           const beforeBoost = baseEnergy;
-          // 主导脉轮 * 5.0 (绝对优势)
-          baseEnergy *= 5.0;
-          console.log(`      ✓✓✓ 命中主导脉轮! ${beforeBoost.toFixed(6)} → ${baseEnergy.toFixed(6)} (+400%)`);
+          // 主导脉轮 * 10.0 (绝对优势)
+          baseEnergy *= 10.0;
+          console.log(`      ✓✓✓ 命中主导脉轮! ${beforeBoost.toFixed(6)} → ${baseEnergy.toFixed(6)} (+900%)`);
         } else {
           const beforeDecay = baseEnergy;
-          // 非主导脉轮衰减 85%
-          baseEnergy *= 0.15;
-          console.log(`      → 非主导脉轮衰减: ${beforeDecay.toFixed(6)} → ${baseEnergy.toFixed(6)} (-85%)`);
-        }
-      }
 
-      // 【新增】支撑频率逻辑 - 200-260Hz 作为基底,给予适度能量
-      // 但不应盖过主导频率
-      if ((chakraKey === 'root' || chakraKey === 'sacral') && trueDominantFreq) {
-        // 如果主导频率在心轮以上,下三轮只保留基底能量
-        if (trueDominantFreq >= 341) {
-          const supportEnergy = this.getEnergyInRange(fftData, 200, 260, sampleRate);
-          if (supportEnergy > 0.001) {
-            // 支撑基底最多占 30%
-            baseEnergy = Math.min(baseEnergy, supportEnergy * 0.3);
-            console.log(`   → ${chakraKey} 作为支撑基底 (200-260Hz): ${baseEnergy.toFixed(4)} (限制在30%以下)`);
+          // 【修复】根据脉轮位置决定衰减程度
+          // Root/Sacral (基底轮) 保留更多能量 (40%)，其他脉轮衰减到 10%
+          if (chakraKey === 'root' || chakraKey === 'sacral') {
+            baseEnergy *= 0.4;
+            console.log(`      → 基底脉轮保留: ${beforeDecay.toFixed(6)} → ${baseEnergy.toFixed(6)} (40%)`);
+          } else {
+            baseEnergy *= 0.1;
+            console.log(`      → 非主导脉轮衰减: ${beforeDecay.toFixed(6)} → ${baseEnergy.toFixed(6)} (-90%)`);
           }
         }
       }
