@@ -81,15 +81,19 @@ function calculateHarmonicRichness(chakraEnergy: ChakraEnergy): number {
 }
 
 export async function fetchPrototypes(): Promise<VoicePrototype[]> {
+  console.log('[prototypeMatching] Fetching prototypes from database...');
+
   const { data, error } = await supabase
     .from('voice_energy_prototypes')
     .select('*')
     .order('id');
 
   if (error) {
-    console.error('Error fetching prototypes:', error);
+    console.error('[prototypeMatching] Error fetching prototypes:', error);
     return [];
   }
+
+  console.log('[prototypeMatching] Fetched', data?.length || 0, 'prototypes');
 
   return (data || []).map((row: any) => ({
     id: row.id,
@@ -122,11 +126,16 @@ export async function matchPrototype(
   phasePattern: 'grounded' | 'floating' | 'dispersed',
   qualityType: 'smooth' | 'rough' | 'flat'
 ): Promise<PrototypeMatchResult | null> {
+  console.log('[prototypeMatching] Starting prototype matching...', { phasePattern, qualityType });
+
   const prototypes = await fetchPrototypes();
 
   if (prototypes.length === 0) {
+    console.warn('[prototypeMatching] No prototypes found in database');
     return null;
   }
+
+  console.log('[prototypeMatching] Calculating matches for', prototypes.length, 'prototypes');
 
   let bestMatch: PrototypeMatchResult | null = null;
   let minDistance = Infinity;
@@ -155,9 +164,11 @@ export async function matchPrototype(
   }
 
   if (bestMatch && bestMatch.similarity >= 85) {
+    console.log('[prototypeMatching] Found match:', bestMatch.prototype.name, 'similarity:', bestMatch.similarity);
     return bestMatch;
   }
 
+  console.log('[prototypeMatching] No match found above 85% threshold');
   return null;
 }
 

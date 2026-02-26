@@ -125,30 +125,48 @@ export class VoiceAnalyzer {
   }
 
   async analyzeAudioBuffer(audioBlob: Blob): Promise<VoiceAnalysisResult> {
+    console.log('[VoiceAnalyzer] Starting audio buffer analysis');
     const arrayBuffer = await audioBlob.arrayBuffer();
+    console.log('[VoiceAnalyzer] ArrayBuffer size:', arrayBuffer.byteLength);
+
     const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+    console.log('[VoiceAnalyzer] Audio decoded, duration:', audioBuffer.duration);
 
     const channelData = audioBuffer.getChannelData(0);
     const sampleRate = audioBuffer.sampleRate;
 
+    console.log('[VoiceAnalyzer] Performing FFT...');
     const fftData = this.performFFT(channelData, sampleRate);
+    console.log('[VoiceAnalyzer] FFT complete');
+
+    console.log('[VoiceAnalyzer] Extracting chakra energy...');
     const chakraEnergy = this.extractChakraEnergy(fftData, sampleRate);
+    console.log('[VoiceAnalyzer] Chakra energy:', chakraEnergy);
+
     const detectionDetails = this.generateDetectionDetails(fftData, sampleRate, chakraEnergy);
 
     const source = this.determineSourceFromChakras(chakraEnergy);
     const quality = this.determineQuality(fftData, chakraEnergy);
     const phase = this.determinePhase(chakraEnergy);
 
+    console.log('[VoiceAnalyzer] Determined: source=', source, 'quality=', quality, 'phase=', phase);
+
     const { dominantChakra, gapChakras } = this.findDominantAndGaps(chakraEnergy);
     const chakraDistribution = this.calculateChakraDistribution(chakraEnergy);
     const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
 
+    console.log('[VoiceAnalyzer] Dominant:', dominantChakra, 'Gaps:', gapChakras);
+
     const dominantFrequency = CHAKRA_FREQUENCIES[dominantChakra].core;
+
+    console.log('[VoiceAnalyzer] Attempting prototype match...');
     const prototypeMatch = await this.tryMatchPrototype(chakraEnergy, phase, quality, dominantFrequency);
+    console.log('[VoiceAnalyzer] Prototype match result:', prototypeMatch ? 'Found' : 'Not found');
 
     const profile = this.matchProfile(source, quality, phase);
+    console.log('[VoiceAnalyzer] Profile matched:', profile.name);
 
-    return {
+    const result = {
       source,
       quality,
       phase,
@@ -164,6 +182,9 @@ export class VoiceAnalyzer {
       detectionDetails,
       prototypeMatch: prototypeMatch || undefined
     };
+
+    console.log('[VoiceAnalyzer] Analysis complete, returning result');
+    return result;
   }
 
   async analyzeMediaStream(stream: MediaStream): Promise<VoiceAnalysisResult> {
@@ -550,8 +571,10 @@ export class VoiceAnalyzer {
     rechargeHz?: number;
   } | null> {
     try {
+      console.log('[VoiceAnalyzer] Importing prototype matching modules...');
       const { matchPrototype } = await import('./prototypeMatching');
       const { generateDynamicPrototype } = await import('./dynamicPrototypeGenerator');
+      console.log('[VoiceAnalyzer] Modules imported successfully');
 
       const phaseMapping: Record<'grounded' | 'floating' | 'scattering', 'grounded' | 'floating' | 'dispersed'> = {
         'grounded': 'grounded',
@@ -560,9 +583,13 @@ export class VoiceAnalyzer {
       };
 
       const mappedPhase = phaseMapping[phase];
+      console.log('[VoiceAnalyzer] Calling matchPrototype with mappedPhase:', mappedPhase);
+
       const match = await matchPrototype(chakraEnergy, mappedPhase, quality);
+      console.log('[VoiceAnalyzer] matchPrototype returned:', match ? 'Match found' : 'No match');
 
       if (match && match.similarity >= 85) {
+        console.log('[VoiceAnalyzer] Using database prototype:', match.prototype.name);
         return {
           id: match.prototype.id,
           name: match.prototype.name,
@@ -578,7 +605,9 @@ export class VoiceAnalyzer {
         };
       }
 
+      console.log('[VoiceAnalyzer] No database match, generating dynamic prototype...');
       const generated = generateDynamicPrototype(chakraEnergy, phase, quality, dominantFrequency);
+      console.log('[VoiceAnalyzer] Dynamic prototype generated:', generated.name);
 
       return {
         id: generated.id,

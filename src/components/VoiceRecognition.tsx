@@ -170,7 +170,14 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       }
 
       console.log('[VoiceRecognition] Step 3: Analyzing processed audio...');
-      const analysisResult = await voiceAnalyzerRef.current.analyzeAudioBuffer(processedBlob);
+
+      // Add timeout protection
+      const analysisPromise = voiceAnalyzerRef.current.analyzeAudioBuffer(processedBlob);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Analysis timeout after 30s')), 30000)
+      );
+
+      const analysisResult = await Promise.race([analysisPromise, timeoutPromise]) as any;
       console.log('[VoiceRecognition] Analysis result:', analysisResult);
 
       console.log('[VoiceRecognition] Saving to database...');
