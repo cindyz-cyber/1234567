@@ -177,6 +177,24 @@ export class VoiceAnalyzer {
       // 【新增】提取Top 5 Peak Hz (真正的峰值检测)
       const topPeaks = fftAnalyzer.findTopPeaks(frequencyData, sampleRate, fftResult.fftSize, 5);
 
+      // 【强制心轮检测】直接扫描 341-360Hz 范围
+      const heartRangeStart = Math.floor((341 * fftResult.fftSize) / sampleRate);
+      const heartRangeEnd = Math.floor((360 * fftResult.fftSize) / sampleRate);
+      let heartMaxFreq = 0;
+      let heartMaxMagnitude = 0;
+      for (let i = heartRangeStart; i <= heartRangeEnd && i < frequencyData.length; i++) {
+        if (frequencyData[i] > heartMaxMagnitude) {
+          heartMaxMagnitude = frequencyData[i];
+          heartMaxFreq = Math.round((i * sampleRate) / fftResult.fftSize);
+        }
+      }
+
+      console.log('');
+      console.log('❤️ 【强制心轮扫描】341-360Hz 范围:');
+      console.log(`   最大能量频率: ${heartMaxFreq}Hz`);
+      console.log(`   幅度: ${heartMaxMagnitude.toFixed(6)}`);
+      console.log('');
+
       // 计算能量分布
       const energyDist = fftAnalyzer.calculateEnergyDistribution(frequencyData, sampleRate, fftResult.fftSize);
 
@@ -234,15 +252,13 @@ export class VoiceAnalyzer {
         console.log(`      Peak ${i+1}: ${p.frequency}Hz (幅度: ${p.magnitude.toFixed(6)}) ${inHeartRange ? '❤️ 心轮范围' : ''}`);
       });
 
-      const heartPeak = topPeaks.find(p => p.frequency >= 341 && p.frequency <= 360);
-      console.log(`   → heartPeak 检测结果:`, heartPeak || '未找到');
-
-      if (heartPeak && heartPeak.magnitude > 0.001) {
-        trueDominantFreq = heartPeak.frequency;
-        judgmentReason = `❤️ 心轮频率保护 (${heartPeak.frequency}Hz, 幅度 ${heartPeak.magnitude.toFixed(4)})`;
-        console.log(`   ✓✓✓ 检测到心轮频率 ${heartPeak.frequency}Hz！`);
+      // 【修复】使用强制扫描结果，阈值降到 0.0001
+      if (heartMaxMagnitude > 0.0001) {
+        trueDominantFreq = heartMaxFreq;
+        judgmentReason = `❤️ 心轮频率强制检测 (${heartMaxFreq}Hz, 幅度 ${heartMaxMagnitude.toFixed(6)})`;
+        console.log(`   ✓✓✓ 强制使用心轮频率 ${heartMaxFreq}Hz (幅度: ${heartMaxMagnitude.toFixed(6)})`);
       } else {
-        console.log(`   ⚠️ 未检测到心轮频率峰值 (341-360Hz) 或幅度过低`);
+        console.log(`   ⚠️ 心轮频率范围能量过低 (${heartMaxMagnitude.toFixed(6)})`);
 
         // 如果峰值检测的第一峰远高于基频估算,优先使用峰值
         if (topPeaks.length > 0 && topPeaks[0].magnitude > 0.005) {
@@ -971,6 +987,14 @@ export class VoiceAnalyzer {
   private calculateChakraDistribution(chakraEnergy: ChakraEnergy): ChakraEnergy {
     const total = Object.values(chakraEnergy).reduce((sum, energy) => sum + energy, 0);
 
+    console.log('');
+    console.log('📊 【归一化前】绝对能量值:');
+    Object.entries(chakraEnergy).forEach(([key, value]) => {
+      console.log(`   ${key}: ${value.toFixed(6)}`);
+    });
+    console.log(`   总能量: ${total.toFixed(6)}`);
+    console.log('');
+
     if (total === 0) {
       return {
         root: 14.29,
@@ -983,7 +1007,7 @@ export class VoiceAnalyzer {
       };
     }
 
-    return {
+    const percentages = {
       root: Math.round((chakraEnergy.root / total) * 100),
       sacral: Math.round((chakraEnergy.sacral / total) * 100),
       solar: Math.round((chakraEnergy.solar / total) * 100),
@@ -992,6 +1016,14 @@ export class VoiceAnalyzer {
       thirdEye: Math.round((chakraEnergy.thirdEye / total) * 100),
       crown: Math.round((chakraEnergy.crown / total) * 100)
     };
+
+    console.log('📊 【归一化后】百分比:');
+    Object.entries(percentages).forEach(([key, value]) => {
+      console.log(`   ${key}: ${value}%`);
+    });
+    console.log('');
+
+    return percentages;
   }
 
   // 【禁用补足逻辑】不再基于"缺失频率"生成虚假诊断
