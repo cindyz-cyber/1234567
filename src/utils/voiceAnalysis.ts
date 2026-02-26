@@ -338,6 +338,11 @@ export class VoiceAnalyzer {
       const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
       const dominantFrequency = CHAKRA_FREQUENCIES[dominantChakra].core;
 
+      console.log('');
+      console.log('🎯 原型匹配检查:');
+      console.log(`   dominantChakra = ${dominantChakra}`);
+      console.log(`   dominantFrequency = ${dominantFrequency}Hz`);
+
       // 7. 【强制种子匹配】物理硬对位，禁止伪标签生成
       let prototypeMatch = await this.tryMatchPrototype(
         chakraEnergy,
@@ -346,42 +351,103 @@ export class VoiceAnalyzer {
         dominantFrequency
       );
 
-      // 【核心规则】342-343Hz 必须匹配心轮原型（ID 000 平衡原点）
-      if (dominantFrequency >= 341 && dominantFrequency <= 360 && dominantChakra === 'heart') {
-        console.log('🔒 强制种子匹配: 检测到 342-343Hz，锁定心轮原型');
-        // 如果没有匹配到合适的心轮原型，强制使用平衡态
-        if (!prototypeMatch || prototypeMatch.id.includes('purple') || prototypeMatch.id.includes('silent')) {
-          prototypeMatch = {
-            id: '000',
-            name: '心轮平衡者',
-            tagName: '平衡原点',
-            similarity: 92,
-            description: '你的声音核心频率稳定在 343Hz，这是心轮的黄金共振点。代表着情感稳定、人际和谐、内心平衡的能量状态。',
-            color: '#10B981',
-            advice: '保持当前的心轮能量，可通过冥想、呼吸练习进一步巩固这种平衡状态。',
-            organs: '心、小肠',
-            rechargeHz: 343
-          };
-        }
+      console.log(`   初始匹配结果: ${prototypeMatch ? prototypeMatch.name + ' [' + prototypeMatch.color + ']' : 'null'}`);
+
+      // 【物理硬对位】心轮主导 → 强制使用心轮原型
+      if (dominantChakra === 'heart') {
+        console.log('🔒 物理硬对位: 心轮主导，强制覆盖为心轮原型');
+        prototypeMatch = {
+          id: '000_heart',
+          name: '心轮平衡者',
+          tagName: '平衡原点',
+          similarity: 95,
+          description: '你的声音能量集中在心轮频段（300-360Hz），代表情感稳定、人际和谐、内心平衡的能量状态。',
+          color: '#10B981',
+          advice: '保持当前的心轮能量，可通过冥想、呼吸练习进一步巩固这种平衡状态。',
+          organs: '心、小肠',
+          rechargeHz: 343
+        };
+        console.log(`   ✓ 强制设置为: ${prototypeMatch.name} [${prototypeMatch.color}]`);
       }
 
-      // 【核心规则】200-260Hz 必须匹配下三轮原型（ID 023 稳健师）
-      if (dominantFrequency >= 100 && dominantFrequency <= 250 &&
-          (dominantChakra === 'root' || dominantChakra === 'sacral')) {
-        console.log('🔒 强制种子匹配: 检测到 200-260Hz，锁定稳健原型');
-        if (!prototypeMatch || prototypeMatch.id.includes('purple') || prototypeMatch.id.includes('silent')) {
-          prototypeMatch = {
-            id: '023',
-            name: '稳健共振师',
-            tagName: '落地的稳健师',
-            similarity: 88,
-            description: '你的声音展现出扎实的根基能量，低频共振稳定有力。这代表着强大的生存力、安全感和接地气的实践能力。',
-            color: '#8B4513',
-            advice: '你的根基能量充足，建议适度开发心轮与喉轮，提升情感表达和沟通能力。',
-            organs: '肾、小肠、膀胱',
-            rechargeHz: 194
-          };
-        }
+      // 【物理硬对位】海底轮主导
+      if (dominantChakra === 'root') {
+        console.log('🔒 物理硬对位: 海底轮主导（100-199Hz），强制覆盖');
+        prototypeMatch = {
+          id: '001_root',
+          name: '根基稳定者',
+          tagName: '扎根大地',
+          similarity: 90,
+          description: '你的声音能量集中在海底轮频段（100-199Hz），代表强大的生存力、安全感和稳定的根基能量。',
+          color: '#8B4513',
+          advice: '你的根基能量充足，建议适度开发心轮与喉轮，提升情感表达和沟通能力。',
+          organs: '肾、小肠',
+          rechargeHz: 150
+        };
+      }
+
+      // 【物理硬对位】脐轮主导
+      if (dominantChakra === 'sacral') {
+        console.log('🔒 物理硬对位: 脐轮主导（200-299Hz），强制覆盖');
+        prototypeMatch = {
+          id: '002_sacral',
+          name: '情感流动者',
+          tagName: '水性灵动',
+          similarity: 90,
+          description: '你的声音能量集中在脐轮频段（200-299Hz），代表情感的流动性、创造力和生命活力。',
+          color: '#FF6B35',
+          advice: '保持情感的自然流动，可通过舞蹈、创作等方式进一步激活创造能量。',
+          organs: '膀胱、肾',
+          rechargeHz: 250
+        };
+      }
+
+      // 【物理硬对位】喉轮主导
+      if (dominantChakra === 'throat') {
+        console.log('🔒 物理硬对位: 喉轮主导（361-410Hz），强制覆盖');
+        prototypeMatch = {
+          id: '003_throat',
+          name: '表达清晰者',
+          tagName: '真实之声',
+          similarity: 90,
+          description: '你的声音能量集中在喉轮频段（361-410Hz），代表清晰的表达力、沟通能力和真实的自我展现。',
+          color: '#4A90E2',
+          advice: '你的表达能量充足，建议通过演讲、歌唱等方式进一步强化沟通能力。',
+          organs: '肺、大肠',
+          rechargeHz: 385
+        };
+      }
+
+      // 【物理硬对位】眉心轮主导
+      if (dominantChakra === 'thirdEye') {
+        console.log('🔒 物理硬对位: 眉心轮主导（411-460Hz），强制覆盖');
+        prototypeMatch = {
+          id: '004_thirdEye',
+          name: '直觉洞察者',
+          tagName: '第三只眼',
+          similarity: 90,
+          description: '你的声音能量集中在眉心轮频段（411-460Hz），代表强大的直觉力、洞察力和灵性觉知。',
+          color: '#6B5B95',
+          advice: '你的直觉能量充足，建议通过冥想、静心等方式进一步提升灵性觉知。',
+          organs: '膀胱',
+          rechargeHz: 432
+        };
+      }
+
+      // 【物理硬对位】太阳神经丛主导
+      if (dominantChakra === 'solar') {
+        console.log('🔒 物理硬对位: 太阳神经丛主导（461-600Hz），强制覆盖');
+        prototypeMatch = {
+          id: '005_solar',
+          name: '意志力量者',
+          tagName: '内在太阳',
+          similarity: 90,
+          description: '你的声音能量集中在太阳神经丛频段（461-600Hz），代表强大的意志力、自信心和行动力。',
+          color: '#FFD700',
+          advice: '你的意志力充足，建议通过运动、实践等方式进一步巩固自信与行动力。',
+          organs: '脾、胃、肝',
+          rechargeHz: 528
+        };
       }
 
       // 【诊断输出】标签触发权重分析
