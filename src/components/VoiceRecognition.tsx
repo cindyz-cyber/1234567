@@ -195,9 +195,10 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       }
       setShowEmergencyExit(false);
 
-      console.log('[VoiceRecognition] Saving to database...');
-      await saveAnalysisToDatabase(analysisResult);
-      console.log('[VoiceRecognition] Saved to database successfully');
+      console.log('[VoiceRecognition] SKIP DB save (debugging freeze)...');
+      // TEMPORARILY DISABLED TO DEBUG
+      // await saveAnalysisToDatabase(analysisResult);
+      console.log('[VoiceRecognition] Skip complete');
 
       console.log('[VoiceRecognition] Step 4: Generating report...');
       console.log('[VoiceRecognition] Analysis data for report:', {
