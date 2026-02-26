@@ -4,6 +4,7 @@ import { VoiceAnalyzer, VoiceAnalysisResult } from '../utils/voiceAnalysis';
 import { supabase } from '../lib/supabase';
 import { getProfileWithDynamicBalance, EnergyProfile } from '../data/energyDatabase';
 import { AudioPreprocessor } from '../utils/audioPreprocessor';
+import { generateReport, ReportData } from '../utils/reportGenerator';
 import VoiceResults from './VoiceResults';
 
 interface VoiceRecognitionProps {
@@ -18,6 +19,7 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [audioLevel, setAudioLevel] = useState(0);
   const [result, setResult] = useState<VoiceAnalysisResult | null>(null);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
   const [energyProfile, setEnergyProfile] = useState<EnergyProfile | null>(null);
   const [rippleScale, setRippleScale] = useState(1);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
@@ -175,8 +177,11 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       await saveAnalysisToDatabase(analysisResult);
       console.log('[VoiceRecognition] Saved to database successfully');
 
+      const report = generateReport(analysisResult);
+
       const timeoutId = setTimeout(() => {
         setResult(analysisResult);
+        setReportData(report);
         setRecordingState('result');
         setRippleScale(1);
         if (onResultStateChange) {
@@ -319,9 +324,10 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
         </button>
       )}
 
-      {recordingState === 'result' && result ? (
+      {recordingState === 'result' && result && reportData ? (
         <VoiceResults
           result={result}
+          reportData={reportData}
           onPlayAudio={handlePlayAudio}
           onBack={handleBackFromResult}
         />

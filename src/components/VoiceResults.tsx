@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, Shuffle } from 'lucide-react';
 import GoldButton from './GoldButton';
 import { VoiceAnalysisResult } from '../utils/voiceAnalysis';
+import { ReportData } from '../utils/reportGenerator';
 
 interface VoiceResultsProps {
   result: VoiceAnalysisResult;
+  reportData: ReportData;
   onPlayAudio: (frequency: number) => void;
   onBack: () => void;
 }
@@ -19,7 +21,7 @@ const CHAKRA_COLORS = {
   crown: { bg: 'rgba(168, 85, 247, 0.08)', text: '#A855F7', name: '顶轮' }
 };
 
-export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResultsProps) {
+export default function VoiceResults({ result, reportData, onPlayAudio, onBack }: VoiceResultsProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   const dominantChakra = CHAKRA_COLORS[result.dominantChakra];
@@ -263,27 +265,46 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
 
             <div className="zen-report-section-wrapper">
               <div className="zen-report-section">
-                <h4 className="zen-section-title">频率检测结果</h4>
-                {result.detectionDetails.slice(0, 3).map((detail, index) => (
-                  <p key={index} className="zen-detail-text">
-                    {detail.detectedFrequency}Hz → {detail.organSystem}
+                <h4 className="zen-section-title">核心总结</h4>
+                <p className="zen-detail-text" style={{ lineHeight: '2.2' }}>
+                  {reportData.coreSummary.summary}
+                </p>
+                <div className="mt-4 space-y-2">
+                  <p className="zen-detail-text-sm" style={{ color: 'rgba(255, 200, 150, 0.9)' }}>
+                    发声来源：{reportData.coreSummary.details.sourceAnalysis}
                   </p>
-                ))}
-              </div>
-
-              <div className="zen-report-section">
-                <h4 className="zen-section-title">核心频率坐标</h4>
-                <div className="space-y-2">
-                  <p className="zen-detail-text-sm">心轮: 342-343Hz</p>
-                  <p className="zen-detail-text-sm">喉轮: 384Hz</p>
-                  <p className="zen-detail-text-sm">眉心轮: 432Hz</p>
-                  <p className="zen-detail-text-sm">太阳神经丛: 528Hz</p>
-                  <p className="zen-detail-text-sm">海底轮: &lt;200Hz</p>
+                  <p className="zen-detail-text-sm" style={{ color: 'rgba(255, 200, 150, 0.9)' }}>
+                    质地分析：{reportData.coreSummary.details.qualityAnalysis}
+                  </p>
+                  <p className="zen-detail-text-sm" style={{ color: 'rgba(255, 200, 150, 0.9)' }}>
+                    相位特征：{reportData.coreSummary.details.phaseAnalysis}
+                  </p>
                 </div>
               </div>
 
               <div className="zen-report-section">
-                <h4 className="zen-section-title">能量分布</h4>
+                <h4 className="zen-section-title">脉轮能量分析</h4>
+                <p className="zen-detail-text" style={{ lineHeight: '2.2', marginBottom: '16px' }}>
+                  {reportData.chakraAnalysis.summary}
+                </p>
+                <div className="zen-formula">
+                  {reportData.chakraAnalysis.details.formula}
+                </div>
+                <div className="mt-4">
+                  <p className="zen-detail-text-sm" style={{ marginBottom: '8px' }}>
+                    {reportData.chakraAnalysis.details.dominantChakra}
+                  </p>
+                  <p className="zen-detail-text-sm" style={{ marginBottom: '8px' }}>
+                    {reportData.chakraAnalysis.details.gapChakras}
+                  </p>
+                  <p className="zen-detail-text-sm" style={{ lineHeight: '2', marginTop: '12px' }}>
+                    {reportData.chakraAnalysis.details.energyFlow}
+                  </p>
+                </div>
+              </div>
+
+              <div className="zen-report-section">
+                <h4 className="zen-section-title">能量分布详情</h4>
                 {Object.entries(result.chakraDistribution).map(([chakra, percentage]) => {
                   const chakraKey = chakra as keyof typeof CHAKRA_COLORS;
                   const chakraColor = CHAKRA_COLORS[chakraKey];
@@ -311,6 +332,90 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
                     </div>
                   );
                 })}
+              </div>
+
+              <div className="zen-report-section">
+                <h4 className="zen-section-title">脏腑调理方案</h4>
+                <p className="zen-detail-text" style={{ lineHeight: '2.2', marginBottom: '16px' }}>
+                  {reportData.organTherapy.summary}
+                </p>
+                <div className="space-y-3">
+                  <div className="zen-organ-box">
+                    <p className="zen-detail-text-sm" style={{ lineHeight: '2' }}>
+                      {reportData.organTherapy.details.primaryOrgan}
+                    </p>
+                  </div>
+                  <div className="zen-organ-box">
+                    <p className="zen-detail-text-sm" style={{ lineHeight: '2' }}>
+                      {reportData.organTherapy.details.secondaryOrgan}
+                    </p>
+                  </div>
+                  <div className="mt-4">
+                    <p className="zen-detail-text-sm" style={{ color: 'rgba(255, 217, 102, 0.9)', marginBottom: '8px' }}>
+                      调理建议：
+                    </p>
+                    {reportData.organTherapy.details.recommendations.map((rec, idx) => (
+                      <p key={idx} className="zen-detail-text-sm" style={{ marginBottom: '6px', paddingLeft: '12px' }}>
+                        • {rec}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="zen-report-section">
+                <h4 className="zen-section-title">行动指南</h4>
+                <p className="zen-detail-text" style={{ lineHeight: '2.2', marginBottom: '16px' }}>
+                  {reportData.actionPlan.summary}
+                </p>
+                <div className="space-y-4">
+                  <div>
+                    <p className="zen-subsection-title" style={{ color: 'rgba(100, 220, 120, 0.95)' }}>
+                      建议做的事：
+                    </p>
+                    {reportData.actionPlan.details.doList.map((item, idx) => (
+                      <p key={idx} className="zen-detail-text-sm zen-action-item do-item">
+                        {item}
+                      </p>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="zen-subsection-title" style={{ color: 'rgba(255, 100, 100, 0.95)' }}>
+                      需要避免的：
+                    </p>
+                    {reportData.actionPlan.details.avoidList.map((item, idx) => (
+                      <p key={idx} className="zen-detail-text-sm zen-action-item avoid-item">
+                        {item}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="zen-report-section">
+                <h4 className="zen-section-title">疗愈电台使用指南</h4>
+                <p className="zen-detail-text" style={{ lineHeight: '2.2', marginBottom: '16px' }}>
+                  {reportData.healingStation.summary}
+                </p>
+                <div className="zen-healing-box">
+                  <p className="zen-detail-text" style={{ color: 'rgba(255, 217, 102, 0.98)', marginBottom: '12px' }}>
+                    推荐频率：{reportData.healingStation.details.recommendedFrequency}Hz
+                  </p>
+                  <p className="zen-detail-text-sm" style={{ lineHeight: '2', marginBottom: '12px' }}>
+                    目标脉轮：{reportData.healingStation.details.chakraTarget}
+                  </p>
+                  <p className="zen-detail-text-sm" style={{ lineHeight: '2', marginBottom: '16px' }}>
+                    {reportData.healingStation.details.reason}
+                  </p>
+                  <p className="zen-subsection-title" style={{ marginBottom: '8px' }}>
+                    使用方法：
+                  </p>
+                  {reportData.healingStation.details.howToUse.map((step, idx) => (
+                    <p key={idx} className="zen-detail-text-sm" style={{ marginBottom: '6px', paddingLeft: '12px' }}>
+                      {idx + 1}. {step}
+                    </p>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -582,6 +687,62 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
           border-color: rgba(247, 231, 206, 0.5);
           transform: scale(1.1) rotate(15deg);
           box-shadow: 0 2px 12px rgba(247, 231, 206, 0.3);
+        }
+
+        .zen-formula {
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(100, 200, 255, 0.25);
+          border-radius: 12px;
+          padding: 16px 20px;
+          font-family: 'Courier New', monospace;
+          color: rgba(150, 220, 255, 0.95);
+          font-size: 11px;
+          letter-spacing: 0.05em;
+          line-height: 2;
+          white-space: pre-line;
+        }
+
+        .zen-organ-box {
+          background: rgba(0, 0, 0, 0.3);
+          border-left: 3px solid rgba(255, 217, 102, 0.6);
+          border-radius: 8px;
+          padding: 12px 16px;
+        }
+
+        .zen-subsection-title {
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: 0.2em;
+          margin-bottom: 8px;
+          font-family: Georgia, Times New Roman, serif;
+        }
+
+        .zen-action-item {
+          padding: 8px 0 8px 16px;
+          position: relative;
+          line-height: 2;
+        }
+
+        .zen-action-item::before {
+          content: '•';
+          position: absolute;
+          left: 0;
+          font-weight: bold;
+        }
+
+        .do-item::before {
+          color: rgba(100, 220, 120, 0.9);
+        }
+
+        .avoid-item::before {
+          color: rgba(255, 100, 100, 0.9);
+        }
+
+        .zen-healing-box {
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 217, 102, 0.3);
+          border-radius: 12px;
+          padding: 20px;
         }
       `}</style>
     </div>
