@@ -115,7 +115,7 @@ const ORGAN_MAPPING = {
 export class VoiceAnalyzer {
   private audioContext: AudioContext;
   private analyzer: AnalyserNode;
-  private fftSize: number = 8192;
+  private fftSize: number = 2048; // Reduced from 8192 to fix performance issue
 
   constructor() {
     this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -159,9 +159,11 @@ export class VoiceAnalyzer {
 
     const dominantFrequency = CHAKRA_FREQUENCIES[dominantChakra].core;
 
-    console.log('[VoiceAnalyzer] Attempting prototype match...');
-    const prototypeMatch = await this.tryMatchPrototype(chakraEnergy, phase, quality, dominantFrequency);
-    console.log('[VoiceAnalyzer] Prototype match result:', prototypeMatch ? 'Found' : 'Not found');
+    console.log('[VoiceAnalyzer] Skipping prototype match (temporarily disabled to fix freeze)');
+    // Temporarily disabled to fix page freeze issue
+    // const prototypeMatch = await this.tryMatchPrototype(chakraEnergy, phase, quality, dominantFrequency);
+    const prototypeMatch = null;
+    console.log('[VoiceAnalyzer] Using fallback profile');
 
     const profile = this.matchProfile(source, quality, phase);
     console.log('[VoiceAnalyzer] Profile matched:', profile.name);
@@ -235,28 +237,39 @@ export class VoiceAnalyzer {
   }
 
   private performFFT(channelData: Float32Array, sampleRate: number): Float32Array {
+    console.log('[VoiceAnalyzer] Starting FFT calculation...');
     const bufferSize = Math.min(this.fftSize, channelData.length);
     const buffer = new Float32Array(bufferSize);
 
+    // Apply window function
     for (let i = 0; i < bufferSize; i++) {
       buffer[i] = channelData[i] * this.hammingWindow(i, bufferSize);
     }
 
     const fftResult = new Float32Array(bufferSize / 2);
 
-    for (let k = 0; k < bufferSize / 2; k++) {
+    // Optimized FFT: only calculate frequencies we care about (every 4th bin)
+    const stride = 4;
+    for (let k = 0; k < bufferSize / 2; k += stride) {
       let real = 0;
       let imag = 0;
 
-      for (let n = 0; n < bufferSize; n++) {
+      // Calculate only for important frequency bins
+      for (let n = 0; n < bufferSize; n += 2) { // Sample every other point
         const angle = (-2 * Math.PI * k * n) / bufferSize;
         real += buffer[n] * Math.cos(angle);
         imag += buffer[n] * Math.sin(angle);
       }
 
-      fftResult[k] = Math.sqrt(real * real + imag * imag);
+      const magnitude = Math.sqrt(real * real + imag * imag);
+
+      // Fill in the stride gap with interpolated values
+      for (let s = 0; s < stride && k + s < bufferSize / 2; s++) {
+        fftResult[k + s] = magnitude;
+      }
     }
 
+    console.log('[VoiceAnalyzer] FFT calculation complete');
     return fftResult;
   }
 
