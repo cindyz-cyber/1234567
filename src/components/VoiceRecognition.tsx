@@ -25,6 +25,8 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [showNoiseWarning, setShowNoiseWarning] = useState(false);
   const [noiseWarningMessage, setNoiseWarningMessage] = useState('');
+  const [showEmergencyExit, setShowEmergencyExit] = useState(false);
+  const emergencyTimerRef = useRef<NodeJS.Timeout | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -171,14 +173,27 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
 
       console.log('[VoiceRecognition] Step 3: Analyzing processed audio...');
 
-      // Add timeout protection
+      // Show emergency exit button after 10 seconds
+      emergencyTimerRef.current = setTimeout(() => {
+        console.log('[VoiceRecognition] Analysis taking too long, showing emergency exit');
+        setShowEmergencyExit(true);
+      }, 10000);
+
+      // Add timeout protection (reduced to 20 seconds)
       const analysisPromise = voiceAnalyzerRef.current.analyzeAudioBuffer(processedBlob);
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Analysis timeout after 30s')), 30000)
+        setTimeout(() => reject(new Error('分析超时 (20秒)')), 20000)
       );
 
       const analysisResult = await Promise.race([analysisPromise, timeoutPromise]) as any;
       console.log('[VoiceRecognition] Analysis result:', analysisResult);
+
+      // Clear emergency timer if analysis succeeds
+      if (emergencyTimerRef.current) {
+        clearTimeout(emergencyTimerRef.current);
+        emergencyTimerRef.current = null;
+      }
+      setShowEmergencyExit(false);
 
       console.log('[VoiceRecognition] Saving to database...');
       await saveAnalysisToDatabase(analysisResult);
@@ -210,11 +225,34 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
 
     } catch (error) {
       console.error('[VoiceRecognition] Error analyzing voice:', error);
+
+      // Clear emergency timer
+      if (emergencyTimerRef.current) {
+        clearTimeout(emergencyTimerRef.current);
+        emergencyTimerRef.current = null;
+      }
+      setShowEmergencyExit(false);
+
+      alert(`分析失败: ${error instanceof Error ? error.message : '未知错误'}\n\n请重试或联系技术支持`);
       setRecordingState('idle');
       setRippleScale(1);
       if (onResultStateChange) {
         onResultStateChange(false);
       }
+    }
+  };
+
+  const handleEmergencyExit = () => {
+    console.log('[VoiceRecognition] Emergency exit triggered');
+    if (emergencyTimerRef.current) {
+      clearTimeout(emergencyTimerRef.current);
+      emergencyTimerRef.current = null;
+    }
+    setShowEmergencyExit(false);
+    setRecordingState('idle');
+    setRippleScale(1);
+    if (onResultStateChange) {
+      onResultStateChange(false);
     }
   };
 
@@ -408,9 +446,36 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
           )}
 
           {recordingState === 'analyzing' && (
-            <div className="instruction-text">
-              正在解析频谱数据...
-            </div>
+            <>
+              <div className="instruction-text">
+                正在解析频谱数据...
+              </div>
+              {showEmergencyExit && (
+                <button
+                  onClick={handleEmergencyExit}
+                  className="emergency-exit-btn"
+                  style={{
+                    position: 'fixed',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 9999,
+                    padding: '16px 32px',
+                    background: 'linear-gradient(135deg, #ff6b6b, #ee5a6f)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    boxShadow: '0 8px 24px rgba(255, 107, 107, 0.4)',
+                    animation: 'pulse 2s infinite'
+                  }}
+                >
+                  分析时间过长，点击退出
+                </button>
+              )}
+            </>
           )}
 
           <div className="orb-container">

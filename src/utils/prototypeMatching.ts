@@ -83,19 +83,27 @@ function calculateHarmonicRichness(chakraEnergy: ChakraEnergy): number {
 export async function fetchPrototypes(): Promise<VoicePrototype[]> {
   console.log('[prototypeMatching] Fetching prototypes from database...');
 
-  const { data, error } = await supabase
-    .from('voice_energy_prototypes')
-    .select('*')
-    .order('id');
+  try {
+    // Add timeout for database query
+    const queryPromise = supabase
+      .from('voice_energy_prototypes')
+      .select('*')
+      .order('id');
 
-  if (error) {
-    console.error('[prototypeMatching] Error fetching prototypes:', error);
-    return [];
-  }
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Database query timeout')), 10000)
+    );
 
-  console.log('[prototypeMatching] Fetched', data?.length || 0, 'prototypes');
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
-  return (data || []).map((row: any) => ({
+    if (error) {
+      console.error('[prototypeMatching] Error fetching prototypes:', error);
+      return [];
+    }
+
+    console.log('[prototypeMatching] Fetched', data?.length || 0, 'prototypes');
+
+    return (data || []).map((row: any) => ({
     id: row.id,
     name: row.name,
     tagName: row.tag_name,
@@ -109,10 +117,14 @@ export async function fetchPrototypes(): Promise<VoicePrototype[]> {
     color: row.color || '#FFFFFF',
     advice: row.advice,
     organs: row.organs,
-    doList: row.do_list || [],
-    dontList: row.dont_list || [],
-    rechargeHz: row.recharge_hz
-  }));
+      doList: row.do_list || [],
+      dontList: row.dont_list || [],
+      rechargeHz: row.recharge_hz
+    }));
+  } catch (error) {
+    console.error('[prototypeMatching] Failed to fetch prototypes:', error);
+    return [];
+  }
 }
 
 export interface PrototypeMatchResult {
