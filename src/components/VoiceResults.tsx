@@ -133,6 +133,77 @@ export default function VoiceResults({ result, reportData, onPlayAudio, onBack }
           </p>
         </div>
 
+        {/* 健康预警卡片 - 当粗糙度 > 60% 时显示 */}
+        {result.healthWarning && result.healthWarning.hasWarning && (
+          <div
+            className="zen-card"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(238, 90, 111, 0.15) 100%)',
+              border: '1px solid rgba(255, 107, 107, 0.4)',
+              boxShadow: '0 0 30px rgba(255, 107, 107, 0.2)',
+              padding: '20px'
+            }}
+          >
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <div
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#FF6B6B',
+                  boxShadow: '0 0 15px rgba(255, 107, 107, 0.8)',
+                  animation: 'pulse 2s infinite'
+                }}
+              />
+              <p
+                className="text-sm"
+                style={{
+                  color: '#FFB8B8',
+                  letterSpacing: '0.25em',
+                  fontFamily: 'Georgia, Times New Roman, serif',
+                  textShadow: '0 0 15px rgba(255, 107, 107, 0.6)',
+                  fontWeight: 500
+                }}
+              >
+                身心预警
+              </p>
+            </div>
+            <p
+              className="text-center text-sm mb-3"
+              style={{
+                color: 'rgba(255, 255, 255, 0.95)',
+                letterSpacing: '0.15em',
+                lineHeight: 1.8,
+                fontFamily: 'Georgia, Times New Roman, serif',
+                textShadow: '0 2px 8px rgba(0, 0, 0, 0.95)'
+              }}
+            >
+              {result.healthWarning.message}
+            </p>
+            <p
+              className="text-center text-xs"
+              style={{
+                color: 'rgba(247, 231, 206, 0.85)',
+                letterSpacing: '0.1em',
+                lineHeight: 1.6,
+                fontFamily: 'Georgia, Times New Roman, serif',
+                textShadow: '0 2px 8px rgba(0, 0, 0, 0.95)'
+              }}
+            >
+              {result.healthWarning.recommendation}
+            </p>
+            {result.acousticFeatures && (
+              <div className="mt-4 pt-3 border-t border-white/10">
+                <p className="text-center text-xs" style={{ color: 'rgba(255, 255, 255, 0.6)', letterSpacing: '0.1em' }}>
+                  粗糙度: {result.acousticFeatures.roughness.toFixed(1)}% ·
+                  应激指数: {result.acousticFeatures.stressIndicator.toFixed(1)}% ·
+                  防御级别: {result.acousticFeatures.defenseLevel.toFixed(1)}%
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="zen-card frequency-card">
           {result.prototypeMatch?.organs && (
             <div className="mb-4 text-center">
@@ -333,6 +404,106 @@ export default function VoiceResults({ result, reportData, onPlayAudio, onBack }
                   );
                 })}
               </div>
+
+              {/* 声学特征分析 - 新增部分 */}
+              {result.acousticFeatures && (
+                <div className="zen-report-section">
+                  <h4 className="zen-section-title">声学特征分析</h4>
+                  <p className="zen-detail-text-sm mb-4" style={{ color: 'rgba(247, 231, 206, 0.8)', lineHeight: '2' }}>
+                    通过多维度声学指纹分析，识别声音中的细微特征与心理状态
+                  </p>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 rounded" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                      <span className="zen-detail-text-sm">粗糙度（刺耳感）</span>
+                      <div className="flex items-center gap-2">
+                        <div style={{ width: '100px', height: '6px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              width: `${result.acousticFeatures.roughness}%`,
+                              height: '100%',
+                              background: result.acousticFeatures.roughness > 60
+                                ? 'linear-gradient(90deg, #ff6b6b, #ee5a6f)'
+                                : 'linear-gradient(90deg, #4ade80, #22c55e)',
+                              transition: 'width 0.3s'
+                            }}
+                          />
+                        </div>
+                        <span className="zen-detail-text-sm" style={{
+                          color: result.acousticFeatures.roughness > 60 ? '#ff6b6b' : '#4ade80',
+                          minWidth: '45px'
+                        }}>
+                          {result.acousticFeatures.roughness.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-3 rounded" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                      <span className="zen-detail-text-sm">谐波清晰度</span>
+                      <div className="flex items-center gap-2">
+                        <div style={{ width: '100px', height: '6px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${result.acousticFeatures.harmonicClarity}%`, height: '100%', background: 'linear-gradient(90deg, #60a5fa, #3b82f6)' }} />
+                        </div>
+                        <span className="zen-detail-text-sm" style={{ color: '#60a5fa', minWidth: '45px' }}>
+                          {result.acousticFeatures.harmonicClarity.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-3 rounded" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                      <span className="zen-detail-text-sm">应激指数</span>
+                      <div className="flex items-center gap-2">
+                        <div style={{ width: '100px', height: '6px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${result.acousticFeatures.stressIndicator}%`, height: '100%', background: 'linear-gradient(90deg, #f59e0b, #d97706)' }} />
+                        </div>
+                        <span className="zen-detail-text-sm" style={{ color: '#f59e0b', minWidth: '45px' }}>
+                          {result.acousticFeatures.stressIndicator.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-3 rounded" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                      <span className="zen-detail-text-sm">防御级别</span>
+                      <div className="flex items-center gap-2">
+                        <div style={{ width: '100px', height: '6px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${result.acousticFeatures.defenseLevel}%`, height: '100%', background: 'linear-gradient(90deg, #a855f7, #9333ea)' }} />
+                        </div>
+                        <span className="zen-detail-text-sm" style={{ color: '#a855f7', minWidth: '45px' }}>
+                          {result.acousticFeatures.defenseLevel.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-3 rounded" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                      <span className="zen-detail-text-sm">音色亮度</span>
+                      <div className="flex items-center gap-2">
+                        <div style={{ width: '100px', height: '6px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${result.acousticFeatures.brightness}%`, height: '100%', background: 'linear-gradient(90deg, #fbbf24, #f59e0b)' }} />
+                        </div>
+                        <span className="zen-detail-text-sm" style={{ color: '#fbbf24', minWidth: '45px' }}>
+                          {result.acousticFeatures.brightness.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-3 rounded" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                      <span className="zen-detail-text-sm">音色温暖度</span>
+                      <div className="flex items-center gap-2">
+                        <div style={{ width: '100px', height: '6px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${result.acousticFeatures.warmth}%`, height: '100%', background: 'linear-gradient(90deg, #f97316, #ea580c)' }} />
+                        </div>
+                        <span className="zen-detail-text-sm" style={{ color: '#f97316', minWidth: '45px' }}>
+                          {result.acousticFeatures.warmth.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="zen-detail-text-sm mt-4 pt-3 border-t border-white/10" style={{ color: 'rgba(247, 231, 206, 0.7)', lineHeight: '2' }}>
+                    ✨ 多维审计协议已启用：通过粗糙度、谐波清晰度、应激指数等多维指标交叉验证，防止单一频率误判，确保诊断准确性。
+                  </p>
+                </div>
+              )}
 
               <div className="zen-report-section">
                 <h4 className="zen-section-title">脏腑调理方案</h4>

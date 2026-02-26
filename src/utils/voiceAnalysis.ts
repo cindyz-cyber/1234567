@@ -46,6 +46,21 @@ export interface VoiceAnalysisResult {
     dontList?: string[];
     rechargeHz?: number;
   };
+  // 新增：声学特征和健康预警
+  acousticFeatures?: {
+    roughness: number;
+    harmonicClarity: number;
+    stressIndicator: number;
+    defenseLevel: number;
+    brightness: number;
+    warmth: number;
+  };
+  healthWarning?: {
+    hasWarning: boolean;
+    level: 'none' | 'mild' | 'moderate' | 'severe';
+    message: string;
+    recommendation: string;
+  };
 }
 
 interface EmotionProfile {
@@ -116,61 +131,116 @@ export class VoiceAnalyzer {
   private audioContext: AudioContext;
   private analyzer: AnalyserNode;
   private fftSize: number = 2048; // Reduced from 8192 to fix performance issue
+  private featureExtractor: any; // AcousticFeatureExtractor instance
 
   constructor() {
     this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     this.analyzer = this.audioContext.createAnalyser();
     this.analyzer.fftSize = this.fftSize;
     this.analyzer.smoothingTimeConstant = 0.3;
+
+    // 动态导入特征提取器
+    this.initFeatureExtractor();
+  }
+
+  private async initFeatureExtractor() {
+    try {
+      const module = await import('./acousticFeatureExtractor');
+      this.featureExtractor = new module.AcousticFeatureExtractor(this.audioContext.sampleRate);
+      console.log('[VoiceAnalyzer] Acoustic feature extractor initialized');
+    } catch (error) {
+      console.error('[VoiceAnalyzer] Failed to init feature extractor:', error);
+    }
   }
 
   async analyzeAudioBuffer(audioBlob: Blob): Promise<VoiceAnalysisResult> {
-    console.log('[VoiceAnalyzer] FAST MODE: Starting ULTRA-simplified analysis');
+    console.log('[VoiceAnalyzer] Starting multi-dimensional acoustic analysis');
 
     try {
-      // Decode audio - this is fast
+      // 1. Decode audio
       const arrayBuffer = await audioBlob.arrayBuffer();
-      console.log('[VoiceAnalyzer] Got arrayBuffer');
-
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      console.log('[VoiceAnalyzer] Audio decoded OK');
+      console.log('[VoiceAnalyzer] Audio decoded, duration:', audioBuffer.duration);
 
-      // SIMPLIFIED: Generate mock but plausible chakra values
-      const chakraEnergy = {
-        root: 25 + Math.random() * 20,
-        sacral: 25 + Math.random() * 20,
-        solar: 25 + Math.random() * 20,
-        heart: 25 + Math.random() * 20,
-        throat: 25 + Math.random() * 20,
-        thirdEye: 25 + Math.random() * 20,
-        crown: 25 + Math.random() * 20
-      };
+      // 2. Perform FFT analysis
+      const channelData = audioBuffer.getChannelData(0);
+      const frequencyData = this.performSimpleFFT(channelData);
+      console.log('[VoiceAnalyzer] FFT analysis complete');
 
-      // Quick, lightweight calculations only
+      // 3. Extract chakra energy from frequency data
+      const chakraEnergy = this.extractChakraEnergy(frequencyData, audioBuffer.sampleRate);
+
+      // 4. 【核心创新】使用声学特征提取器进行多维分析
+      let acousticFeatures = null;
+      let healthWarning = null;
+      let correctedProfile = null;
+
+      if (this.featureExtractor) {
+        console.log('[VoiceAnalyzer] Running acoustic feature extraction');
+        acousticFeatures = this.featureExtractor.extractFeatures(channelData, frequencyData);
+
+        // 生成健康预警
+        healthWarning = this.featureExtractor.generateHealthWarning(acousticFeatures);
+        console.log('[VoiceAnalyzer] Roughness:', acousticFeatures.roughness, 'Warning:', healthWarning.hasWarning);
+      }
+
+      // 5. 基础分析
       const { dominantChakra, gapChakras } = this.findDominantAndGaps(chakraEnergy);
       const chakraDistribution = this.calculateChakraDistribution(chakraEnergy);
 
-      // Simple defaults
-      const source = 'mixed';
-      const quality = 'balanced';
-      const phase = 'active';
-      const profile = { id: 'balanced', name: '平衡型', message: '你的能量处于平衡状态', color: '#4A9EFF' };
-      const recommendedFrequency = 432;
+      const sourceType = this.determineSourceFromChakras(chakraEnergy);
+      let quality = this.determineQuality(frequencyData, chakraEnergy);
+      const phase = this.determinePhase(chakraEnergy);
+
+      // 6. 【关键修正】应用粗糙度修正
+      if (acousticFeatures && acousticFeatures.roughness > 60) {
+        console.log('[VoiceAnalyzer] Applying roughness correction - original quality:', quality);
+        quality = 'rough'; // 强制修正为 rough
+      }
+
+      const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
       const dominantFrequency = CHAKRA_FREQUENCIES[dominantChakra].core;
 
-      const detectionDetails = {
-        dominantFreqs: [dominantFrequency],
-        energyDistribution: chakraDistribution,
-        qualityIndicators: { clarity: 0.75, stability: 0.70, depth: 0.65 }
-      };
+      // 7. 尝试匹配原型
+      const prototypeMatch = await this.tryMatchPrototype(
+        chakraEnergy,
+        phase,
+        quality,
+        dominantFrequency
+      );
 
-      const result = {
-        source,
+      // 8. 【能量心理学修正】应用诊断修正
+      let profileId = prototypeMatch ? prototypeMatch.id : 'balanced';
+      let profileName = prototypeMatch ? prototypeMatch.name : '平衡型';
+      let message = prototypeMatch ? prototypeMatch.description : '你的能量处于平衡状态';
+
+      if (this.featureExtractor && acousticFeatures) {
+        const correction = this.featureExtractor.correctChakraDiagnosis(
+          profileName,
+          dominantChakra,
+          acousticFeatures
+        );
+
+        if (correction.correctedMessage) {
+          profileName = correction.correctedDiagnosis;
+          message = correction.correctedMessage;
+          console.log('[VoiceAnalyzer] Applied diagnosis correction:', correction.correctedDiagnosis);
+        }
+      }
+
+      const detectionDetails = this.generateDetectionDetails(
+        frequencyData,
+        audioBuffer.sampleRate,
+        chakraEnergy
+      );
+
+      const result: VoiceAnalysisResult = {
+        source: sourceType,
         quality,
         phase,
-        profileId: profile.id,
-        profileName: profile.name,
-        message: profile.message,
+        profileId,
+        profileName,
+        message,
         dominantChakra,
         gapChakras,
         chakraEnergy,
@@ -178,16 +248,50 @@ export class VoiceAnalyzer {
         organMapping: ORGAN_MAPPING,
         recommendedFrequency,
         detectionDetails,
-        prototypeMatch: undefined
+        prototypeMatch: prototypeMatch || undefined,
+        // 新增声学特征
+        acousticFeatures: acousticFeatures ? {
+          roughness: acousticFeatures.roughness,
+          harmonicClarity: acousticFeatures.harmonicClarity,
+          stressIndicator: acousticFeatures.stressIndicator,
+          defenseLevel: acousticFeatures.defenseLevel,
+          brightness: acousticFeatures.brightness,
+          warmth: acousticFeatures.warmth
+        } : undefined,
+        healthWarning: healthWarning || undefined
       };
 
-      console.log('[VoiceAnalyzer] FAST MODE complete instantly!');
+      console.log('[VoiceAnalyzer] Multi-dimensional analysis complete');
       return result;
 
     } catch (error) {
       console.error('[VoiceAnalyzer] Error:', error);
       throw error;
     }
+  }
+
+  /**
+   * 简化的FFT实现 - 提取频谱数据
+   */
+  private performSimpleFFT(audioData: Float32Array): Float32Array {
+    const fftSize = 2048;
+    const frequencyData = new Float32Array(fftSize / 2);
+
+    // 取中间部分样本进行分析
+    const startSample = Math.floor((audioData.length - fftSize) / 2);
+    const segment = audioData.slice(startSample, startSample + fftSize);
+
+    // 简化的频谱能量计算（实际应用中会使用完整的FFT）
+    for (let i = 0; i < frequencyData.length; i++) {
+      let sum = 0;
+      const freqBin = i * 2;
+      for (let j = 0; j < segment.length; j += freqBin + 1) {
+        sum += Math.abs(segment[j]);
+      }
+      frequencyData[i] = sum / (segment.length / (freqBin + 1));
+    }
+
+    return frequencyData;
   }
 
   async analyzeMediaStream(stream: MediaStream): Promise<VoiceAnalysisResult> {
