@@ -223,17 +223,13 @@ function App() {
     return <NamingRitual onComplete={handleNamingComplete} />;
   }
 
-  if (currentStep === 'emotion' || currentStep === 'energy' || currentStep === 'voice' || currentStep === 'innerWhisper' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
+  if (currentStep === 'emotion' || currentStep === 'energy' || currentStep === 'innerWhisper' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
     if (currentStep === 'emotion') {
       return <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />;
     }
 
     if (currentStep === 'energy') {
       return <EnergyCenter isPremium={isPremium} onPremiumRequired={handlePremiumRequired} />;
-    }
-
-    if (currentStep === 'voice') {
-      return <VoiceRecognition onBack={handleBackToHome} />;
     }
 
     if (currentStep === 'innerWhisper') {
