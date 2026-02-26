@@ -129,11 +129,13 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
         return;
       }
 
-      console.log('[VoiceRecognition] Step 1: Preprocessing audio...');
+      console.log('[VoiceRecognition] SKIP preprocessing (debugging freeze)...');
       let processedBlob = audioBlob;
       let shouldShowWarning = false;
       let warningMessage = '';
 
+      // TEMPORARILY DISABLED - preprocessing has O(n²) FFT causing freeze
+      /*
       try {
         const preprocessingResult = await audioPreprocessorRef.current.preprocessAudio(audioBlob);
         console.log('[VoiceRecognition] Preprocessing complete:', {
@@ -159,6 +161,8 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
         console.error('[VoiceRecognition] Preprocessing error, using original audio:', preprocessError);
         processedBlob = audioBlob;
       }
+      */
+      console.log('[VoiceRecognition] Using raw audio directly');
 
       if (shouldShowWarning) {
         setNoiseWarningMessage(warningMessage);
