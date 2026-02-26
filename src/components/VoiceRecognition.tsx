@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { getProfileWithDynamicBalance, EnergyProfile } from '../data/energyDatabase';
 import { AudioPreprocessor } from '../utils/audioPreprocessor';
 import { generateReport, ReportData } from '../utils/reportGenerator';
-import VoiceResults from './VoiceResults';
+import ZenVoiceResults from './ZenVoiceResults';
 
 interface VoiceRecognitionProps {
   onBack?: () => void;
@@ -58,6 +58,7 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const [showNoiseWarning, setShowNoiseWarning] = useState(false);
   const [noiseWarningMessage, setNoiseWarningMessage] = useState('');
   const [showEmergencyExit, setShowEmergencyExit] = useState(false);
+  const [currentPeakHz, setCurrentPeakHz] = useState<number>(0); // 【新增】实时峰值频率
   const emergencyTimerRef = useRef<NodeJS.Timeout | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -108,12 +109,13 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
         }
       });
 
-      const audioContext = new AudioContext();
+      const audioContext = new AudioContext({ sampleRate: 48000 });
       audioContextRef.current = audioContext;
 
       const analyser = audioContext.createAnalyser();
       analyserRef.current = analyser;
-      analyser.fftSize = 256;
+      analyser.fftSize = 8192; // 【极精细低频解析】8192 bins
+      analyser.smoothingTimeConstant = 0; // 【禁止平滑】展示原始波形
 
       const source = audioContext.createMediaStreamSource(stream);
       source.connect(analyser);
@@ -147,7 +149,7 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   };
 
   const visualizeAudio = () => {
-    if (!analyserRef.current) return;
+    if (!analyserRef.current || !audioContextRef.current) return;
 
     const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
 
@@ -160,6 +162,25 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
 
       setAudioLevel(normalized);
       setRippleScale(1 + normalized * 2);
+
+      // 【新增】实时峰值频率检测 (100-500Hz 人声范围)
+      const sampleRate = audioContextRef.current!.sampleRate;
+      const fftSize = analyserRef.current!.fftSize;
+      const minBin = Math.floor((100 * fftSize) / sampleRate);
+      const maxBin = Math.floor((500 * fftSize) / sampleRate);
+
+      let maxMagnitude = 0;
+      let peakBin = minBin;
+
+      for (let i = minBin; i <= maxBin && i < dataArray.length; i++) {
+        if (dataArray[i] > maxMagnitude) {
+          maxMagnitude = dataArray[i];
+          peakBin = i;
+        }
+      }
+
+      const peakHz = Math.round((peakBin * sampleRate) / fftSize);
+      setCurrentPeakHz(peakHz);
 
       animationFrameRef.current = requestAnimationFrame(animate);
     };
@@ -469,7 +490,7 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       </div>
 
       {recordingState === 'result' && result && reportData ? (
-        <VoiceResults
+        <ZenVoiceResults
           result={result}
           reportData={reportData}
           onPlayAudio={handlePlayAudio}
@@ -510,9 +531,33 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
           )}
 
           {recordingState === 'recording' && (
-            <div className="instruction-text recording-active">
-              正在聆听你的声音...
-            </div>
+            <>
+              <div className="instruction-text recording-active">
+                正在聆听你的声音...
+              </div>
+              {/* 【新增】实时峰值频率显示 */}
+              <div style={{
+                marginTop: '20px',
+                fontSize: '24px',
+                fontWeight: '600',
+                color: 'rgba(255, 255, 255, 0.95)',
+                textShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                fontFamily: 'monospace'
+              }}>
+                Current Peak: {currentPeakHz} Hz
+              </div>
+              <div style={{
+                marginTop: '8px',
+                fontSize: '14px',
+                color: 'rgba(255, 255, 255, 0.7)'
+              }}>
+                {currentPeakHz >= 341 && currentPeakHz <= 360 && '❤️ 心轮频率'}
+                {currentPeakHz >= 361 && currentPeakHz <= 410 && '🗣️ 喉轮频率'}
+                {currentPeakHz >= 100 && currentPeakHz <= 250 && '🌱 海底轮频率'}
+                {currentPeakHz >= 251 && currentPeakHz <= 320 && '🔥 脐轮频率'}
+                {currentPeakHz >= 411 && currentPeakHz <= 500 && '👁️ 眉心轮频率'}
+              </div>
+            </>
           )}
 
           {recordingState === 'analyzing' && (
