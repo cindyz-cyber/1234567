@@ -143,7 +143,8 @@ export class VoiceAnalyzer {
     const chakraDistribution = this.calculateChakraDistribution(chakraEnergy);
     const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
 
-    const prototypeMatch = await this.tryMatchPrototype(chakraEnergy, phase, quality);
+    const dominantFrequency = CHAKRA_FREQUENCIES[dominantChakra].core;
+    const prototypeMatch = await this.tryMatchPrototype(chakraEnergy, phase, quality, dominantFrequency);
 
     const profile = this.matchProfile(source, quality, phase);
 
@@ -187,7 +188,8 @@ export class VoiceAnalyzer {
     const chakraDistribution = this.calculateChakraDistribution(chakraEnergy);
     const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
 
-    const prototypeMatch = await this.tryMatchPrototype(chakraEnergy, phase, quality);
+    const dominantFrequency = CHAKRA_FREQUENCIES[dominantChakra].core;
+    const prototypeMatch = await this.tryMatchPrototype(chakraEnergy, phase, quality, dominantFrequency);
 
     const profile = this.matchProfile(sourceType, quality, phase);
 
@@ -532,7 +534,8 @@ export class VoiceAnalyzer {
   private async tryMatchPrototype(
     chakraEnergy: ChakraEnergy,
     phase: 'grounded' | 'floating' | 'scattering',
-    quality: 'smooth' | 'rough' | 'flat'
+    quality: 'smooth' | 'rough' | 'flat',
+    dominantFrequency: number
   ): Promise<{
     id: string;
     name: string;
@@ -548,6 +551,7 @@ export class VoiceAnalyzer {
   } | null> {
     try {
       const { matchPrototype } = await import('./prototypeMatching');
+      const { generateDynamicPrototype } = await import('./dynamicPrototypeGenerator');
 
       const phaseMapping: Record<'grounded' | 'floating' | 'scattering', 'grounded' | 'floating' | 'dispersed'> = {
         'grounded': 'grounded',
@@ -574,7 +578,21 @@ export class VoiceAnalyzer {
         };
       }
 
-      return null;
+      const generated = generateDynamicPrototype(chakraEnergy, phase, quality, dominantFrequency);
+
+      return {
+        id: generated.id,
+        name: generated.name,
+        tagName: generated.tagName,
+        similarity: match?.similarity || 0,
+        description: generated.description,
+        color: generated.color,
+        advice: generated.advice,
+        organs: generated.organs,
+        doList: generated.doList,
+        dontList: generated.dontList,
+        rechargeHz: generated.rechargeHz
+      };
     } catch (error) {
       console.warn('Prototype matching failed:', error);
       return null;

@@ -14,13 +14,14 @@ import Profile from './components/Profile';
 import BookOfAnswers from './components/BookOfAnswers';
 import PremiumModal from './components/PremiumModal';
 import AdminPanel from './components/AdminPanel';
+import SampleUploadPanel from './components/SampleUploadPanel';
 import GoldenDust from './components/GoldenDust';
 import VideoBackground from './components/VideoBackground';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
 type FlowStep = 'home' | 'emotion' | 'energy' | 'voice' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
-type TabType = 'breath' | 'voice' | 'archive' | 'profile' | 'admin';
+type TabType = 'breath' | 'voice' | 'archive' | 'profile' | 'admin' | 'samples';
 
 interface JourneyData {
   emotions: string[];
@@ -330,6 +331,8 @@ function App() {
       )}
 
       {currentTab === 'admin' && isAdmin && <AdminPanel />}
+
+      {currentTab === 'samples' && isAdmin && <SampleUploadPanel />}
 
       <div style={{ pointerEvents: isShowingVoiceResult ? 'none' : 'auto' }}>
         {!isShowingVoiceResult && (

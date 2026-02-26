@@ -1,8 +1,8 @@
-import { Home, Mic, FileText, User, Settings } from 'lucide-react';
+import { Home, Mic, FileText, User, Settings, Upload } from 'lucide-react';
 
 interface NavigationProps {
-  currentTab: 'breath' | 'voice' | 'archive' | 'profile' | 'admin';
-  onTabChange: (tab: 'breath' | 'voice' | 'archive' | 'profile' | 'admin') => void;
+  currentTab: 'breath' | 'voice' | 'archive' | 'profile' | 'admin' | 'samples';
+  onTabChange: (tab: 'breath' | 'voice' | 'archive' | 'profile' | 'admin' | 'samples') => void;
   isAdmin?: boolean;
 }
 
@@ -15,7 +15,7 @@ export default function Navigation({ currentTab, onTabChange, isAdmin = false }:
   ];
 
   const tabs = isAdmin
-    ? [...baseTabs, { id: 'admin' as const, label: '后台', icon: Settings }]
+    ? [...baseTabs, { id: 'admin' as const, label: '后台', icon: Settings }, { id: 'samples' as const, label: '样本', icon: Upload }]
     : baseTabs;
 
   return (
