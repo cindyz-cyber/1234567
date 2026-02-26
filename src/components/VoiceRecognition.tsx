@@ -17,6 +17,11 @@ type RecordingState = 'idle' | 'recording' | 'analyzing' | 'result';
 
 export default function VoiceRecognition({ onBack, onNext, onResultStateChange }: VoiceRecognitionProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('[VoiceRecognition] STATE CHANGED:', recordingState);
+  }, [recordingState]);
   const [audioLevel, setAudioLevel] = useState(0);
   const [result, setResult] = useState<VoiceAnalysisResult | null>(null);
   const [reportData, setReportData] = useState<ReportData | null>(null);
@@ -214,19 +219,15 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       const report = generateReport(analysisResult);
       console.log('[VoiceRecognition] Report generated successfully:', report);
 
-      const timeoutId = setTimeout(() => {
-        console.log('[VoiceRecognition] Setting result state...');
-        setResult(analysisResult);
-        setReportData(report);
-        setRecordingState('result');
-        setRippleScale(1);
-        if (onResultStateChange) {
-          onResultStateChange(true);
-        }
-        console.log('[VoiceRecognition] State updated - should show results now');
-      }, 2000);
-
-      console.log('[VoiceRecognition] Scheduled timeout with ID:', timeoutId);
+      console.log('[VoiceRecognition] Setting result state IMMEDIATELY...');
+      setResult(analysisResult);
+      setReportData(report);
+      setRecordingState('result');
+      setRippleScale(1);
+      if (onResultStateChange) {
+        onResultStateChange(true);
+      }
+      console.log('[VoiceRecognition] State updated - should show results now');
 
     } catch (error) {
       console.error('[VoiceRecognition] Error analyzing voice:', error);
@@ -334,7 +335,8 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   };
 
   const handleBackFromResult = () => {
-    console.log('[VoiceRecognition] Returning from results');
+    console.log('[VoiceRecognition] ⚠️ handleBackFromResult called - WHO CALLED THIS?');
+    console.trace('[VoiceRecognition] Stack trace:');
     setResult(null);
     setReportData(null);
     setRecordingState('idle');
