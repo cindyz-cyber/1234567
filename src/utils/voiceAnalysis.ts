@@ -33,6 +33,13 @@ export interface VoiceAnalysisResult {
     coreFrequency: number;
     organSystem: string;
   }[];
+  prototypeMatch?: {
+    id: string;
+    name: string;
+    tagName: string;
+    similarity: number;
+    description: string;
+  };
 }
 
 interface EmotionProfile {
@@ -130,22 +137,25 @@ export class VoiceAnalyzer {
     const chakraDistribution = this.calculateChakraDistribution(chakraEnergy);
     const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
 
+    const prototypeMatch = await this.tryMatchPrototype(chakraEnergy, phase, quality);
+
     const profile = this.matchProfile(source, quality, phase);
 
     return {
       source,
       quality,
       phase,
-      profileId: profile.id,
-      profileName: profile.name,
-      message: profile.message,
+      profileId: prototypeMatch ? prototypeMatch.id : profile.id,
+      profileName: prototypeMatch ? prototypeMatch.name : profile.name,
+      message: prototypeMatch ? prototypeMatch.description : profile.message,
       dominantChakra,
       gapChakras,
       chakraEnergy,
       chakraDistribution,
       organMapping: ORGAN_MAPPING,
       recommendedFrequency,
-      detectionDetails
+      detectionDetails,
+      prototypeMatch: prototypeMatch || undefined
     };
   }
 
@@ -171,6 +181,8 @@ export class VoiceAnalyzer {
     const chakraDistribution = this.calculateChakraDistribution(chakraEnergy);
     const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
 
+    const prototypeMatch = await this.tryMatchPrototype(chakraEnergy, phase, quality);
+
     const profile = this.matchProfile(sourceType, quality, phase);
 
     source.disconnect();
@@ -179,16 +191,17 @@ export class VoiceAnalyzer {
       source: sourceType,
       quality,
       phase,
-      profileId: profile.id,
-      profileName: profile.name,
-      message: profile.message,
+      profileId: prototypeMatch ? prototypeMatch.id : profile.id,
+      profileName: prototypeMatch ? prototypeMatch.name : profile.name,
+      message: prototypeMatch ? prototypeMatch.description : profile.message,
       dominantChakra,
       gapChakras,
       chakraEnergy,
       chakraDistribution,
       organMapping: ORGAN_MAPPING,
       recommendedFrequency,
-      detectionDetails
+      detectionDetails,
+      prototypeMatch: prototypeMatch || undefined
     };
   }
 
@@ -508,6 +521,46 @@ export class VoiceAnalyzer {
     }
 
     return bestMatch;
+  }
+
+  private async tryMatchPrototype(
+    chakraEnergy: ChakraEnergy,
+    phase: 'grounded' | 'floating' | 'scattering',
+    quality: 'smooth' | 'rough' | 'flat'
+  ): Promise<{
+    id: string;
+    name: string;
+    tagName: string;
+    similarity: number;
+    description: string;
+  } | null> {
+    try {
+      const { matchPrototype } = await import('./prototypeMatching');
+
+      const phaseMapping: Record<'grounded' | 'floating' | 'scattering', 'grounded' | 'floating' | 'dispersed'> = {
+        'grounded': 'grounded',
+        'floating': 'floating',
+        'scattering': 'dispersed'
+      };
+
+      const mappedPhase = phaseMapping[phase];
+      const match = await matchPrototype(chakraEnergy, mappedPhase, quality);
+
+      if (match && match.similarity >= 85) {
+        return {
+          id: match.prototype.id,
+          name: match.prototype.name,
+          tagName: match.prototype.tagName,
+          similarity: match.similarity,
+          description: match.prototype.description
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.warn('Prototype matching failed:', error);
+      return null;
+    }
   }
 
   destroy() {

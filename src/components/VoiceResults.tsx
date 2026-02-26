@@ -26,7 +26,12 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
   const gapChakra = CHAKRA_COLORS[result.gapChakras[0]];
   const gapOrgans = result.organMapping[result.gapChakras[0]].join('、');
 
-  const statusMessage = `您正处于${dominantChakra.name}通达的状态`;
+  const tagName = result.prototypeMatch?.tagName || result.profileName;
+
+  const statusMessage = result.prototypeMatch
+    ? result.prototypeMatch.description.split('。')[0]
+    : `您正处于${dominantChakra.name}通达的状态`;
+
   const suggestionMessage = `关注${gapOrgans}的滋养平衡`;
   const benefitMessage = `建议补充${gapChakra.name}能量，补足后您将获得更完整的生命力`;
 
@@ -62,8 +67,19 @@ export default function VoiceResults({ result, onPlayAudio, onBack }: VoiceResul
               filter: 'brightness(1.4)'
             }}
           >
-            {result.profileName}
+            {tagName}
           </p>
+          {result.prototypeMatch && (
+            <div
+              className="text-center text-xs mb-2"
+              style={{
+                color: 'rgba(247, 231, 206, 0.7)',
+                letterSpacing: '0.1em'
+              }}
+            >
+              原型匹配度：{result.prototypeMatch.similarity.toFixed(1)}%
+            </div>
+          )}
           <p
             className="text-center text-sm"
             style={{
