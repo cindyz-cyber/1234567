@@ -177,9 +177,18 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       await saveAnalysisToDatabase(analysisResult);
       console.log('[VoiceRecognition] Saved to database successfully');
 
+      console.log('[VoiceRecognition] Step 4: Generating report...');
+      console.log('[VoiceRecognition] Analysis data for report:', {
+        dominantChakra: analysisResult.dominantChakra,
+        gapChakras: analysisResult.gapChakras,
+        profileName: analysisResult.profileName
+      });
+
       const report = generateReport(analysisResult);
+      console.log('[VoiceRecognition] Report generated successfully:', report);
 
       const timeoutId = setTimeout(() => {
+        console.log('[VoiceRecognition] Setting result state...');
         setResult(analysisResult);
         setReportData(report);
         setRecordingState('result');
@@ -187,6 +196,7 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
         if (onResultStateChange) {
           onResultStateChange(true);
         }
+        console.log('[VoiceRecognition] State updated - should show results now');
       }, 2000);
 
       console.log('[VoiceRecognition] Scheduled timeout with ID:', timeoutId);
@@ -274,7 +284,9 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   };
 
   const handleBackFromResult = () => {
+    console.log('[VoiceRecognition] Returning from results');
     setResult(null);
+    setReportData(null);
     setRecordingState('idle');
     setRippleScale(1);
     if (onResultStateChange) {
@@ -323,6 +335,23 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
           <ChevronLeft size={24} color="rgba(255, 255, 255, 0.95)" />
         </button>
       )}
+
+      {/* Debug info - remove in production */}
+      <div style={{
+        position: 'fixed',
+        top: '10px',
+        right: '10px',
+        background: 'rgba(0,0,0,0.8)',
+        color: 'white',
+        padding: '10px',
+        fontSize: '12px',
+        zIndex: 9999,
+        borderRadius: '8px'
+      }}>
+        State: {recordingState}<br/>
+        Has Result: {result ? 'Yes' : 'No'}<br/>
+        Has Report: {reportData ? 'Yes' : 'No'}
+      </div>
 
       {recordingState === 'result' && result && reportData ? (
         <VoiceResults

@@ -79,16 +79,18 @@ export interface ReportData {
 }
 
 export function generateReport(analysis: VoiceAnalysisResult): ReportData {
+  console.log('[reportGenerator] Starting report generation with:', analysis);
+
   const dominantChakraName = chakraNames[analysis.dominantChakra];
   const primaryGapName = chakraNames[analysis.gapChakras[0]];
-  const secondaryGapName = chakraNames[analysis.gapChakras[1]];
+  const secondaryGapName = analysis.gapChakras[1] ? chakraNames[analysis.gapChakras[1]] : chakraNames[analysis.gapChakras[0]];
 
   const dominantFreq = chakraFrequencies[analysis.dominantChakra];
   const primaryGapFreq = chakraFrequencies[analysis.gapChakras[0]];
-  const secondaryGapFreq = chakraFrequencies[analysis.gapChakras[1]];
+  const secondaryGapFreq = analysis.gapChakras[1] ? chakraFrequencies[analysis.gapChakras[1]] : primaryGapFreq;
 
   const primaryOrgans = organMapping[analysis.gapChakras[0]].join('、');
-  const secondaryOrgans = organMapping[analysis.gapChakras[1]].join('、');
+  const secondaryOrgans = analysis.gapChakras[1] ? organMapping[analysis.gapChakras[1]].join('、') : primaryOrgans;
 
   const sourceMap = {
     brain: '脑部发声（上焦主导）',
@@ -109,7 +111,7 @@ export function generateReport(analysis: VoiceAnalysisResult): ReportData {
     scattering: '横向散开，能量向外分散'
   };
 
-  const coreSummary = `你的能量体呈现【${analysis.profileName}】状态，由于${primaryGapName}能量断层（${Math.round(analysis.chakraDistribution[analysis.gapChakras[0]])}%），建议补充 ${primaryGapFreq}Hz 频率音频。`;
+  const coreSummary = `你的能量体呈现【${analysis.profileName}】状态，由于${primaryGapName}能量断层（${Math.round(analysis.chakraDistribution[analysis.gapChakras[0]] || 0)}%），建议补充 ${primaryGapFreq}Hz 频率音频。`;
 
   const chakraSummary = `检测到你的声音频谱中${primaryGapName}（核心频率 ${primaryGapFreq}Hz）能量最弱，而${dominantChakraName}（${dominantFreq}Hz）能量占比最高，形成明显的能量失衡。`;
 
@@ -253,8 +255,8 @@ ${detectionInfo}
 海底轮: <200Hz (纯低频)
 
 【能量分析】
-最强脉轮：${dominantChakraName} (${dominantFreq}Hz) - ${Math.round(analysis.chakraDistribution[analysis.dominantChakra])}%
-能量断层：${primaryGapName} (${primaryGapFreq}Hz) - ${Math.round(analysis.chakraDistribution[analysis.gapChakras[0]])}%
+最强脉轮：${dominantChakraName} (${dominantFreq}Hz) - ${Math.round(analysis.chakraDistribution[analysis.dominantChakra] || 0)}%
+能量断层：${primaryGapName} (${primaryGapFreq}Hz) - ${Math.round(analysis.chakraDistribution[analysis.gapChakras[0]] || 0)}%
 补足建议：建议聆听 ${primaryGapFreq}Hz 音频`;
 
   return {
@@ -271,8 +273,8 @@ ${detectionInfo}
       summary: chakraSummary,
       details: {
         formula,
-        dominantChakra: `${dominantChakraName}能量最强，占比 ${Math.round(analysis.chakraDistribution[analysis.dominantChakra])}%`,
-        gapChakras: `${primaryGapName}能量最弱（${Math.round(analysis.chakraDistribution[analysis.gapChakras[0]])}%），${secondaryGapName}次弱（${Math.round(analysis.chakraDistribution[analysis.gapChakras[1]])}%）`,
+        dominantChakra: `${dominantChakraName}能量最强，占比 ${Math.round(analysis.chakraDistribution[analysis.dominantChakra] || 0)}%`,
+        gapChakras: `${primaryGapName}能量最弱（${Math.round(analysis.chakraDistribution[analysis.gapChakras[0]] || 0)}%）${analysis.gapChakras[1] ? `，${secondaryGapName}次弱（${Math.round(analysis.chakraDistribution[analysis.gapChakras[1]] || 0)}%）` : ''}`,
         distribution,
         energyFlow: `你的能量从${dominantChakraName}过度集中，需要向${primaryGapName}和${secondaryGapName}进行疏导。这种失衡可能导致对应脏腑系统的功能减弱，影响整体身心健康。`
       }
@@ -302,7 +304,7 @@ ${detectionInfo}
       details: {
         recommendedFrequency: primaryGapFreq,
         chakraTarget: primaryGapName,
-        reason: `你的${primaryGapName}能量仅占 ${Math.round(analysis.chakraDistribution[analysis.gapChakras[0]])}%，远低于健康状态的平衡值（约14%）。通过持续聆听${primaryGapFreq}Hz频率，可以激活并补充这个脉轮的能量，从而调理对应的${primaryOrgans}系统。`,
+        reason: `你的${primaryGapName}能量仅占 ${Math.round(analysis.chakraDistribution[analysis.gapChakras[0]] || 0)}%，远低于健康状态的平衡值（约14%）。通过持续聆听${primaryGapFreq}Hz频率，可以激活并补充这个脉轮的能量，从而调理对应的${primaryOrgans}系统。`,
         howToUse: [
           `每天聆听20-30分钟，最佳时段为清晨或睡前`,
           `使用耳机获得更好的共振效果`,
@@ -312,4 +314,7 @@ ${detectionInfo}
       }
     }
   };
+
+  console.log('[reportGenerator] Report generation complete');
+  return report;
 }
