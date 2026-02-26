@@ -176,39 +176,68 @@ export class RealFFTAnalyzer {
   }
 
   /**
-   * 估算基频 (F0) - 简化版自相关法
+   * 【修复】估算基频 (F0) - 使用峰值法,避免自相关倍频误判
    */
   estimateFundamentalFrequency(
-    timeData: Float32Array,
+    frequencyData: Float32Array,
     sampleRate: number,
-    minHz: number = 80,
-    maxHz: number = 400
+    fftSize: number,
+    minHz: number = 100,
+    maxHz: number = 500
   ): number {
-    const minPeriod = Math.floor(sampleRate / maxHz);
-    const maxPeriod = Math.floor(sampleRate / minHz);
+    // 在人声基频范围内查找最强峰值
+    const minBin = Math.floor((minHz * fftSize) / sampleRate);
+    const maxBin = Math.floor((maxHz * fftSize) / sampleRate);
 
-    let bestPeriod = minPeriod;
-    let bestCorrelation = -1;
+    let maxMagnitude = 0;
+    let f0Bin = minBin;
 
-    // 自相关计算
-    for (let period = minPeriod; period <= maxPeriod; period++) {
-      let correlation = 0;
-      let count = 0;
+    // 平滑处理: 3点平均
+    for (let i = minBin + 1; i < maxBin - 1 && i < frequencyData.length - 1; i++) {
+      const smoothed = (frequencyData[i - 1] + frequencyData[i] + frequencyData[i + 1]) / 3;
 
-      for (let i = 0; i < timeData.length - period; i++) {
-        correlation += timeData[i] * timeData[i + period];
-        count++;
-      }
-
-      correlation /= count;
-
-      if (correlation > bestCorrelation) {
-        bestCorrelation = correlation;
-        bestPeriod = period;
+      if (smoothed > maxMagnitude) {
+        maxMagnitude = smoothed;
+        f0Bin = i;
       }
     }
 
-    return Math.round(sampleRate / bestPeriod);
+    return Math.round((f0Bin * sampleRate) / fftSize);
+  }
+
+  /**
+   * 【新增】倍频关系验证 - 检测是否为真实基频
+   */
+  verifyHarmonicStructure(
+    frequencyData: Float32Array,
+    sampleRate: number,
+    fftSize: number,
+    f0Candidate: number
+  ): { isValid: boolean; confidence: number } {
+    // 检查 2倍频、3倍频是否存在
+    const harmonics = [2, 3, 4];
+    let harmonicCount = 0;
+
+    for (const h of harmonics) {
+      const harmonicFreq = f0Candidate * h;
+      const bin = Math.floor((harmonicFreq * fftSize) / sampleRate);
+
+      if (bin < frequencyData.length) {
+        const magnitude = frequencyData[bin];
+        const f0Magnitude = frequencyData[Math.floor((f0Candidate * fftSize) / sampleRate)];
+
+        // 谐波应该比基频弱,但存在
+        if (magnitude > f0Magnitude * 0.2 && magnitude < f0Magnitude * 1.5) {
+          harmonicCount++;
+        }
+      }
+    }
+
+    const confidence = harmonicCount / harmonics.length;
+    return {
+      isValid: harmonicCount >= 1, // 至少1个谐波
+      confidence
+    };
   }
 
   destroy() {

@@ -183,8 +183,11 @@ export class VoiceAnalyzer {
       // 频谱质心
       const spectralCentroid = fftAnalyzer.calculateSpectralCentroid(frequencyData, sampleRate, fftResult.fftSize);
 
-      // 估算基频
-      const fundamentalFreq = fftAnalyzer.estimateFundamentalFrequency(fftResult.timeData, sampleRate);
+      // 【修复】基频估算 - 使用频谱峰值法
+      const fundamentalFreq = fftAnalyzer.estimateFundamentalFrequency(frequencyData, sampleRate, fftResult.fftSize);
+
+      // 倍频验证
+      const harmonicCheck = fftAnalyzer.verifyHarmonicStructure(frequencyData, sampleRate, fftResult.fftSize, fundamentalFreq);
 
       fftAnalyzer.destroy();
 
@@ -197,8 +200,9 @@ export class VoiceAnalyzer {
         console.log(`   Peak #${idx + 1}: ${peak.frequency}Hz (幅度: ${peak.magnitude.toFixed(4)}, bin: ${peak.binIndex})`);
       });
       console.log('');
-      console.log('🎵 基频估算 (自相关法):');
+      console.log('🎵 基频估算 (频谱峰值法):');
       console.log(`   F0 = ${fundamentalFreq}Hz`);
+      console.log(`   倍频验证: ${harmonicCheck.isValid ? '✓ 通过' : '✗ 未通过'} (置信度: ${(harmonicCheck.confidence * 100).toFixed(0)}%)`);
       console.log('');
       console.log('📊 绝对能量分布 (能量单位):');
       const totalE = energyDist.totalEnergy;
@@ -215,6 +219,46 @@ export class VoiceAnalyzer {
       console.log('🌈 频谱质心 (声音亮度):');
       console.log(`   Centroid = ${spectralCentroid.toFixed(1)}Hz`);
       console.log('   (质心越高,声音越"亮";质心越低,声音越"暗")');
+      console.log('');
+      console.log('🎯 智能主导频率判定:');
+
+      // 【新增】综合判定逻辑
+      let trueDominantFreq = fundamentalFreq;
+      let judgmentReason = '基频峰值法';
+
+      // 如果峰值检测的第一峰远高于基频估算,优先使用峰值
+      if (topPeaks.length > 0 && topPeaks[0].magnitude > 0.02) {
+        const peak1 = topPeaks[0].frequency;
+
+        // 如果峰值1在100-500Hz,且明显强于基频估算频率
+        if (peak1 >= 100 && peak1 <= 500) {
+          const f0BinMagnitude = frequencyData[Math.floor((fundamentalFreq * fftResult.fftSize) / sampleRate)] || 0;
+          const peak1Magnitude = topPeaks[0].magnitude;
+
+          if (peak1Magnitude > f0BinMagnitude * 1.5) {
+            trueDominantFreq = peak1;
+            judgmentReason = `Top峰值 (${peak1}Hz 幅度 ${peak1Magnitude.toFixed(4)} 远超基频估算 ${fundamentalFreq}Hz)`;
+          }
+        }
+      }
+
+      // 如果频谱质心远离基频,说明能量中心偏移
+      if (Math.abs(spectralCentroid - fundamentalFreq) > 100) {
+        console.log(`   ⚠️ 频谱质心 (${spectralCentroid.toFixed(0)}Hz) 远离基频 (${fundamentalFreq}Hz)`);
+        console.log(`   → 可能存在强谐波或多峰分布`);
+
+        // 如果质心更接近某个峰值,使用该峰值
+        for (const peak of topPeaks) {
+          if (Math.abs(peak.frequency - spectralCentroid) < 50 && peak.frequency >= 100) {
+            trueDominantFreq = peak.frequency;
+            judgmentReason = `质心对齐 (质心${spectralCentroid.toFixed(0)}Hz 接近峰值${peak.frequency}Hz)`;
+            break;
+          }
+        }
+      }
+
+      console.log(`   最终判定主导频率: ${trueDominantFreq}Hz`);
+      console.log(`   判定依据: ${judgmentReason}`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // 3. Extract chakra energy from frequency data (with weight adjustment)
@@ -222,7 +266,8 @@ export class VoiceAnalyzer {
       const chakraEnergy = this.extractChakraEnergyWithDiagnostics(
         frequencyData,
         sampleRate,
-        spectrumDiagnostics
+        spectrumDiagnostics,
+        trueDominantFreq // 【修复】传入真实主导频率
       );
 
       // 4. 【核心创新】使用声学特征提取器进行多维分析
@@ -509,7 +554,8 @@ export class VoiceAnalyzer {
   private extractChakraEnergyWithDiagnostics(
     fftData: Float32Array,
     sampleRate: number,
-    diagnostics: any
+    diagnostics: any,
+    trueDominantFreq?: number
   ): ChakraEnergy {
     const chakraEnergy: ChakraEnergy = {
       root: 0,
@@ -527,6 +573,9 @@ export class VoiceAnalyzer {
     console.log('⚖️ 权重调整策略:');
     console.log('   - 紫色/灵性维度权重: -30%');
     console.log('   - 下三轮（100-300Hz）权重: +30%');
+    if (trueDominantFreq) {
+      console.log(`   - 真实主导频率加权: ${trueDominantFreq}Hz 对应脉轮 +50%`);
+    }
     console.log('');
 
     for (const chakraKey of detectionOrder) {
@@ -552,6 +601,15 @@ export class VoiceAnalyzer {
       if (diagnostics.isLowFreqDominant && chakraKey === 'root') {
         baseEnergy *= 1.2;
         console.log(`   ✓ 检测到低频主导，Root脉轮额外提升20%`);
+      }
+
+      // 【新增】如果真实主导频率落在该脉轮范围,大幅加权
+      if (trueDominantFreq) {
+        const { range } = CHAKRA_FREQUENCIES[chakraKey];
+        if (trueDominantFreq >= range[0] && trueDominantFreq <= range[1]) {
+          baseEnergy *= 1.5;
+          console.log(`   ✓✓ 真实主导频率 ${trueDominantFreq}Hz 命中 ${chakraKey} 脉轮，额外提升50%`);
+        }
       }
 
       chakraEnergy[chakraKey] = baseEnergy;
