@@ -25,24 +25,19 @@ export default function VoiceResults({ result, reportData, onPlayAudio, onBack }
   const [showDetails, setShowDetails] = useState(false);
 
   const dominantChakra = CHAKRA_COLORS[result.dominantChakra];
-  const gapChakra = CHAKRA_COLORS[result.gapChakras[0]];
-  const gapOrgans = result.organMapping[result.gapChakras[0]].join('、');
-
   const prototypeColor = result.prototypeMatch?.color;
   const displayColor = prototypeColor || dominantChakra.text;
 
   const tagName = result.prototypeMatch?.tagName || result.profileName;
 
+  // 【视觉重构】只显示当前状态的定性描述，不生成补足建议
   const statusMessage = result.prototypeMatch
-    ? result.prototypeMatch.description.split('。')[0]
+    ? result.prototypeMatch.description
     : `您正处于${dominantChakra.name}通达的状态`;
-
-  const suggestionMessage = result.prototypeMatch?.advice || `关注${gapOrgans}的滋养平衡`;
-  const benefitMessage = `建议补充${gapChakra.name}能量，补足后您将获得更完整的生命力`;
 
   const overlayColor = prototypeColor
     ? `${prototypeColor}33`
-    : gapChakra.bg.replace('0.08', '0.15');
+    : dominantChakra.bg.replace('0.08', '0.15');
 
   return (
     <div className="min-h-screen flex flex-col px-6 py-12 relative overflow-y-auto">
@@ -103,35 +98,32 @@ export default function VoiceResults({ result, reportData, onPlayAudio, onBack }
           </p>
         </div>
 
-        <div className="zen-card suggestion-card">
-          <p
-            className="text-center text-base mb-4"
-            style={{
-              color: '#FFD966',
-              letterSpacing: '0.25em',
-              lineHeight: 2,
-              fontFamily: 'Georgia, Times New Roman, serif',
-              textShadow: '0 0 20px rgba(255, 217, 102, 0.8), 0 2px 10px rgba(0, 0, 0, 0.95)',
-              filter: 'brightness(1.2)',
-              fontWeight: 400
-            }}
-          >
-            {suggestionMessage}
-          </p>
-          <p
-            className="text-center text-xs"
-            style={{
-              color: 'rgba(255, 255, 255, 0.95)',
-              letterSpacing: '0.15em',
-              lineHeight: 1.8,
-              fontFamily: 'Georgia, Times New Roman, serif',
-              textShadow: '0 2px 8px rgba(0, 0, 0, 0.95)',
-              fontWeight: 400
-            }}
-          >
-            {benefitMessage}
-          </p>
-        </div>
+        {/* 【视觉降噪】折叠式深度报告按钮 */}
+        <button
+          onClick={() => setShowDetails(!showDetails)}
+          className="zen-card suggestion-card transition-all duration-300 hover:scale-105 cursor-pointer"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255, 217, 102, 0.08) 0%, rgba(251, 191, 36, 0.08) 100%)',
+            border: '1px solid rgba(255, 217, 102, 0.3)',
+            padding: '16px 24px'
+          }}
+        >
+          <div className="flex items-center justify-center gap-3">
+            <p
+              className="text-sm"
+              style={{
+                color: '#FFD966',
+                letterSpacing: '0.25em',
+                fontFamily: 'Georgia, Times New Roman, serif',
+                textShadow: '0 0 15px rgba(255, 217, 102, 0.6)',
+                fontWeight: 400
+              }}
+            >
+              深度报告
+            </p>
+            {showDetails ? <ChevronUp size={18} color="#FFD966" /> : <ChevronDown size={18} color="#FFD966" />}
+          </div>
+        </button>
 
         {/* 健康预警卡片 - 当粗糙度 > 60% 时显示 */}
         {result.healthWarning && result.healthWarning.hasWarning && (
@@ -205,40 +197,6 @@ export default function VoiceResults({ result, reportData, onPlayAudio, onBack }
         )}
 
         <div className="zen-card frequency-card">
-          {result.prototypeMatch?.organs && (
-            <div className="mb-4 text-center">
-              <p className="text-xs" style={{ color: 'rgba(247, 231, 206, 0.8)', letterSpacing: '0.15em' }}>
-                脏腑对应：{result.prototypeMatch.organs}
-              </p>
-            </div>
-          )}
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <p
-              className="text-center text-sm"
-              style={{
-                color: displayColor,
-                letterSpacing: '0.25em',
-                fontFamily: 'Georgia, Times New Roman, serif',
-                textShadow: `0 0 20px ${displayColor}80, 0 2px 8px rgba(0, 0, 0, 0.95)`,
-                fontWeight: 400,
-                filter: 'brightness(1.3)'
-              }}
-            >
-              {result.prototypeMatch?.rechargeHz
-                ? `充电频率·${result.prototypeMatch.rechargeHz}Hz`
-                : `${gapChakra.name}·${result.recommendedFrequency.hz}Hz`}
-            </p>
-            <button
-              onClick={() => {
-                const frequencies = [194, 417, 528, 343, 384, 432, 963];
-                const randomHz = frequencies[Math.floor(Math.random() * frequencies.length)];
-                onPlayAudio(randomHz);
-              }}
-              className="shuffle-button"
-            >
-              <Shuffle size={16} />
-            </button>
-          </div>
           <GoldButton
             onClick={() => {
               const hz = result.prototypeMatch?.rechargeHz || result.recommendedFrequency.hz;
@@ -246,7 +204,7 @@ export default function VoiceResults({ result, reportData, onPlayAudio, onBack }
             }}
             className="w-full py-5"
           >
-            <span style={{ letterSpacing: '0.3em', fontSize: '16px' }}>播放调频音频</span>
+            <span style={{ letterSpacing: '0.3em', fontSize: '16px' }}>播放共振音频</span>
           </GoldButton>
         </div>
 
@@ -303,24 +261,9 @@ export default function VoiceResults({ result, reportData, onPlayAudio, onBack }
           </div>
         )}
 
-        <button
-          onClick={() => setShowDetails(!showDetails)}
-          className="zen-toggle-button"
-          style={{
-            color: 'rgba(255, 255, 255, 0.98)',
-            letterSpacing: '0.25em',
-            fontSize: '13px',
-            fontFamily: 'Georgia, Times New Roman, serif',
-            textShadow: '0 0 12px rgba(247, 231, 206, 0.6), 0 2px 8px rgba(0, 0, 0, 0.95)',
-            fontWeight: 400
-          }}
-        >
-          <span>{showDetails ? '收起报告' : '查看深度报告'}</span>
-          {showDetails ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-        </button>
-
+        {/* 【物理数值隐藏】所有 Hz 数值、脉轮百分比等放在深度报告中 */}
         {showDetails && (
-          <div className="zen-report-container">
+          <div className="zen-report-container" style={{ width: '100%', maxWidth: '600px' }}>
             <h3
               className="text-lg font-light mb-8 text-center"
               style={{

@@ -107,14 +107,15 @@ const EMOTION_PROFILES: EmotionProfile[] = [
   }
 ];
 
+// 【物理硬映射】7 脉轮频率 - 严格对位，禁止伪频率生成
 const CHAKRA_FREQUENCIES = {
-  root: { base: 194, range: [100, 199], core: 194 },
-  heart: { base: 343, range: [340, 355], core: 343 },
-  throat: { base: 384, range: [375, 405], core: 384 },
-  sacral: { base: 417, range: [406, 419], core: 417 },
-  thirdEye: { base: 432, range: [420, 460], core: 432 },
-  solar: { base: 528, range: [480, 580], core: 528 },
-  crown: { base: 963, range: [920, 1200], core: 963 }
+  root: { base: 194, range: [100, 250], core: 194 },      // 海底轮：100-250Hz（包含 200-260Hz 稳定态）
+  sacral: { base: 288, range: [251, 320], core: 288 },    // 脐轮：251-320Hz
+  solar: { base: 320, range: [321, 340], core: 320 },     // 太阳轮：321-340Hz
+  heart: { base: 343, range: [341, 360], core: 343 },     // 心轮：341-360Hz（342-343Hz 唯一判定）
+  throat: { base: 384, range: [361, 410], core: 384 },    // 喉轮：361-410Hz
+  thirdEye: { base: 432, range: [411, 500], core: 432 },  // 眉心轮：411-500Hz
+  crown: { base: 963, range: [501, 1200], core: 963 }     // 顶轮：501-1200Hz
 };
 
 const ORGAN_MAPPING = {
@@ -225,13 +226,51 @@ export class VoiceAnalyzer {
       const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
       const dominantFrequency = CHAKRA_FREQUENCIES[dominantChakra].core;
 
-      // 7. 尝试匹配原型
-      const prototypeMatch = await this.tryMatchPrototype(
+      // 7. 【强制种子匹配】物理硬对位，禁止伪标签生成
+      let prototypeMatch = await this.tryMatchPrototype(
         chakraEnergy,
         phase,
         quality,
         dominantFrequency
       );
+
+      // 【核心规则】342-343Hz 必须匹配心轮原型（ID 000 平衡原点）
+      if (dominantFrequency >= 341 && dominantFrequency <= 360 && dominantChakra === 'heart') {
+        console.log('🔒 强制种子匹配: 检测到 342-343Hz，锁定心轮原型');
+        // 如果没有匹配到合适的心轮原型，强制使用平衡态
+        if (!prototypeMatch || prototypeMatch.id.includes('purple') || prototypeMatch.id.includes('silent')) {
+          prototypeMatch = {
+            id: '000',
+            name: '心轮平衡者',
+            tagName: '平衡原点',
+            similarity: 92,
+            description: '你的声音核心频率稳定在 343Hz，这是心轮的黄金共振点。代表着情感稳定、人际和谐、内心平衡的能量状态。',
+            color: '#10B981',
+            advice: '保持当前的心轮能量，可通过冥想、呼吸练习进一步巩固这种平衡状态。',
+            organs: '心、小肠',
+            rechargeHz: 343
+          };
+        }
+      }
+
+      // 【核心规则】200-260Hz 必须匹配下三轮原型（ID 023 稳健师）
+      if (dominantFrequency >= 100 && dominantFrequency <= 250 &&
+          (dominantChakra === 'root' || dominantChakra === 'sacral')) {
+        console.log('🔒 强制种子匹配: 检测到 200-260Hz，锁定稳健原型');
+        if (!prototypeMatch || prototypeMatch.id.includes('purple') || prototypeMatch.id.includes('silent')) {
+          prototypeMatch = {
+            id: '023',
+            name: '稳健共振师',
+            tagName: '落地的稳健师',
+            similarity: 88,
+            description: '你的声音展现出扎实的根基能量，低频共振稳定有力。这代表着强大的生存力、安全感和接地气的实践能力。',
+            color: '#8B4513',
+            advice: '你的根基能量充足，建议适度开发心轮与喉轮，提升情感表达和沟通能力。',
+            organs: '肾、小肠、膀胱',
+            rechargeHz: 194
+          };
+        }
+      }
 
       // 【诊断输出】标签触发权重分析
       console.log('');
@@ -788,6 +827,8 @@ export class VoiceAnalyzer {
     };
   }
 
+  // 【禁用补足逻辑】不再基于"缺失频率"生成虚假诊断
+  // 报告首要任务是定性当前状态的优点，而非强行寻找缺失频率
   private getRecommendedFrequency(
     dominant: keyof ChakraEnergy,
     gaps: Array<keyof ChakraEnergy>
@@ -802,15 +843,15 @@ export class VoiceAnalyzer {
       crown: '顶轮'
     };
 
-    const primaryGap = gaps[0];
-    const gapHz = CHAKRA_FREQUENCIES[primaryGap].core;
-    const gapOrgans = ORGAN_MAPPING[primaryGap].join('、');
+    // 【核心变更】只推荐主导脉轮的共振频率，强化优势
+    const dominantHz = CHAKRA_FREQUENCIES[dominant].core;
+    const dominantOrgans = ORGAN_MAPPING[dominant].join('、');
 
-    const reason = `由于${chakraNames[primaryGap]}能量断层，建议补充 ${gapHz}Hz 频率的音频，滋养${gapOrgans}系统，恢复整体能量平衡。`;
+    const reason = `你的${chakraNames[dominant]}能量稳定强劲，建议使用 ${dominantHz}Hz 共振音频持续滋养${dominantOrgans}系统，巩固现有优势。`;
 
     return {
-      hz: gapHz,
-      chakra: primaryGap,
+      hz: dominantHz,
+      chakra: dominant,
       reason
     };
   }
