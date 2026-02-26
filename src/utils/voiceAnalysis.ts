@@ -167,8 +167,32 @@ export class VoiceAnalyzer {
       const frequencyData = this.performSimpleFFT(channelData);
       console.log('[VoiceAnalyzer] FFT analysis complete');
 
-      // 3. Extract chakra energy from frequency data
-      const chakraEnergy = this.extractChakraEnergy(frequencyData, audioBuffer.sampleRate);
+      // 【诊断模式】输出原始频谱分布
+      const spectrumDiagnostics = this.analyzeSpectrumDistribution(frequencyData, audioBuffer.sampleRate);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('【开发者模式：频谱排查报告】');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📊 原始频谱分布 (Raw Spectrum):');
+      console.log(`   100-200Hz: ${spectrumDiagnostics.bands['100-200Hz'].toFixed(2)}%`);
+      console.log(`   200-300Hz: ${spectrumDiagnostics.bands['200-300Hz'].toFixed(2)}%`);
+      console.log(`   300-400Hz: ${spectrumDiagnostics.bands['300-400Hz'].toFixed(2)}%`);
+      console.log(`   400-500Hz: ${spectrumDiagnostics.bands['400-500Hz'].toFixed(2)}%`);
+      console.log(`   500-600Hz: ${spectrumDiagnostics.bands['500-600Hz'].toFixed(2)}%`);
+      console.log(`   600Hz+: ${spectrumDiagnostics.bands['600Hz+'].toFixed(2)}%`);
+      console.log('');
+      console.log('🎯 基频偏移检查:');
+      console.log(`   检测到的主导频率: ${spectrumDiagnostics.dominantFrequency}Hz`);
+      console.log(`   260Hz附近能量: ${spectrumDiagnostics.energy260Hz.toFixed(2)}%`);
+      console.log(`   432Hz附近能量: ${spectrumDiagnostics.energy432Hz.toFixed(2)}%`);
+      console.log(`   是否为低频主导: ${spectrumDiagnostics.isLowFreqDominant ? '✓ 是' : '✗ 否'}`);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // 3. Extract chakra energy from frequency data (with weight adjustment)
+      const chakraEnergy = this.extractChakraEnergyWithDiagnostics(
+        frequencyData,
+        audioBuffer.sampleRate,
+        spectrumDiagnostics
+      );
 
       // 4. 【核心创新】使用声学特征提取器进行多维分析
       let acousticFeatures = null;
@@ -209,10 +233,61 @@ export class VoiceAnalyzer {
         dominantFrequency
       );
 
+      // 【诊断输出】标签触发权重分析
+      console.log('');
+      console.log('🏷️ 标签触发权重诊断:');
+      console.log(`   匹配到的标签: ${prototypeMatch ? prototypeMatch.tagName : '无匹配'}`);
+      console.log(`   原型ID: ${prototypeMatch ? prototypeMatch.id : 'N/A'}`);
+      console.log(`   匹配度: ${prototypeMatch ? prototypeMatch.similarity.toFixed(1) : 'N/A'}%`);
+      console.log('');
+      console.log('   关键参数:');
+      console.log(`   - 主导脉轮: ${dominantChakra}`);
+      console.log(`   - 主导频率: ${dominantFrequency}Hz`);
+      console.log(`   - 能量相位: ${phase}`);
+      console.log(`   - 声音质地: ${quality}`);
+      console.log('');
+      console.log('   与【稳健共振师】对比:');
+      console.log('   【稳健共振师】触发阈值:');
+      console.log('     - Root脉轮能量 > 30');
+      console.log('     - 主导频率 200-300Hz');
+      console.log('     - 相位: grounded');
+      console.log('     - 质地: smooth/balanced');
+      console.log('');
+      console.log(`   实际值对比:`);
+      console.log(`     - Root能量: ${chakraEnergy.root.toFixed(2)} ${chakraEnergy.root > 30 ? '✓' : '✗'}`);
+      console.log(`     - 频率匹配: ${dominantFrequency}Hz ${(dominantFrequency >= 200 && dominantFrequency <= 300) ? '✓' : '✗'}`);
+      console.log(`     - 相位匹配: ${phase} ${phase === 'grounded' ? '✓' : '✗'}`);
+      console.log(`     - 质地匹配: ${quality} ${(quality === 'smooth' || quality === 'flat') ? '✓' : '✗'}`);
+
+      if (spectrumDiagnostics.isLowFreqDominant && !prototypeMatch) {
+        console.log('');
+        console.log('⚠️ 检测异常: 频谱显示低频主导，但未匹配到稳健型标签');
+        console.log('   可能原因: Root脉轮权重仍不足，或其他脉轮干扰');
+      }
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
       // 8. 【能量心理学修正】应用诊断修正
       let profileId = prototypeMatch ? prototypeMatch.id : 'balanced';
       let profileName = prototypeMatch ? prototypeMatch.name : '平衡型';
       let message = prototypeMatch ? prototypeMatch.description : '你的能量处于平衡状态';
+
+      // 【扎根与稳健逻辑】强制修正
+      if (spectrumDiagnostics.isLowFreqDominant &&
+          chakraEnergy.root > 25 &&
+          (dominantChakra === 'root' || dominantChakra === 'sacral')) {
+
+        console.log('');
+        console.log('🔄 应用【扎根与稳健】强制修正:');
+        console.log(`   原标签: ${profileName}`);
+
+        profileId = 'grounded-resonator';
+        profileName = '稳健共振师';
+        message = '你的声音展现出稳定的根基能量，像大地一样扎实。这种低频共振代表着内在的安全感和生存力量。建议保持这种接地状态，同时适度开发心轮与喉轮的表达能量。';
+
+        console.log(`   修正后: ${profileName}`);
+        console.log('   修正原因: 低频主导 + Root能量充足');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      }
 
       if (this.featureExtractor && acousticFeatures) {
         const correction = this.featureExtractor.correctChakraDiagnosis(
@@ -273,6 +348,123 @@ export class VoiceAnalyzer {
   /**
    * 简化的FFT实现 - 提取频谱数据
    */
+  /**
+   * 分析频谱分布 - 诊断模式
+   */
+  private analyzeSpectrumDistribution(frequencyData: Float32Array, sampleRate: number) {
+    const totalEnergy = frequencyData.reduce((sum, val) => sum + val, 0);
+
+    // 计算各频段占比
+    const getBandEnergy = (startHz: number, endHz: number) => {
+      const startIdx = Math.floor((startHz * frequencyData.length) / (sampleRate / 2));
+      const endIdx = Math.floor((endHz * frequencyData.length) / (sampleRate / 2));
+      let energy = 0;
+      for (let i = startIdx; i < endIdx && i < frequencyData.length; i++) {
+        energy += frequencyData[i];
+      }
+      return (energy / totalEnergy) * 100;
+    };
+
+    const bands = {
+      '100-200Hz': getBandEnergy(100, 200),
+      '200-300Hz': getBandEnergy(200, 300),
+      '300-400Hz': getBandEnergy(300, 400),
+      '400-500Hz': getBandEnergy(400, 500),
+      '500-600Hz': getBandEnergy(500, 600),
+      '600Hz+': getBandEnergy(600, 4000)
+    };
+
+    // 找主导频率
+    let maxEnergy = 0;
+    let dominantFrequency = 0;
+    for (let i = 0; i < frequencyData.length; i++) {
+      if (frequencyData[i] > maxEnergy) {
+        maxEnergy = frequencyData[i];
+        dominantFrequency = Math.floor((i * sampleRate) / (2 * frequencyData.length));
+      }
+    }
+
+    // 检查特定频率能量
+    const energy260Hz = getBandEnergy(250, 270);
+    const energy432Hz = getBandEnergy(420, 445);
+
+    // 判断是否为低频主导
+    const lowFreqEnergy = bands['100-200Hz'] + bands['200-300Hz'];
+    const isLowFreqDominant = lowFreqEnergy > 40;
+
+    return {
+      bands,
+      dominantFrequency,
+      energy260Hz,
+      energy432Hz,
+      isLowFreqDominant,
+      lowFreqTotal: lowFreqEnergy
+    };
+  }
+
+  /**
+   * 带诊断的脉轮能量提取 - 应用权重调整
+   */
+  private extractChakraEnergyWithDiagnostics(
+    fftData: Float32Array,
+    sampleRate: number,
+    diagnostics: any
+  ): ChakraEnergy {
+    const chakraEnergy: ChakraEnergy = {
+      root: 0,
+      sacral: 0,
+      solar: 0,
+      heart: 0,
+      throat: 0,
+      thirdEye: 0,
+      crown: 0
+    };
+
+    const detectionOrder: Array<keyof ChakraEnergy> = ['heart', 'throat', 'thirdEye', 'sacral', 'solar', 'root', 'crown'];
+
+    console.log('');
+    console.log('⚖️ 权重调整策略:');
+    console.log('   - 紫色/灵性维度权重: -30%');
+    console.log('   - 下三轮（100-300Hz）权重: +30%');
+    console.log('');
+
+    for (const chakraKey of detectionOrder) {
+      const { core, range } = CHAKRA_FREQUENCIES[chakraKey];
+
+      const coreEnergy = this.getEnergyAtFrequency(fftData, core, sampleRate);
+      const rangeEnergy = this.getEnergyInRange(fftData, range[0], range[1], sampleRate);
+
+      let baseEnergy = (coreEnergy * 0.75 + rangeEnergy * 0.25);
+
+      // 【权重调整】应用临时修正
+      if (chakraKey === 'crown' || chakraKey === 'thirdEye') {
+        // 降低紫色/灵性维度权重 30%
+        baseEnergy *= 0.7;
+      }
+
+      if (chakraKey === 'root' || chakraKey === 'sacral') {
+        // 增加下三轮权重 30%
+        baseEnergy *= 1.3;
+      }
+
+      // 如果检测到低频主导，进一步强化root
+      if (diagnostics.isLowFreqDominant && chakraKey === 'root') {
+        baseEnergy *= 1.2;
+        console.log(`   ✓ 检测到低频主导，Root脉轮额外提升20%`);
+      }
+
+      chakraEnergy[chakraKey] = baseEnergy;
+    }
+
+    console.log('');
+    console.log('🔋 调整后脉轮能量:');
+    Object.entries(chakraEnergy).forEach(([key, value]) => {
+      console.log(`   ${key}: ${value.toFixed(2)}`);
+    });
+
+    return chakraEnergy;
+  }
+
   private performSimpleFFT(audioData: Float32Array): Float32Array {
     const fftSize = 2048;
     const frequencyData = new Float32Array(fftSize / 2);
