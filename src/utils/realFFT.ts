@@ -90,7 +90,8 @@ export class RealFFTAnalyzer {
       const next = frequencyData[i + 1];
 
       // 局部峰值: 比左右邻居都大
-      if (curr > prev && curr > next && curr > 0.01) {
+      // 【修复】降低阈值至 0.003,避免遗漏 342Hz 心轮频率
+      if (curr > prev && curr > next && curr > 0.003) {
         const frequency = (i * sampleRate) / fftSize;
         peaks.push({
           frequency: Math.round(frequency),

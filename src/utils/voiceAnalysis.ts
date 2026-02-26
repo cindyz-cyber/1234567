@@ -226,8 +226,15 @@ export class VoiceAnalyzer {
       let trueDominantFreq = fundamentalFreq;
       let judgmentReason = '基频峰值法';
 
+      // 【心轮保护】优先检查 341-360Hz 心轮频率范围
+      const heartPeak = topPeaks.find(p => p.frequency >= 341 && p.frequency <= 360);
+      if (heartPeak && heartPeak.magnitude > 0.001) {
+        trueDominantFreq = heartPeak.frequency;
+        judgmentReason = `❤️ 心轮频率保护 (${heartPeak.frequency}Hz, 幅度 ${heartPeak.magnitude.toFixed(4)})`;
+        console.log(`   ✓✓✓ 检测到心轮频率 ${heartPeak.frequency}Hz！`);
+      }
       // 如果峰值检测的第一峰远高于基频估算,优先使用峰值
-      if (topPeaks.length > 0 && topPeaks[0].magnitude > 0.02) {
+      else if (topPeaks.length > 0 && topPeaks[0].magnitude > 0.005) {
         const peak1 = topPeaks[0].frequency;
 
         // 如果峰值1在100-500Hz,且明显强于基频估算频率
@@ -235,9 +242,9 @@ export class VoiceAnalyzer {
           const f0BinMagnitude = frequencyData[Math.floor((fundamentalFreq * fftResult.fftSize) / sampleRate)] || 0;
           const peak1Magnitude = topPeaks[0].magnitude;
 
-          if (peak1Magnitude > f0BinMagnitude * 1.5) {
+          if (peak1Magnitude > f0BinMagnitude * 1.2) {
             trueDominantFreq = peak1;
-            judgmentReason = `Top峰值 (${peak1}Hz 幅度 ${peak1Magnitude.toFixed(4)} 远超基频估算 ${fundamentalFreq}Hz)`;
+            judgmentReason = `Top峰值 (${peak1}Hz 幅度 ${peak1Magnitude.toFixed(4)} 强于基频估算 ${fundamentalFreq}Hz)`;
           }
         }
       }
@@ -570,11 +577,11 @@ export class VoiceAnalyzer {
     const detectionOrder: Array<keyof ChakraEnergy> = ['heart', 'throat', 'thirdEye', 'sacral', 'solar', 'root', 'crown'];
 
     console.log('');
-    console.log('⚖️ 权重调整策略:');
-    console.log('   - 紫色/灵性维度权重: -30%');
-    console.log('   - 下三轮（100-300Hz）权重: +30%');
+    console.log('⚖️ 【修复】基于真实主导频率的能量分配策略:');
     if (trueDominantFreq) {
-      console.log(`   - 真实主导频率加权: ${trueDominantFreq}Hz 对应脉轮 +50%`);
+      console.log(`   - 主导频率: ${trueDominantFreq}Hz → 对应脉轮 +400% (绝对优势)`);
+      console.log(`   - 非主导脉轮: 衰减至 15%`);
+      console.log(`   - 支撑基底 (200-260Hz): 最多占 30% (不盖过主导)`);
     }
     console.log('');
 
@@ -584,31 +591,33 @@ export class VoiceAnalyzer {
       const coreEnergy = this.getEnergyAtFrequency(fftData, core, sampleRate);
       const rangeEnergy = this.getEnergyInRange(fftData, range[0], range[1], sampleRate);
 
-      let baseEnergy = (coreEnergy * 0.75 + rangeEnergy * 0.25);
+      // 【修复】改变权重公式 - 核心频率更重要
+      let baseEnergy = (coreEnergy * 0.85 + rangeEnergy * 0.15);
 
-      // 【权重调整】应用临时修正
-      if (chakraKey === 'crown' || chakraKey === 'thirdEye') {
-        // 降低紫色/灵性维度权重 30%
-        baseEnergy *= 0.7;
-      }
-
-      if (chakraKey === 'root' || chakraKey === 'sacral') {
-        // 增加下三轮权重 30%
-        baseEnergy *= 1.3;
-      }
-
-      // 如果检测到低频主导，进一步强化root
-      if (diagnostics.isLowFreqDominant && chakraKey === 'root') {
-        baseEnergy *= 1.2;
-        console.log(`   ✓ 检测到低频主导，Root脉轮额外提升20%`);
-      }
-
-      // 【新增】如果真实主导频率落在该脉轮范围,大幅加权
+      // 【关键修复】如果真实主导频率命中该脉轮,大幅提升
       if (trueDominantFreq) {
         const { range } = CHAKRA_FREQUENCIES[chakraKey];
         if (trueDominantFreq >= range[0] && trueDominantFreq <= range[1]) {
-          baseEnergy *= 1.5;
-          console.log(`   ✓✓ 真实主导频率 ${trueDominantFreq}Hz 命中 ${chakraKey} 脉轮，额外提升50%`);
+          // 主导脉轮 * 5.0 (绝对优势)
+          baseEnergy *= 5.0;
+          console.log(`   ✓✓✓ 真实主导频率 ${trueDominantFreq}Hz 命中 ${chakraKey} 脉轮，强化 +400%`);
+        } else {
+          // 非主导脉轮衰减 85%
+          baseEnergy *= 0.15;
+        }
+      }
+
+      // 【新增】支撑频率逻辑 - 200-260Hz 作为基底,给予适度能量
+      // 但不应盖过主导频率
+      if ((chakraKey === 'root' || chakraKey === 'sacral') && trueDominantFreq) {
+        // 如果主导频率在心轮以上,下三轮只保留基底能量
+        if (trueDominantFreq >= 341) {
+          const supportEnergy = this.getEnergyInRange(fftData, 200, 260, sampleRate);
+          if (supportEnergy > 0.001) {
+            // 支撑基底最多占 30%
+            baseEnergy = Math.min(baseEnergy, supportEnergy * 0.3);
+            console.log(`   → ${chakraKey} 作为支撑基底 (200-260Hz): ${baseEnergy.toFixed(4)} (限制在30%以下)`);
+          }
         }
       }
 
