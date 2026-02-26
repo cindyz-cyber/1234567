@@ -108,14 +108,16 @@ const EMOTION_PROFILES: EmotionProfile[] = [
 ];
 
 // 【物理硬映射】7 脉轮频率 - 严格对位，禁止伪频率生成
+// 【物理硬对位表 - 禁止任何偏移】
+// 严格遵守频段锁定，直接映射到脉轮，无权重调整
 const CHAKRA_FREQUENCIES = {
-  root: { base: 194, range: [100, 250], core: 194 },      // 海底轮：100-250Hz（包含 200-260Hz 稳定态）
-  sacral: { base: 288, range: [251, 320], core: 288 },    // 脐轮：251-320Hz
-  solar: { base: 320, range: [321, 340], core: 320 },     // 太阳轮：321-340Hz
-  heart: { base: 343, range: [341, 360], core: 343 },     // 心轮：341-360Hz（342-343Hz 唯一判定）
-  throat: { base: 384, range: [361, 410], core: 384 },    // 喉轮：361-410Hz
-  thirdEye: { base: 432, range: [411, 500], core: 432 },  // 眉心轮：411-500Hz
-  crown: { base: 963, range: [501, 1200], core: 963 }     // 顶轮：501-1200Hz
+  root: { base: 150, range: [100, 199], core: 150 },      // 海底轮：100-199Hz
+  sacral: { base: 250, range: [200, 299], core: 250 },    // 脐轮：200-299Hz
+  heart: { base: 330, range: [300, 360], core: 343 },     // 心轮：300-360Hz（核心343Hz）
+  throat: { base: 385, range: [361, 410], core: 385 },    // 喉轮：361-410Hz
+  thirdEye: { base: 435, range: [411, 460], core: 432 },  // 眉心轮：411-460Hz
+  solar: { base: 530, range: [461, 600], core: 528 },     // 太阳神经丛：461-600Hz
+  crown: { base: 963, range: [601, 1200], core: 963 }     // 顶轮：601-1200Hz（保留）
 };
 
 const ORGAN_MAPPING = {
@@ -602,64 +604,27 @@ export class VoiceAnalyzer {
       crown: 0
     };
 
-    const detectionOrder: Array<keyof ChakraEnergy> = ['heart', 'throat', 'thirdEye', 'sacral', 'solar', 'root', 'crown'];
-
     console.log('');
-    console.log('⚖️ 【修复】基于真实主导频率的能量分配策略:');
-    console.log(`   trueDominantFreq = ${trueDominantFreq} (类型: ${typeof trueDominantFreq})`);
-    if (trueDominantFreq) {
-      console.log(`   - 主导频率: ${trueDominantFreq}Hz → 对应脉轮 +400% (绝对优势)`);
-      console.log(`   - 非主导脉轮: 衰减至 15%`);
-      console.log(`   - 支撑基底 (200-260Hz): 最多占 30% (不盖过主导)`);
-    } else {
-      console.log(`   ❌ trueDominantFreq 为空,使用原始能量计算`);
-    }
+    console.log('🔬 【物理硬映射】直接计算频段能量 (无权重调整):');
+    console.log(`   主导频率: ${trueDominantFreq}Hz (仅用于日志)`);
     console.log('');
 
-    for (const chakraKey of detectionOrder) {
-      const { core, range } = CHAKRA_FREQUENCIES[chakraKey];
+    // 【纯物理映射】直接计算每个频段的总能量，不做任何权重调整
+    for (const chakraKey of Object.keys(CHAKRA_FREQUENCIES) as Array<keyof ChakraEnergy>) {
+      const { range } = CHAKRA_FREQUENCIES[chakraKey];
 
-      const coreEnergy = this.getEnergyAtFrequency(fftData, core, sampleRate);
+      // 直接计算频段内的总能量
       const rangeEnergy = this.getEnergyInRange(fftData, range[0], range[1], sampleRate);
 
-      // 【修复】改变权重公式 - 核心频率更重要
-      let baseEnergy = (coreEnergy * 0.85 + rangeEnergy * 0.15);
+      chakraEnergy[chakraKey] = rangeEnergy;
 
-      console.log(`   ${chakraKey}: 范围[${range[0]}-${range[1]}Hz] coreEnergy=${coreEnergy.toFixed(6)} rangeEnergy=${rangeEnergy.toFixed(6)} baseEnergy=${baseEnergy.toFixed(6)}`);
-
-      // 【关键修复】如果真实主导频率命中该脉轮,大幅提升
-      if (trueDominantFreq) {
-        const { range } = CHAKRA_FREQUENCIES[chakraKey];
-        const isMatch = trueDominantFreq >= range[0] && trueDominantFreq <= range[1];
-        console.log(`      → 检查 ${trueDominantFreq}Hz 是否在 [${range[0]}-${range[1]}]: ${isMatch}`);
-
-        if (isMatch) {
-          const beforeBoost = baseEnergy;
-          // 主导脉轮 * 10.0 (绝对优势)
-          baseEnergy *= 10.0;
-          console.log(`      ✓✓✓ 命中主导脉轮! ${beforeBoost.toFixed(6)} → ${baseEnergy.toFixed(6)} (+900%)`);
-        } else {
-          const beforeDecay = baseEnergy;
-
-          // 【修复】根据脉轮位置决定衰减程度
-          // Root/Sacral (基底轮) 保留更多能量 (40%)，其他脉轮衰减到 10%
-          if (chakraKey === 'root' || chakraKey === 'sacral') {
-            baseEnergy *= 0.4;
-            console.log(`      → 基底脉轮保留: ${beforeDecay.toFixed(6)} → ${baseEnergy.toFixed(6)} (40%)`);
-          } else {
-            baseEnergy *= 0.1;
-            console.log(`      → 非主导脉轮衰减: ${beforeDecay.toFixed(6)} → ${baseEnergy.toFixed(6)} (-90%)`);
-          }
-        }
-      }
-
-      chakraEnergy[chakraKey] = baseEnergy;
+      console.log(`   ${chakraKey}: [${range[0]}-${range[1]}Hz] → 能量 ${rangeEnergy.toFixed(6)}`);
     }
 
     console.log('');
-    console.log('🔋 调整后脉轮能量:');
+    console.log('🔋 物理频段能量（未调整）:');
     Object.entries(chakraEnergy).forEach(([key, value]) => {
-      console.log(`   ${key}: ${value.toFixed(2)}`);
+      console.log(`   ${key}: ${value.toFixed(6)}`);
     });
 
     return chakraEnergy;
