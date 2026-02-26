@@ -21,9 +21,22 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   // Debug state changes
   useEffect(() => {
     console.log('[VoiceRecognition] STATE CHANGED:', recordingState);
+    console.trace('[VoiceRecognition] State change stack trace');
   }, [recordingState]);
   const [audioLevel, setAudioLevel] = useState(0);
   const [result, setResult] = useState<VoiceAnalysisResult | null>(null);
+
+  // Debug result changes
+  useEffect(() => {
+    console.log('[VoiceRecognition] RESULT CHANGED:', result ? 'HAS RESULT' : 'NO RESULT');
+    if (result) {
+      console.log('[VoiceRecognition] Result details:', {
+        profileName: result.profileName,
+        dominantChakra: result.dominantChakra,
+        hasPrototypeMatch: !!result.prototypeMatch
+      });
+    }
+  }, [result]);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [energyProfile, setEnergyProfile] = useState<EnergyProfile | null>(null);
   const [rippleScale, setRippleScale] = useState(1);
@@ -39,6 +52,7 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const voiceAnalyzerRef = useRef<VoiceAnalyzer | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioPreprocessorRef = useRef<AudioPreprocessor | null>(null);
+  const resultLockRef = useRef<boolean>(false); // Lock to prevent result state from being reset
 
   useEffect(() => {
     console.log('[VoiceRecognition] Component MOUNTED');
@@ -170,6 +184,10 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       console.log('[VoiceRecognition] Using raw audio directly');
 
       if (shouldShowWarning) {
+        if (resultLockRef.current) {
+          console.log('[VoiceRecognition] Result is locked, ignoring noise warning');
+          return;
+        }
         setNoiseWarningMessage(warningMessage);
         setShowNoiseWarning(true);
         setRecordingState('idle');
@@ -220,6 +238,7 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       console.log('[VoiceRecognition] Report generated successfully:', report);
 
       console.log('[VoiceRecognition] Setting result state IMMEDIATELY...');
+      resultLockRef.current = true; // LOCK the result state
       setResult(analysisResult);
       setReportData(report);
       setRecordingState('result');
@@ -228,9 +247,15 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
         onResultStateChange(true);
       }
       console.log('[VoiceRecognition] State updated - should show results now');
+      console.log('[VoiceRecognition] Result state LOCKED to prevent resets');
 
     } catch (error) {
       console.error('[VoiceRecognition] Error analyzing voice:', error);
+
+      if (resultLockRef.current) {
+        console.log('[VoiceRecognition] Result is locked, not resetting on error');
+        return;
+      }
 
       // Clear emergency timer
       if (emergencyTimerRef.current) {
@@ -250,6 +275,10 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
 
   const handleEmergencyExit = () => {
     console.log('[VoiceRecognition] Emergency exit triggered');
+    if (resultLockRef.current) {
+      console.log('[VoiceRecognition] Result is locked, ignoring emergency exit');
+      return;
+    }
     if (emergencyTimerRef.current) {
       clearTimeout(emergencyTimerRef.current);
       emergencyTimerRef.current = null;
@@ -337,6 +366,7 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
   const handleBackFromResult = () => {
     console.log('[VoiceRecognition] ⚠️ handleBackFromResult called - WHO CALLED THIS?');
     console.trace('[VoiceRecognition] Stack trace:');
+    resultLockRef.current = false; // UNLOCK when user explicitly goes back
     setResult(null);
     setReportData(null);
     setRecordingState('idle');
@@ -402,7 +432,8 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
       }}>
         State: {recordingState}<br/>
         Has Result: {result ? 'Yes' : 'No'}<br/>
-        Has Report: {reportData ? 'Yes' : 'No'}
+        Has Report: {reportData ? 'Yes' : 'No'}<br/>
+        Locked: {resultLockRef.current ? 'Yes' : 'No'}
       </div>
 
       {recordingState === 'result' && result && reportData ? (
