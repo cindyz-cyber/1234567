@@ -227,14 +227,25 @@ export class VoiceAnalyzer {
       let judgmentReason = '基频峰值法';
 
       // 【心轮保护】优先检查 341-360Hz 心轮频率范围
+      console.log(`   → 检查心轮频率范围 (341-360Hz)...`);
+      console.log(`   → topPeaks 数量: ${topPeaks.length}`);
+      topPeaks.slice(0, 10).forEach((p, i) => {
+        const inHeartRange = p.frequency >= 341 && p.frequency <= 360;
+        console.log(`      Peak ${i+1}: ${p.frequency}Hz (幅度: ${p.magnitude.toFixed(6)}) ${inHeartRange ? '❤️ 心轮范围' : ''}`);
+      });
+
       const heartPeak = topPeaks.find(p => p.frequency >= 341 && p.frequency <= 360);
+      console.log(`   → heartPeak 检测结果:`, heartPeak || '未找到');
+
       if (heartPeak && heartPeak.magnitude > 0.001) {
         trueDominantFreq = heartPeak.frequency;
         judgmentReason = `❤️ 心轮频率保护 (${heartPeak.frequency}Hz, 幅度 ${heartPeak.magnitude.toFixed(4)})`;
         console.log(`   ✓✓✓ 检测到心轮频率 ${heartPeak.frequency}Hz！`);
-      }
-      // 如果峰值检测的第一峰远高于基频估算,优先使用峰值
-      else if (topPeaks.length > 0 && topPeaks[0].magnitude > 0.005) {
+      } else {
+        console.log(`   ⚠️ 未检测到心轮频率峰值 (341-360Hz) 或幅度过低`);
+
+        // 如果峰值检测的第一峰远高于基频估算,优先使用峰值
+        if (topPeaks.length > 0 && topPeaks[0].magnitude > 0.005) {
         const peak1 = topPeaks[0].frequency;
 
         // 如果峰值1在100-500Hz,且明显强于基频估算频率
@@ -246,6 +257,7 @@ export class VoiceAnalyzer {
             trueDominantFreq = peak1;
             judgmentReason = `Top峰值 (${peak1}Hz 幅度 ${peak1Magnitude.toFixed(4)} 强于基频估算 ${fundamentalFreq}Hz)`;
           }
+        }
         }
       }
 
@@ -578,10 +590,13 @@ export class VoiceAnalyzer {
 
     console.log('');
     console.log('⚖️ 【修复】基于真实主导频率的能量分配策略:');
+    console.log(`   trueDominantFreq = ${trueDominantFreq} (类型: ${typeof trueDominantFreq})`);
     if (trueDominantFreq) {
       console.log(`   - 主导频率: ${trueDominantFreq}Hz → 对应脉轮 +400% (绝对优势)`);
       console.log(`   - 非主导脉轮: 衰减至 15%`);
       console.log(`   - 支撑基底 (200-260Hz): 最多占 30% (不盖过主导)`);
+    } else {
+      console.log(`   ❌ trueDominantFreq 为空,使用原始能量计算`);
     }
     console.log('');
 
@@ -594,16 +609,24 @@ export class VoiceAnalyzer {
       // 【修复】改变权重公式 - 核心频率更重要
       let baseEnergy = (coreEnergy * 0.85 + rangeEnergy * 0.15);
 
+      console.log(`   ${chakraKey}: 范围[${range[0]}-${range[1]}Hz] coreEnergy=${coreEnergy.toFixed(6)} rangeEnergy=${rangeEnergy.toFixed(6)} baseEnergy=${baseEnergy.toFixed(6)}`);
+
       // 【关键修复】如果真实主导频率命中该脉轮,大幅提升
       if (trueDominantFreq) {
         const { range } = CHAKRA_FREQUENCIES[chakraKey];
-        if (trueDominantFreq >= range[0] && trueDominantFreq <= range[1]) {
+        const isMatch = trueDominantFreq >= range[0] && trueDominantFreq <= range[1];
+        console.log(`      → 检查 ${trueDominantFreq}Hz 是否在 [${range[0]}-${range[1]}]: ${isMatch}`);
+
+        if (isMatch) {
+          const beforeBoost = baseEnergy;
           // 主导脉轮 * 5.0 (绝对优势)
           baseEnergy *= 5.0;
-          console.log(`   ✓✓✓ 真实主导频率 ${trueDominantFreq}Hz 命中 ${chakraKey} 脉轮，强化 +400%`);
+          console.log(`      ✓✓✓ 命中主导脉轮! ${beforeBoost.toFixed(6)} → ${baseEnergy.toFixed(6)} (+400%)`);
         } else {
+          const beforeDecay = baseEnergy;
           // 非主导脉轮衰减 85%
           baseEnergy *= 0.15;
+          console.log(`      → 非主导脉轮衰减: ${beforeDecay.toFixed(6)} → ${baseEnergy.toFixed(6)} (-85%)`);
         }
       }
 
