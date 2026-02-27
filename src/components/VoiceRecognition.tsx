@@ -532,30 +532,60 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
 
           {recordingState === 'recording' && (
             <>
-              <div className="instruction-text recording-active">
+              {/* 【重构指令A】实时调试透明化 */}
+              <div style={{
+                position: 'fixed',
+                top: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'rgba(0, 0, 0, 0.9)',
+                border: '2px solid #00FF00',
+                borderRadius: '12px',
+                padding: '20px 40px',
+                zIndex: 10000,
+                boxShadow: '0 4px 20px rgba(0, 255, 0, 0.4)'
+              }}>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#00FF00',
+                  marginBottom: '8px',
+                  fontFamily: 'monospace',
+                  textAlign: 'center'
+                }}>
+                  🔬 实时物理检测
+                </div>
+                <div style={{
+                  fontSize: '32px',
+                  fontWeight: 'bold',
+                  color: '#FFD700',
+                  textShadow: '0 2px 8px rgba(255, 215, 0, 0.6)',
+                  fontFamily: 'monospace',
+                  textAlign: 'center',
+                  letterSpacing: '2px'
+                }}>
+                  Detected_Primary_Hz: {currentPeakHz}
+                </div>
+                <div style={{
+                  marginTop: '12px',
+                  fontSize: '16px',
+                  color: '#FFF',
+                  textAlign: 'center',
+                  fontWeight: 'bold'
+                }}>
+                  {currentPeakHz >= 342 && currentPeakHz <= 345 && '🔒 Heart (Primary) - Cindy Baseline ID:000'}
+                  {currentPeakHz >= 300 && currentPeakHz <= 360 && currentPeakHz < 342 && '❤️ Heart Chakra (300-360Hz)'}
+                  {currentPeakHz >= 200 && currentPeakHz <= 299 && '🔥 Sacral Chakra (200-299Hz)'}
+                  {currentPeakHz >= 100 && currentPeakHz <= 199 && '🌱 Root Chakra (100-199Hz)'}
+                  {currentPeakHz >= 361 && currentPeakHz <= 410 && '🗣️ Throat Chakra (361-410Hz)'}
+                  {currentPeakHz >= 411 && currentPeakHz <= 460 && '👁️ ThirdEye Chakra (411-460Hz)'}
+                  {currentPeakHz >= 461 && currentPeakHz <= 600 && '☀️ Solar Chakra (461-600Hz)'}
+                  {currentPeakHz >= 601 && '👑 Crown Chakra (601+Hz)'}
+                  {currentPeakHz === 0 && '⏳ 等待音频输入...'}
+                </div>
+              </div>
+
+              <div className="instruction-text recording-active" style={{ marginTop: '140px' }}>
                 正在聆听你的声音...
-              </div>
-              {/* 【新增】实时峰值频率显示 */}
-              <div style={{
-                marginTop: '20px',
-                fontSize: '24px',
-                fontWeight: '600',
-                color: 'rgba(255, 255, 255, 0.95)',
-                textShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-                fontFamily: 'monospace'
-              }}>
-                Current Peak: {currentPeakHz} Hz
-              </div>
-              <div style={{
-                marginTop: '8px',
-                fontSize: '14px',
-                color: 'rgba(255, 255, 255, 0.7)'
-              }}>
-                {currentPeakHz >= 341 && currentPeakHz <= 360 && '❤️ 心轮频率'}
-                {currentPeakHz >= 361 && currentPeakHz <= 410 && '🗣️ 喉轮频率'}
-                {currentPeakHz >= 100 && currentPeakHz <= 250 && '🌱 海底轮频率'}
-                {currentPeakHz >= 251 && currentPeakHz <= 320 && '🔥 脐轮频率'}
-                {currentPeakHz >= 411 && currentPeakHz <= 500 && '👁️ 眉心轮频率'}
               </div>
             </>
           )}

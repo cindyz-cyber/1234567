@@ -660,6 +660,76 @@ export class VoiceAnalyzer {
     diagnostics: any,
     trueDominantFreq?: number
   ): ChakraEnergy {
+    console.log('');
+    console.log('🔒 【重构指令A】强制Switch-Case物理对位');
+    console.log(`   实测主导频率: ${trueDominantFreq}Hz`);
+    console.log(`   FFT数据长度: ${fftData.length}, 采样率: ${sampleRate}Hz`);
+
+    // 【Step 1】扫描所有脉轮频段，找到能量最高的频段
+    const rangeEnergies: Record<keyof ChakraEnergy, number> = {
+      root: this.getEnergyInRange(fftData, 100, 199, sampleRate),
+      sacral: this.getEnergyInRange(fftData, 200, 299, sampleRate),
+      heart: this.getEnergyInRange(fftData, 300, 360, sampleRate),
+      throat: this.getEnergyInRange(fftData, 361, 410, sampleRate),
+      thirdEye: this.getEnergyInRange(fftData, 411, 460, sampleRate),
+      solar: this.getEnergyInRange(fftData, 461, 600, sampleRate),
+      crown: this.getEnergyInRange(fftData, 601, 1200, sampleRate)
+    };
+
+    console.log('📊 物理频段扫描结果:');
+    Object.entries(rangeEnergies).forEach(([key, value]) => {
+      console.log(`   ${key}: ${value.toFixed(8)}`);
+    });
+
+    // 【Step 2】Switch-Case 物理锁定
+    let dominantChakra: keyof ChakraEnergy = 'root';
+    let maxEnergy = 0;
+
+    for (const [chakra, energy] of Object.entries(rangeEnergies) as Array<[keyof ChakraEnergy, number]>) {
+      if (energy > maxEnergy) {
+        maxEnergy = energy;
+        dominantChakra = chakra;
+      }
+    }
+
+    console.log('');
+    console.log('🎯 【Switch-Case 物理锁定】');
+    console.log(`   最高能量脉轮: ${dominantChakra} (能量=${maxEnergy.toFixed(8)})`);
+    console.log(`   实测主导频率: ${trueDominantFreq}Hz`);
+
+    // 【Step 3】强制物理对位 - 精确频段检测
+    let forcedChakra: keyof ChakraEnergy | null = null;
+
+    if (trueDominantFreq >= 342 && trueDominantFreq <= 345) {
+      forcedChakra = 'heart';
+      console.log('   🔒 强制锁定: 342-345Hz → Heart (Cindy Baseline ID:000)');
+    } else if (trueDominantFreq >= 300 && trueDominantFreq <= 360) {
+      forcedChakra = 'heart';
+      console.log('   🔒 强制锁定: 300-360Hz → Heart');
+    } else if (trueDominantFreq >= 200 && trueDominantFreq <= 299) {
+      forcedChakra = 'sacral';
+      console.log('   🔒 强制锁定: 200-299Hz → Sacral');
+    } else if (trueDominantFreq >= 100 && trueDominantFreq <= 199) {
+      forcedChakra = 'root';
+      console.log('   🔒 强制锁定: 100-199Hz → Root');
+    } else if (trueDominantFreq >= 361 && trueDominantFreq <= 410) {
+      forcedChakra = 'throat';
+      console.log('   🔒 强制锁定: 361-410Hz → Throat');
+    } else if (trueDominantFreq >= 411 && trueDominantFreq <= 460) {
+      forcedChakra = 'thirdEye';
+      console.log('   🔒 强制锁定: 411-460Hz → ThirdEye');
+    } else if (trueDominantFreq >= 461 && trueDominantFreq <= 600) {
+      forcedChakra = 'solar';
+      console.log('   🔒 强制锁定: 461-600Hz → Solar');
+    } else if (trueDominantFreq >= 601) {
+      forcedChakra = 'crown';
+      console.log('   🔒 强制锁定: 601+Hz → Crown');
+    }
+
+    // 使用强制锁定结果或能量最高结果
+    const finalDominant = forcedChakra || dominantChakra;
+
+    // 【Step 4】返回二值化结果：主导脉轮100%，其他0%
     const chakraEnergy: ChakraEnergy = {
       root: 0,
       sacral: 0,
@@ -670,37 +740,13 @@ export class VoiceAnalyzer {
       crown: 0
     };
 
-    console.log('');
-    console.log('🔬 【物理硬映射】直接计算频段能量 (无权重调整):');
-    console.log(`   主导频率: ${trueDominantFreq}Hz (仅用于日志)`);
-    console.log(`   FFT数据长度: ${fftData.length}`);
-    console.log(`   采样率: ${sampleRate}Hz`);
-    console.log(`   频率分辨率: ${sampleRate / (fftData.length * 2)}Hz/bin`);
-
-    // 检查 FFT 数据是否有效
-    const fftMax = Math.max(...Array.from(fftData));
-    const fftSum = Array.from(fftData).reduce((a, b) => a + b, 0);
-    console.log(`   FFT数据最大值: ${fftMax}`);
-    console.log(`   FFT数据总和: ${fftSum}`);
-    console.log('');
-
-    // 【纯物理映射】直接计算每个频段的总能量，不做任何权重调整
-    for (const chakraKey of Object.keys(CHAKRA_FREQUENCIES) as Array<keyof ChakraEnergy>) {
-      const { range } = CHAKRA_FREQUENCIES[chakraKey];
-
-      // 直接计算频段内的总能量
-      const rangeEnergy = this.getEnergyInRange(fftData, range[0], range[1], sampleRate);
-
-      chakraEnergy[chakraKey] = rangeEnergy;
-
-      console.log(`   ${chakraKey}: [${range[0]}-${range[1]}Hz] → 能量 ${rangeEnergy.toFixed(6)}`);
-    }
+    chakraEnergy[finalDominant] = 100;
 
     console.log('');
-    console.log('🔋 物理频段能量（未调整）:');
-    Object.entries(chakraEnergy).forEach(([key, value]) => {
-      console.log(`   ${key}: ${value.toFixed(6)}`);
-    });
+    console.log('✅ 最终物理对位结果:');
+    console.log(`   主导脉轮: ${finalDominant} = 100%`);
+    console.log(`   其他脉轮: 0%`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
     return chakraEnergy;
   }
