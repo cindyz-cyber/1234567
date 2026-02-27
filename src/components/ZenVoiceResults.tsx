@@ -20,84 +20,90 @@ export default function ZenVoiceResults({ result, reportData, onBack }: ZenVoice
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* 调试信息面板 - 固定显示，更大更清晰 */}
+      {/* 【重构指令】物理映射结果面板 */}
       <div style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
-        background: 'rgba(0, 0, 0, 0.98)',
+        background: 'linear-gradient(135deg, #000 0%, #1a1a1a 100%)',
         color: '#00FF00',
-        padding: '25px',
+        padding: '40px',
         fontFamily: 'monospace',
-        fontSize: '16px',
+        fontSize: '18px',
         zIndex: 9999,
-        maxHeight: '50vh',
-        overflowY: 'auto',
-        borderBottom: '3px solid #00FF00',
-        boxShadow: '0 4px 20px rgba(0,255,0,0.3)'
+        borderBottom: '4px solid #FFD700',
+        boxShadow: '0 8px 32px rgba(255, 215, 0, 0.4)'
       }}>
-        <div style={{ marginBottom: '15px', color: '#FFD700', fontSize: '20px', fontWeight: 'bold', textAlign: 'center' }}>
-          🔍 调试信息 - 找出紫色问题
+        <div style={{ marginBottom: '30px', color: '#FFD700', fontSize: '28px', fontWeight: 'bold', textAlign: 'center', letterSpacing: '2px' }}>
+          强制物理映射结果
         </div>
 
-        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px', marginBottom: '10px' }}>
-          <div style={{ fontSize: '14px', color: '#888', marginBottom: '8px' }}>核心数据:</div>
-          <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
-            主导脉轮: <span style={{
-              color: '#FFF',
-              background: result.dominantChakra === 'thirdEye' ? '#F00' : '#333',
-              padding: '4px 12px',
-              borderRadius: '4px'
-            }}>{result.dominantChakra}</span>
-            {result.dominantChakra === 'thirdEye' && (
-              <span style={{ color: '#F00', marginLeft: '10px', fontSize: '16px' }}>← 错误！应该是heart</span>
-            )}
-          </div>
-          <div style={{ fontSize: '18px', fontWeight: 'bold', marginTop: '8px' }}>
-            原型颜色: <span style={{
-              color: '#000',
-              background: prototypeColor,
-              padding: '4px 12px',
-              borderRadius: '4px',
-              border: '2px solid #FFF'
-            }}>{prototypeColor}</span>
-            {prototypeColor === '#6B5B95' && (
-              <span style={{ color: '#F00', marginLeft: '10px', fontSize: '16px' }}>← 眉心轮紫色！</span>
-            )}
-          </div>
-          <div style={{ fontSize: '14px', marginTop: '8px' }}>
-            原型ID: <span style={{ color: '#FFF' }}>{result.prototypeMatch?.id || 'null'}</span>
-          </div>
-          <div style={{ fontSize: '14px' }}>
-            原型名称: <span style={{ color: '#FFF' }}>{result.prototypeMatch?.name || 'null'}</span>
-          </div>
-        </div>
-
-        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px' }}>
-          <div style={{ fontSize: '14px', color: '#888', marginBottom: '8px' }}>脉轮能量分布:</div>
-          {Object.entries(result.chakraEnergy).map(([chakra, energy]) => {
-            const isHeart = chakra === 'heart';
-            const isHigh = energy > 30;
-            return (
-              <div key={chakra} style={{
-                marginLeft: '10px',
-                marginBottom: '5px',
-                fontSize: '16px',
-                fontWeight: isHeart ? 'bold' : 'normal',
-                background: isHeart ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
-                padding: '4px 8px',
-                borderRadius: '4px'
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '30px',
+          maxWidth: '900px',
+          margin: '0 auto'
+        }}>
+          <div style={{
+            background: 'rgba(255, 215, 0, 0.1)',
+            padding: '25px',
+            borderRadius: '12px',
+            border: '2px solid #FFD700'
+          }}>
+            <div style={{ fontSize: '16px', color: '#888', marginBottom: '12px', textAlign: 'center' }}>Matched_Hz</div>
+            <div style={{
+              fontSize: '48px',
+              fontWeight: 'bold',
+              color: '#FFD700',
+              textAlign: 'center',
+              textShadow: '0 0 20px rgba(255, 215, 0, 0.6)',
+              letterSpacing: '3px'
+            }}>
+              {result.detectedPrimaryHz || 0} Hz
+            </div>
+            {result.detectedPrimaryHz >= 342 && result.detectedPrimaryHz <= 345 && (
+              <div style={{
+                marginTop: '15px',
+                fontSize: '14px',
+                color: '#FF69B4',
+                textAlign: 'center',
+                fontWeight: 'bold'
               }}>
-                {chakra}: <span style={{
-                  color: isHigh ? '#0F0' : energy === 0 ? '#F00' : '#888',
-                  fontWeight: 'bold'
-                }}>{energy.toFixed(1)}%</span>
-                {isHeart && <span style={{ color: '#FFD700', marginLeft: '10px' }}>← 应该最高</span>}
-                {energy === 0 && <span style={{ color: '#F00', marginLeft: '10px' }}>← 异常！能量为0</span>}
+                Cindy Baseline ID:000
               </div>
-            );
-          })}
+            )}
+          </div>
+
+          <div style={{
+            background: 'rgba(0, 255, 0, 0.1)',
+            padding: '25px',
+            borderRadius: '12px',
+            border: '2px solid #00FF00'
+          }}>
+            <div style={{ fontSize: '16px', color: '#888', marginBottom: '12px', textAlign: 'center' }}>Primary_Chakra</div>
+            <div style={{
+              fontSize: '32px',
+              fontWeight: 'bold',
+              color: prototypeColor,
+              textAlign: 'center',
+              textShadow: `0 0 20px ${prototypeColor}`,
+              padding: '10px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '8px'
+            }}>
+              {result.prototypeMatch?.tagName || result.dominantChakra}
+            </div>
+            <div style={{
+              marginTop: '15px',
+              fontSize: '14px',
+              color: '#888',
+              textAlign: 'center'
+            }}>
+              Color: {prototypeColor}
+            </div>
+          </div>
         </div>
       </div>
 

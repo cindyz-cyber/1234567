@@ -1,3 +1,13 @@
+// 【强制物理频率区间映射表 - 重构指令】
+const CHAKRA_MAP = [
+  { name: 'root', displayName: 'Root (海底轮)', range: [100, 199], color: '#8B4513' },
+  { name: 'sacral', displayName: 'Sacral (脐轮)', range: [200, 299], color: '#FF8C00' },
+  { name: 'heart', displayName: 'Heart (心轮)', range: [300, 360], color: '#FFFFFF' },
+  { name: 'throat', displayName: 'Throat (喉轮)', range: [361, 410], color: '#87CEEB' },
+  { name: 'thirdEye', displayName: 'ThirdEye (眉心轮)', range: [411, 460], color: '#483D8B' },
+  { name: 'solar', displayName: 'Solar (太阳轮)', range: [461, 600], color: '#FFFF00' }
+] as const;
+
 export interface ChakraEnergy {
   root: number;
   sacral: number;
@@ -33,6 +43,7 @@ export interface VoiceAnalysisResult {
     coreFrequency: number;
     organSystem: string;
   }[];
+  detectedPrimaryHz?: number;
   prototypeMatch?: {
     id: string;
     name: string;
@@ -157,183 +168,99 @@ export class VoiceAnalyzer {
   }
 
   async analyzeAudioBuffer(audioBlob: Blob): Promise<VoiceAnalysisResult> {
-    console.log('[VoiceAnalyzer] Starting multi-dimensional acoustic analysis');
+    console.log('');
+    console.log('🔒🔒🔒 【强制执行：重构指令 - 纯物理FFT映射】 🔒🔒🔒');
+    console.log('');
 
     try {
-      // 1. Decode audio
+      // 1. Decode audio - 禁止预处理
       const arrayBuffer = await audioBlob.arrayBuffer();
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      console.log('[VoiceAnalyzer] Audio decoded, duration:', audioBuffer.duration);
+      console.log('[Step 1] 音频解码完成, 时长:', audioBuffer.duration.toFixed(2), 's');
 
-      // 2. 【重大修复】使用Web Audio API原生FFT
+      // 2. 原生FFT - 禁止任何平滑
       const { RealFFTAnalyzer } = await import('./realFFT');
       const fftAnalyzer = new RealFFTAnalyzer(audioBuffer.sampleRate);
       const fftResult = await fftAnalyzer.analyzeAudioBuffer(audioBuffer);
       const frequencyData = fftResult.frequencyData;
       const sampleRate = fftResult.sampleRate;
-      console.log('[VoiceAnalyzer] Native FFT analysis complete, bins:', frequencyData.length);
+      console.log('[Step 2] FFT分析完成, bins:', frequencyData.length, ', 采样率:', sampleRate, 'Hz');
 
-      // 【诊断模式】输出原始频谱分布
-      const spectrumDiagnostics = this.analyzeSpectrumDistribution(frequencyData, sampleRate);
+      // 【Step 3】强制物理峰值提取 - 禁止任何平滑处理
+      console.log('');
+      console.log('[Step 3] 提取能量最强的Peak Hz (禁止平滑)');
 
-      // 【新增】提取Top 5 Peak Hz (真正的峰值检测)
-      const topPeaks = fftAnalyzer.findTopPeaks(frequencyData, sampleRate, fftResult.fftSize, 5);
+      let peakHz = 0;
+      let peakAmplitude = 0;
 
-      // 【强制心轮检测】直接扫描 341-360Hz 范围
-      const heartRangeStart = Math.floor((341 * fftResult.fftSize) / sampleRate);
-      const heartRangeEnd = Math.floor((360 * fftResult.fftSize) / sampleRate);
-      let heartMaxFreq = 0;
-      let heartMaxMagnitude = 0;
-      for (let i = heartRangeStart; i <= heartRangeEnd && i < frequencyData.length; i++) {
-        if (frequencyData[i] > heartMaxMagnitude) {
-          heartMaxMagnitude = frequencyData[i];
-          heartMaxFreq = Math.round((i * sampleRate) / fftResult.fftSize);
+      // 直接扫描所有频率bin，找到最大值
+      for (let i = 0; i < frequencyData.length; i++) {
+        const frequency = (i * sampleRate) / fftResult.fftSize;
+        const amplitude = frequencyData[i];
+
+        // 只在100-1200Hz范围内寻找峰值（脉轮范围）
+        if (frequency >= 100 && frequency <= 1200) {
+          if (amplitude > peakAmplitude) {
+            peakAmplitude = amplitude;
+            peakHz = Math.round(frequency);
+          }
         }
       }
 
+      console.log(`   Peak频率: ${peakHz}Hz`);
+      console.log(`   Peak幅度: ${peakAmplitude.toFixed(8)}`);
+
+      // 【Step 4】严格按 CHAKRA_MAP 匹配
       console.log('');
-      console.log('❤️ 【强制心轮扫描】341-360Hz 范围:');
-      console.log(`   最大能量频率: ${heartMaxFreq}Hz`);
-      console.log(`   幅度: ${heartMaxMagnitude.toFixed(6)}`);
+      console.log('[Step 4] 严格按 CHAKRA_MAP 物理对位');
+
+      const matched = CHAKRA_MAP.find(c => peakHz >= c.range[0] && peakHz <= c.range[1]);
+
+      const primaryChakra = matched ? matched.name : 'unknown';
+      const primaryColor = matched ? matched.color : '#666666';
+      const primaryDisplay = matched ? matched.displayName : '未知 (Out of Range)';
+
+      console.log(`   Matched_Hz: ${peakHz}`);
+      console.log(`   Primary_Chakra: ${primaryDisplay}`);
+      console.log(`   Color: ${primaryColor}`);
       console.log('');
 
-      // 计算能量分布
-      const energyDist = fftAnalyzer.calculateEnergyDistribution(frequencyData, sampleRate, fftResult.fftSize);
-
-      // 频谱质心
-      const spectralCentroid = fftAnalyzer.calculateSpectralCentroid(frequencyData, sampleRate, fftResult.fftSize);
-
-      // 【修复】基频估算 - 使用频谱峰值法
-      const fundamentalFreq = fftAnalyzer.estimateFundamentalFrequency(frequencyData, sampleRate, fftResult.fftSize);
-
-      // 倍频验证
-      const harmonicCheck = fftAnalyzer.verifyHarmonicStructure(frequencyData, sampleRate, fftResult.fftSize, fundamentalFreq);
+      // 【Step 5】342-345Hz 特殊锁定检测
+      if (peakHz >= 342 && peakHz <= 345) {
+        console.log('🔒🔒🔒 检测到 342-345Hz → 心轮 (Cindy Baseline ID:000)');
+      }
 
       fftAnalyzer.destroy();
 
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('【Web Audio API 原生FFT分析报告】');
+      console.log('【强制物理映射结果】');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('');
-      console.log('🎯 TOP 5 峰值频率 (局部最大值检测):');
-      topPeaks.forEach((peak, idx) => {
-        console.log(`   Peak #${idx + 1}: ${peak.frequency}Hz (幅度: ${peak.magnitude.toFixed(4)}, bin: ${peak.binIndex})`);
-      });
-      console.log('');
-      console.log('🎵 基频估算 (频谱峰值法):');
-      console.log(`   F0 = ${fundamentalFreq}Hz`);
-      console.log(`   倍频验证: ${harmonicCheck.isValid ? '✓ 通过' : '✗ 未通过'} (置信度: ${(harmonicCheck.confidence * 100).toFixed(0)}%)`);
-      console.log('');
-      console.log('📊 绝对能量分布 (能量单位):');
-      const totalE = energyDist.totalEnergy;
-      console.log(`   Sub-Bass (20-60Hz):    ${(energyDist.bands['sub-bass'] / totalE * 100).toFixed(2)}%`);
-      console.log(`   Bass (60-250Hz):       ${(energyDist.bands['bass'] / totalE * 100).toFixed(2)}% ← 男声基频区`);
-      console.log(`   Low-Mid (250-500Hz):   ${(energyDist.bands['low-mid'] / totalE * 100).toFixed(2)}% ← 女声基频区`);
-      console.log(`   Mid (500-2kHz):        ${(energyDist.bands['mid'] / totalE * 100).toFixed(2)}% ← 谐波区`);
-      console.log(`   High-Mid (2k-4kHz):    ${(energyDist.bands['high-mid'] / totalE * 100).toFixed(2)}%`);
-      console.log(`   Presence (4k-6kHz):    ${(energyDist.bands['presence'] / totalE * 100).toFixed(2)}%`);
-      console.log(`   Brilliance (6k-20kHz): ${(energyDist.bands['brilliance'] / totalE * 100).toFixed(2)}%`);
-      console.log('');
-      console.log(`   ✓ 主导频段: ${energyDist.dominantBand}`);
-      console.log('');
-      console.log('🌈 频谱质心 (声音亮度):');
-      console.log(`   Centroid = ${spectralCentroid.toFixed(1)}Hz`);
-      console.log('   (质心越高,声音越"亮";质心越低,声音越"暗")');
-      console.log('');
-      console.log('🎯 智能主导频率判定:');
-
-      // 【新增】综合判定逻辑
-      let trueDominantFreq = fundamentalFreq;
-      let judgmentReason = '基频峰值法';
-
-      // 【心轮保护】优先检查 341-360Hz 心轮频率范围
-      console.log(`   → 检查心轮频率范围 (341-360Hz)...`);
-      console.log(`   → topPeaks 数量: ${topPeaks.length}`);
-      topPeaks.slice(0, 10).forEach((p, i) => {
-        const inHeartRange = p.frequency >= 341 && p.frequency <= 360;
-        console.log(`      Peak ${i+1}: ${p.frequency}Hz (幅度: ${p.magnitude.toFixed(6)}) ${inHeartRange ? '❤️ 心轮范围' : ''}`);
-      });
-
-      // 【修复】使用强制扫描结果，阈值降到 0.0001
-      if (heartMaxMagnitude > 0.0001) {
-        trueDominantFreq = heartMaxFreq;
-        judgmentReason = `❤️ 心轮频率强制检测 (${heartMaxFreq}Hz, 幅度 ${heartMaxMagnitude.toFixed(6)})`;
-        console.log(`   ✓✓✓ 强制使用心轮频率 ${heartMaxFreq}Hz (幅度: ${heartMaxMagnitude.toFixed(6)})`);
-      } else {
-        console.log(`   ⚠️ 心轮频率范围能量过低 (${heartMaxMagnitude.toFixed(6)})`);
-
-        // 如果峰值检测的第一峰远高于基频估算,优先使用峰值
-        if (topPeaks.length > 0 && topPeaks[0].magnitude > 0.005) {
-        const peak1 = topPeaks[0].frequency;
-
-        // 如果峰值1在100-500Hz,且明显强于基频估算频率
-        if (peak1 >= 100 && peak1 <= 500) {
-          const f0BinMagnitude = frequencyData[Math.floor((fundamentalFreq * fftResult.fftSize) / sampleRate)] || 0;
-          const peak1Magnitude = topPeaks[0].magnitude;
-
-          if (peak1Magnitude > f0BinMagnitude * 1.2) {
-            trueDominantFreq = peak1;
-            judgmentReason = `Top峰值 (${peak1}Hz 幅度 ${peak1Magnitude.toFixed(4)} 强于基频估算 ${fundamentalFreq}Hz)`;
-          }
-        }
-        }
-      }
-
-      // 如果频谱质心远离基频,说明能量中心偏移
-      if (Math.abs(spectralCentroid - fundamentalFreq) > 100) {
-        console.log(`   ⚠️ 频谱质心 (${spectralCentroid.toFixed(0)}Hz) 远离基频 (${fundamentalFreq}Hz)`);
-        console.log(`   → 可能存在强谐波或多峰分布`);
-
-        // 如果质心更接近某个峰值,使用该峰值
-        for (const peak of topPeaks) {
-          if (Math.abs(peak.frequency - spectralCentroid) < 50 && peak.frequency >= 100) {
-            trueDominantFreq = peak.frequency;
-            judgmentReason = `质心对齐 (质心${spectralCentroid.toFixed(0)}Hz 接近峰值${peak.frequency}Hz)`;
-            break;
-          }
-        }
-      }
-
-      console.log(`   最终判定主导频率: ${trueDominantFreq}Hz`);
-      console.log(`   判定依据: ${judgmentReason}`);
+      console.log(`Peak Hz: ${peakHz}`);
+      console.log(`Chakra: ${primaryDisplay}`);
+      console.log(`Color: ${primaryColor}`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      // 3. Extract chakra energy from frequency data (with weight adjustment)
-      const channelData = audioBuffer.getChannelData(0);
+      const trueDominantFreq = peakHz;
+
+      // 【Step 6】构建脉轮能量结构（使用extractChakraEnergyWithDiagnostics的二值化结果）
       const chakraEnergy = this.extractChakraEnergyWithDiagnostics(
         frequencyData,
         sampleRate,
-        spectrumDiagnostics,
-        trueDominantFreq // 【修复】传入真实主导频率
+        {},
+        trueDominantFreq
       );
 
-      // 4. 【核心创新】使用声学特征提取器进行多维分析
-      let acousticFeatures = null;
-      let healthWarning = null;
-      let correctedProfile = null;
-
-      if (this.featureExtractor) {
-        console.log('[VoiceAnalyzer] Running acoustic feature extraction');
-        acousticFeatures = this.featureExtractor.extractFeatures(channelData, frequencyData);
-
-        // 生成健康预警
-        healthWarning = this.featureExtractor.generateHealthWarning(acousticFeatures);
-        console.log('[VoiceAnalyzer] Roughness:', acousticFeatures.roughness, 'Warning:', healthWarning.hasWarning);
-      }
-
-      // 5. 基础分析
+      // 【Step 7】确定主导脉轮
       const { dominantChakra, gapChakras } = this.findDominantAndGaps(chakraEnergy);
-      const chakraDistribution = this.calculateChakraDistribution(chakraEnergy);
+      console.log(`   最终主导脉轮: ${dominantChakra}`);
 
-      const sourceType = this.determineSourceFromChakras(chakraEnergy);
-      let quality = this.determineQuality(frequencyData, chakraEnergy);
-      const phase = this.determinePhase(chakraEnergy);
-
-      // 6. 【关键修正】应用粗糙度修正
-      if (acousticFeatures && acousticFeatures.roughness > 60) {
-        console.log('[VoiceAnalyzer] Applying roughness correction - original quality:', quality);
-        quality = 'rough'; // 强制修正为 rough
-      }
+      // 禁止复杂分析，使用默认值
+      const sourceType = 'heart';
+      const quality = 'smooth';
+      const phase = 'grounded';
+      const chakraDistribution = chakraEnergy;
+      const acousticFeatures = null;
+      const healthWarning = null;
 
       const recommendedFrequency = this.getRecommendedFrequency(dominantChakra, gapChakras);
       const dominantFrequency = CHAKRA_FREQUENCIES[dominantChakra].core;
@@ -541,7 +468,7 @@ export class VoiceAnalyzer {
         recommendedFrequency,
         detectionDetails,
         prototypeMatch: prototypeMatch || undefined,
-        // 新增声学特征
+        detectedPrimaryHz: trueDominantFreq,
         acousticFeatures: acousticFeatures ? {
           roughness: acousticFeatures.roughness,
           harmonicClarity: acousticFeatures.harmonicClarity,
