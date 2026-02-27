@@ -673,6 +673,15 @@ export class VoiceAnalyzer {
     console.log('');
     console.log('🔬 【物理硬映射】直接计算频段能量 (无权重调整):');
     console.log(`   主导频率: ${trueDominantFreq}Hz (仅用于日志)`);
+    console.log(`   FFT数据长度: ${fftData.length}`);
+    console.log(`   采样率: ${sampleRate}Hz`);
+    console.log(`   频率分辨率: ${sampleRate / (fftData.length * 2)}Hz/bin`);
+
+    // 检查 FFT 数据是否有效
+    const fftMax = Math.max(...Array.from(fftData));
+    const fftSum = Array.from(fftData).reduce((a, b) => a + b, 0);
+    console.log(`   FFT数据最大值: ${fftMax}`);
+    console.log(`   FFT数据总和: ${fftSum}`);
     console.log('');
 
     // 【纯物理映射】直接计算每个频段的总能量，不做任何权重调整
@@ -900,11 +909,20 @@ export class VoiceAnalyzer {
     const maxBin = Math.round((maxFreq * fftSize) / sampleRate);
 
     let energy = 0;
+    let count = 0;
     for (let i = minBin; i <= maxBin && i < fftData.length; i++) {
       energy += fftData[i] * fftData[i];
+      count++;
     }
 
-    return energy / (maxBin - minBin + 1);
+    const avgEnergy = count > 0 ? energy / count : 0;
+
+    // 调试输出
+    if (minFreq === 300) { // 只为心轮输出详细信息
+      console.log(`      ⚡ 心轮详细: bins[${minBin}-${maxBin}], 总能量=${energy.toFixed(8)}, 平均=${avgEnergy.toFixed(8)}`);
+    }
+
+    return avgEnergy;
   }
 
   private generateDetectionDetails(

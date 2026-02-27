@@ -20,56 +20,75 @@ export default function ZenVoiceResults({ result, reportData, onBack }: ZenVoice
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* 调试信息面板 */}
-      {showDebug && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          background: 'rgba(0, 0, 0, 0.95)',
-          color: '#00FF00',
-          padding: '20px',
-          fontFamily: 'monospace',
-          fontSize: '12px',
-          zIndex: 9999,
-          maxHeight: '40vh',
-          overflowY: 'auto',
-          borderBottom: '2px solid #00FF00'
-        }}>
-          <button
-            onClick={() => setShowDebug(false)}
-            style={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
-              background: '#FF0000',
-              color: '#FFF',
-              border: 'none',
-              padding: '5px 15px',
-              cursor: 'pointer',
-              borderRadius: '4px'
-            }}
-          >
-            关闭
-          </button>
-          <div style={{ marginBottom: '10px', color: '#FFD700', fontSize: '14px', fontWeight: 'bold' }}>
-            🔍 调试信息
-          </div>
-          <div>主导脉轮: <span style={{ color: '#FFF' }}>{result.dominantChakra}</span></div>
-          <div>原型ID: <span style={{ color: '#FFF' }}>{result.prototypeMatch?.id || 'null'}</span></div>
-          <div>原型名称: <span style={{ color: '#FFF' }}>{result.prototypeMatch?.name || 'null'}</span></div>
-          <div>原型颜色: <span style={{ color: prototypeColor }}>{prototypeColor}</span></div>
-          <div style={{ marginTop: '10px', borderTop: '1px solid #333', paddingTop: '10px' }}>
-            脉轮能量分布:
-          </div>
-          {Object.entries(result.chakraEnergy).map(([chakra, energy]) => (
-            <div key={chakra} style={{ marginLeft: '20px' }}>
-              {chakra}: <span style={{ color: energy > 30 ? '#0F0' : '#888' }}>{energy.toFixed(1)}%</span>
-            </div>
-          ))}
+      {/* 调试信息面板 - 固定显示，更大更清晰 */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        background: 'rgba(0, 0, 0, 0.98)',
+        color: '#00FF00',
+        padding: '25px',
+        fontFamily: 'monospace',
+        fontSize: '16px',
+        zIndex: 9999,
+        maxHeight: '50vh',
+        overflowY: 'auto',
+        borderBottom: '3px solid #00FF00',
+        boxShadow: '0 4px 20px rgba(0,255,0,0.3)'
+      }}>
+        <div style={{ marginBottom: '15px', color: '#FFD700', fontSize: '20px', fontWeight: 'bold', textAlign: 'center' }}>
+          🔍 调试信息 - 找出紫色问题
         </div>
-      )}
+
+        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px', marginBottom: '10px' }}>
+          <div style={{ fontSize: '14px', color: '#888', marginBottom: '8px' }}>核心数据:</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
+            主导脉轮: <span style={{ color: '#FFF', background: '#333', padding: '4px 12px', borderRadius: '4px' }}>{result.dominantChakra}</span>
+          </div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', marginTop: '8px' }}>
+            原型颜色: <span style={{
+              color: '#000',
+              background: prototypeColor,
+              padding: '4px 12px',
+              borderRadius: '4px',
+              border: '2px solid #FFF'
+            }}>{prototypeColor}</span>
+          </div>
+          <div style={{ fontSize: '14px', marginTop: '8px' }}>
+            原型ID: <span style={{ color: '#FFF' }}>{result.prototypeMatch?.id || 'null'}</span>
+          </div>
+          <div style={{ fontSize: '14px' }}>
+            原型名称: <span style={{ color: '#FFF' }}>{result.prototypeMatch?.name || 'null'}</span>
+          </div>
+        </div>
+
+        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px' }}>
+          <div style={{ fontSize: '14px', color: '#888', marginBottom: '8px' }}>脉轮能量分布:</div>
+          {Object.entries(result.chakraEnergy).map(([chakra, energy]) => {
+            const isHeart = chakra === 'heart';
+            const isHigh = energy > 30;
+            return (
+              <div key={chakra} style={{
+                marginLeft: '10px',
+                marginBottom: '5px',
+                fontSize: '16px',
+                fontWeight: isHeart ? 'bold' : 'normal',
+                background: isHeart ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                padding: '4px 8px',
+                borderRadius: '4px'
+              }}>
+                {chakra}: <span style={{
+                  color: isHigh ? '#0F0' : energy === 0 ? '#F00' : '#888',
+                  fontWeight: 'bold'
+                }}>{energy.toFixed(1)}%</span>
+                {isHeart && <span style={{ color: '#FFD700', marginLeft: '10px' }}>← 应该最高</span>}
+                {energy === 0 && <span style={{ color: '#F00', marginLeft: '10px' }}>← 异常！能量为0</span>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* 背景视频 */}
       <div className="portal-background-layer">
