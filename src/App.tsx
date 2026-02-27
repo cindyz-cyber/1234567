@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import NamingRitual from './components/NamingRitual';
 import HomePage from './components/HomePage';
 import EmotionScan from './components/EmotionScan';
-import VoiceRecognition from './components/VoiceRecognition';
+import EnergyLab from './components/EnergyLab';
 import InnerWhisperJournal from './components/InnerWhisperJournal';
 import GoldenTransition from './components/GoldenTransition';
 import HigherSelfDialogue from './components/HigherSelfDialogue';
@@ -21,7 +21,7 @@ import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
 type FlowStep = 'home' | 'emotion' | 'energy' | 'voice' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
-type TabType = 'breath' | 'voice' | 'archive' | 'profile' | 'admin' | 'samples';
+type TabType = 'breath' | 'voice' | 'archive' | 'profile' | 'admin' | 'samples' | 'lab';
 
 interface JourneyData {
   emotions: string[];
@@ -296,21 +296,23 @@ function App() {
         />
       )}
 
+      {currentTab === 'lab' && <EnergyLab />}
+
       {currentTab === 'voice' && (
-        <VoiceRecognition
-          onBack={() => {
-            console.log('[App] VoiceRecognition onBack called');
-            setCurrentTab('breath');
-            setCurrentStep('home');
-            setIsShowingVoiceResult(false);
-          }}
-          onResultStateChange={(isShowingResult) => {
-            console.log('[App] onResultStateChange called with:', isShowingResult);
-            console.trace('[App] Stack trace for onResultStateChange');
-            setIsShowingVoiceResult(isShowingResult);
-          }}
-        />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+          <div className="text-center text-white p-12">
+            <h2 className="text-4xl font-bold mb-4">功能已迁移</h2>
+            <p className="text-gray-400 text-lg mb-8">请使用"实验室"进行频率检测</p>
+            <button
+              onClick={() => setCurrentTab('lab')}
+              className="px-8 py-4 bg-emerald-500 rounded-xl hover:bg-emerald-600 transition-colors"
+            >
+              前往实验室
+            </button>
+          </div>
+        </div>
       )}
+
 
       {currentTab === 'archive' && <Archive />}
 
