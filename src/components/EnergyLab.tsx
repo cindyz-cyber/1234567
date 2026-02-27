@@ -1,15 +1,22 @@
 import { useState, useRef, useEffect } from 'react';
 import { Activity, Circle } from 'lucide-react';
 
+interface SpectrumPeak {
+  frequency: number;
+  magnitude: number;
+}
+
 export default function EnergyLab() {
   const [isRecording, setIsRecording] = useState(false);
   const [currentPeakHz, setCurrentPeakHz] = useState<number | null>(null);
-  const [waveformData, setWaveformData] = useState<number[]>([]);
+  const [peakData, setPeakData] = useState<number[]>([]);
+  const [cindyDetected, setCindyDetected] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyzerRef = useRef<AnalyserNode | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const peakHoldArrayRef = useRef<Float32Array | null>(null);
 
   useEffect(() => {
     return () => {
@@ -20,10 +27,42 @@ export default function EnergyLab() {
     };
   }, []);
 
+  const applyOctaveSmoothing = (spectrum: Float32Array, sampleRate: number, fftSize: number): Float32Array => {
+    const smoothed = new Float32Array(spectrum.length);
+    const frequencyResolution = sampleRate / fftSize;
+
+    for (let i = 0; i < spectrum.length; i++) {
+      const centerFreq = i * frequencyResolution;
+      if (centerFreq < 100) {
+        smoothed[i] = spectrum[i];
+        continue;
+      }
+
+      const bandwidthRatio = Math.pow(2, 1 / 6);
+      const lowerFreq = centerFreq / bandwidthRatio;
+      const upperFreq = centerFreq * bandwidthRatio;
+
+      const lowerBin = Math.floor(lowerFreq / frequencyResolution);
+      const upperBin = Math.ceil(upperFreq / frequencyResolution);
+
+      let sum = 0;
+      let count = 0;
+
+      for (let j = Math.max(0, lowerBin); j <= Math.min(spectrum.length - 1, upperBin); j++) {
+        sum += spectrum[j];
+        count++;
+      }
+
+      smoothed[i] = count > 0 ? sum / count : spectrum[i];
+    }
+
+    return smoothed;
+  };
+
   const startRecording = async () => {
     try {
       console.log('');
-      console.log('🧪 【能量指纹实验室】启动原始音频采集');
+      console.log('🧪 【峰值保持频谱引擎】启动');
       console.log('');
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -49,16 +88,18 @@ export default function EnergyLab() {
       const source = audioContext.createMediaStreamSource(stream);
       source.connect(analyzer);
 
-      console.log('[配置完成]');
+      peakHoldArrayRef.current = new Float32Array(analyzer.frequencyBinCount).fill(-120);
+
+      console.log('[峰值保持引擎配置]');
       console.log(`  采样率: ${audioContext.sampleRate}Hz`);
       console.log(`  FFT Size: ${analyzer.fftSize}`);
       console.log(`  频率分辨率: ${(audioContext.sampleRate / analyzer.fftSize).toFixed(2)}Hz/bin`);
-      console.log(`  降噪: 关闭`);
-      console.log(`  自动增益: 关闭`);
-      console.log(`  回声消除: 关闭`);
+      console.log(`  dB范围: -20dB 至 -120dB`);
+      console.log(`  平滑: 1/3 倍频程`);
       console.log('');
 
       setIsRecording(true);
+      setCindyDetected(false);
       analyzeRealtime();
     } catch (error) {
       console.error('音频采集失败:', error);
@@ -74,45 +115,73 @@ export default function EnergyLab() {
     }
     setIsRecording(false);
     console.log('');
-    console.log('🧪 采样结束');
+    console.log('🧪 峰值保持引擎已停止');
     console.log('');
   };
 
   const analyzeRealtime = () => {
-    if (!analyzerRef.current || !audioContextRef.current) return;
+    if (!analyzerRef.current || !audioContextRef.current || !peakHoldArrayRef.current) return;
 
     const analyzer = analyzerRef.current;
     const sampleRate = audioContextRef.current.sampleRate;
     const bufferLength = analyzer.frequencyBinCount;
     const dataArray = new Float32Array(bufferLength);
-    const timeDataArray = new Uint8Array(bufferLength);
+    const peakHoldArray = peakHoldArrayRef.current;
 
     const analyze = () => {
       analyzer.getFloatFrequencyData(dataArray);
-      analyzer.getByteTimeDomainData(timeDataArray);
+
+      const smoothedData = applyOctaveSmoothing(dataArray, sampleRate, analyzer.fftSize);
+
+      for (let i = 0; i < bufferLength; i++) {
+        if (smoothedData[i] > peakHoldArray[i]) {
+          peakHoldArray[i] = smoothedData[i];
+        }
+      }
 
       let peakHz = 0;
       let peakMagnitude = -Infinity;
+      let peakIndex = 0;
 
-      for (let i = 0; i < dataArray.length; i++) {
+      for (let i = 0; i < bufferLength; i++) {
         const frequency = (i * sampleRate) / analyzer.fftSize;
-        const magnitude = dataArray[i];
+        const magnitude = peakHoldArray[i];
 
         if (frequency >= 100 && frequency <= 1200) {
           if (magnitude > peakMagnitude) {
             peakMagnitude = magnitude;
             peakHz = Math.round(frequency);
+            peakIndex = i;
           }
         }
       }
 
-      if (peakMagnitude > -100) {
+      if (peakMagnitude > -120) {
         setCurrentPeakHz(peakHz);
-        console.log(`[实时] Peak: ${peakHz}Hz (${peakMagnitude.toFixed(2)}dB)`);
+
+        if (peakHz >= 340 && peakHz <= 345 && peakMagnitude > -60) {
+          if (!cindyDetected) {
+            setCindyDetected(true);
+            console.log('');
+            console.log('🎯 [核心ID检测]');
+            console.log(`   识别到: 000 | Cindy 平衡态`);
+            console.log(`   频率: ${peakHz}Hz`);
+            console.log(`   强度: ${peakMagnitude.toFixed(2)}dB`);
+            console.log('');
+          }
+        }
       }
 
-      const waveform = Array.from(timeDataArray.slice(0, 200));
-      setWaveformData(waveform);
+      const displayData: number[] = [];
+      const step = 2;
+      for (let i = 0; i < bufferLength; i += step) {
+        const frequency = (i * sampleRate) / analyzer.fftSize;
+        if (frequency >= 100 && frequency <= 1200) {
+          displayData.push(peakHoldArray[i]);
+        }
+      }
+
+      setPeakData(displayData);
 
       animationFrameRef.current = requestAnimationFrame(analyze);
     };
@@ -122,37 +191,139 @@ export default function EnergyLab() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-8">
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-6xl">
         <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <Activity className="w-10 h-10 text-emerald-400" />
+            <Activity className="w-10 h-10 text-blue-400" />
             <h1 className="text-5xl font-bold text-white tracking-wider">
               能量指纹实验室
             </h1>
           </div>
-          <p className="text-gray-400 text-lg">Energy Lab - Raw Frequency Detection</p>
+          <p className="text-gray-400 text-lg">Peak-Hold Spectrum Curve Engine</p>
         </div>
 
         <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-12 border border-white/10 shadow-2xl">
-          {isRecording && waveformData.length > 0 && (
-            <div className="mb-12">
-              <div className="text-gray-400 text-sm mb-4 text-center font-mono">
-                Raw Waveform (原始波形)
+          {cindyDetected && (
+            <div className="mb-8 p-6 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-400/30 rounded-2xl">
+              <div className="text-center">
+                <div className="text-purple-300 text-sm font-mono mb-2">CORE ID DETECTED</div>
+                <div className="text-2xl font-bold text-white">
+                  识别到核心 ID: 000 | Cindy 平衡态
+                </div>
+                <div className="text-purple-300 text-sm mt-2 font-mono">
+                  {currentPeakHz}Hz @ Peak Magnitude
+                </div>
               </div>
-              <div className="h-32 bg-black/40 rounded-xl p-4 border border-emerald-500/30">
-                <svg width="100%" height="100%" viewBox="0 0 800 100" preserveAspectRatio="none">
+            </div>
+          )}
+
+          {peakData.length > 0 && (
+            <div className="mb-12">
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-gray-400 text-sm font-mono">
+                  Peak-Hold Spectrum (100-1200Hz)
+                </div>
+                <div className="text-gray-400 text-sm font-mono">
+                  Range: -20dB ~ -120dB
+                </div>
+              </div>
+
+              <div className="relative h-80 bg-black/40 rounded-xl p-6 border border-blue-500/30">
+                <svg width="100%" height="100%" viewBox="0 0 1000 300" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="spectrumGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.8" />
+                      <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.6" />
+                      <stop offset="100%" stopColor="#1e40af" stopOpacity="0.3" />
+                    </linearGradient>
+                  </defs>
+
+                  {Array.from({ length: 11 }).map((_, i) => {
+                    const y = (i / 10) * 300;
+                    const db = -20 - i * 10;
+                    return (
+                      <g key={i}>
+                        <line
+                          x1="0"
+                          y1={y}
+                          x2="1000"
+                          y2={y}
+                          stroke="#333"
+                          strokeWidth="1"
+                          strokeDasharray="5,5"
+                        />
+                        <text x="5" y={y - 5} fill="#666" fontSize="10" fontFamily="monospace">
+                          {db}dB
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  <polyline
+                    fill="url(#spectrumGradient)"
+                    stroke="#8b5cf6"
+                    strokeWidth="2"
+                    points={
+                      peakData.map((magnitude, i) => {
+                        const x = (i / peakData.length) * 1000;
+                        const normalizedMag = Math.max(-120, Math.min(-20, magnitude));
+                        const y = ((normalizedMag + 120) / 100) * 300;
+                        return `${x},${300 - y}`;
+                      }).join(' ') + ` 1000,300 0,300`
+                    }
+                  />
+
                   <polyline
                     fill="none"
-                    stroke="#10b981"
-                    strokeWidth="2"
-                    points={waveformData.map((val, i) => {
-                      const x = (i / waveformData.length) * 800;
-                      const y = ((val - 128) / 128) * 40 + 50;
-                      return `${x},${y}`;
+                    stroke="#a78bfa"
+                    strokeWidth="3"
+                    points={peakData.map((magnitude, i) => {
+                      const x = (i / peakData.length) * 1000;
+                      const normalizedMag = Math.max(-120, Math.min(-20, magnitude));
+                      const y = ((normalizedMag + 120) / 100) * 300;
+                      return `${x},${300 - y}`;
                     }).join(' ')}
                   />
-                  <line x1="0" y1="50" x2="800" y2="50" stroke="#555" strokeWidth="1" strokeDasharray="5,5" />
+
+                  {currentPeakHz !== null && (() => {
+                    const peakIndex = peakData.findIndex((mag, i) => {
+                      const freq = 100 + (i / peakData.length) * 1100;
+                      return Math.abs(freq - currentPeakHz) < 10;
+                    });
+
+                    if (peakIndex !== -1) {
+                      const x = (peakIndex / peakData.length) * 1000;
+                      const normalizedMag = Math.max(-120, Math.min(-20, peakData[peakIndex]));
+                      const y = ((normalizedMag + 120) / 100) * 300;
+
+                      return (
+                        <g>
+                          <circle cx={x} cy={300 - y} r="6" fill="#fff" stroke="#8b5cf6" strokeWidth="2" />
+                          <text
+                            x={x}
+                            y={300 - y - 15}
+                            fill="#fff"
+                            fontSize="14"
+                            fontFamily="monospace"
+                            textAnchor="middle"
+                            fontWeight="bold"
+                          >
+                            {currentPeakHz}Hz
+                          </text>
+                        </g>
+                      );
+                    }
+                    return null;
+                  })()}
                 </svg>
+              </div>
+
+              <div className="mt-4 flex justify-between text-gray-500 text-xs font-mono px-6">
+                <span>100Hz</span>
+                <span>400Hz</span>
+                <span>700Hz</span>
+                <span>1000Hz</span>
+                <span>1200Hz</span>
               </div>
             </div>
           )}
@@ -161,9 +332,9 @@ export default function EnergyLab() {
             <div className="mb-12">
               <div className="text-center">
                 <div className="text-gray-400 text-sm mb-3 font-mono">Current_Peak_Hz</div>
-                <div className="text-8xl font-bold text-emerald-400 tracking-wider font-mono">
+                <div className="text-6xl font-bold text-blue-400 tracking-wider font-mono">
                   {currentPeakHz}
-                  <span className="text-4xl ml-2">Hz</span>
+                  <span className="text-3xl ml-2">Hz</span>
                 </div>
               </div>
             </div>
@@ -173,7 +344,7 @@ export default function EnergyLab() {
             {!isRecording ? (
               <button
                 onClick={startRecording}
-                className="group relative px-16 py-8 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl text-2xl font-bold shadow-2xl hover:shadow-emerald-500/50 transition-all duration-300 hover:scale-105"
+                className="group relative px-16 py-8 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl text-2xl font-bold shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 hover:scale-105"
               >
                 <div className="flex items-center gap-4">
                   <Circle className="w-8 h-8" />
@@ -197,7 +368,7 @@ export default function EnergyLab() {
         <div className="mt-8 text-center">
           <div className="inline-block bg-black/40 rounded-lg px-6 py-3 border border-white/10">
             <p className="text-gray-400 text-sm font-mono">
-              采样率: 48kHz | FFT: 4096 | 滤波器: 全部关闭
+              48kHz | FFT 4096 | dB校准: -20~-120 | 1/3倍频程平滑 | 峰值保持算法
             </p>
           </div>
         </div>
