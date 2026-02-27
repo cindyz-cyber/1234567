@@ -12,6 +12,7 @@ interface ZenVoiceResultsProps {
 
 export default function ZenVoiceResults({ result, reportData, onBack }: ZenVoiceResultsProps) {
   const [showSoulPrint, setShowSoulPrint] = useState(false);
+  const [showDebug, setShowDebug] = useState(true);
 
   const prototypeColor = result.prototypeMatch?.color || '#A855F7';
   const tagName = result.prototypeMatch?.tagName || result.profileName;
@@ -19,6 +20,57 @@ export default function ZenVoiceResults({ result, reportData, onBack }: ZenVoice
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* 调试信息面板 */}
+      {showDebug && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          background: 'rgba(0, 0, 0, 0.95)',
+          color: '#00FF00',
+          padding: '20px',
+          fontFamily: 'monospace',
+          fontSize: '12px',
+          zIndex: 9999,
+          maxHeight: '40vh',
+          overflowY: 'auto',
+          borderBottom: '2px solid #00FF00'
+        }}>
+          <button
+            onClick={() => setShowDebug(false)}
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              background: '#FF0000',
+              color: '#FFF',
+              border: 'none',
+              padding: '5px 15px',
+              cursor: 'pointer',
+              borderRadius: '4px'
+            }}
+          >
+            关闭
+          </button>
+          <div style={{ marginBottom: '10px', color: '#FFD700', fontSize: '14px', fontWeight: 'bold' }}>
+            🔍 调试信息
+          </div>
+          <div>主导脉轮: <span style={{ color: '#FFF' }}>{result.dominantChakra}</span></div>
+          <div>原型ID: <span style={{ color: '#FFF' }}>{result.prototypeMatch?.id || 'null'}</span></div>
+          <div>原型名称: <span style={{ color: '#FFF' }}>{result.prototypeMatch?.name || 'null'}</span></div>
+          <div>原型颜色: <span style={{ color: prototypeColor }}>{prototypeColor}</span></div>
+          <div style={{ marginTop: '10px', borderTop: '1px solid #333', paddingTop: '10px' }}>
+            脉轮能量分布:
+          </div>
+          {Object.entries(result.chakraEnergy).map(([chakra, energy]) => (
+            <div key={chakra} style={{ marginLeft: '20px' }}>
+              {chakra}: <span style={{ color: energy > 30 ? '#0F0' : '#888' }}>{energy.toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* 背景视频 */}
       <div className="portal-background-layer">
         <video
