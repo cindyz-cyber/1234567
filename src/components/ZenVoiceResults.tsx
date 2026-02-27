@@ -44,7 +44,15 @@ export default function ZenVoiceResults({ result, reportData, onBack }: ZenVoice
         <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px', marginBottom: '10px' }}>
           <div style={{ fontSize: '14px', color: '#888', marginBottom: '8px' }}>核心数据:</div>
           <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
-            主导脉轮: <span style={{ color: '#FFF', background: '#333', padding: '4px 12px', borderRadius: '4px' }}>{result.dominantChakra}</span>
+            主导脉轮: <span style={{
+              color: '#FFF',
+              background: result.dominantChakra === 'thirdEye' ? '#F00' : '#333',
+              padding: '4px 12px',
+              borderRadius: '4px'
+            }}>{result.dominantChakra}</span>
+            {result.dominantChakra === 'thirdEye' && (
+              <span style={{ color: '#F00', marginLeft: '10px', fontSize: '16px' }}>← 错误！应该是heart</span>
+            )}
           </div>
           <div style={{ fontSize: '18px', fontWeight: 'bold', marginTop: '8px' }}>
             原型颜色: <span style={{
@@ -54,6 +62,9 @@ export default function ZenVoiceResults({ result, reportData, onBack }: ZenVoice
               borderRadius: '4px',
               border: '2px solid #FFF'
             }}>{prototypeColor}</span>
+            {prototypeColor === '#6B5B95' && (
+              <span style={{ color: '#F00', marginLeft: '10px', fontSize: '16px' }}>← 眉心轮紫色！</span>
+            )}
           </div>
           <div style={{ fontSize: '14px', marginTop: '8px' }}>
             原型ID: <span style={{ color: '#FFF' }}>{result.prototypeMatch?.id || 'null'}</span>
