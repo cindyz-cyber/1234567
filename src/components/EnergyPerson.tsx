@@ -12,6 +12,7 @@ import {
 } from '../utils/mayaCalendar';
 import ImmersiveDatePicker from './ImmersiveDatePicker';
 import CalibrationButton from './CalibrationButton';
+import EnergyRadarChart from './EnergyRadarChart';
 
 interface PersonData {
   birthDate: Date | null;
@@ -77,18 +78,6 @@ export default function EnergyPerson() {
         'father'
       );
       const synergy = detectRelationshipSynergy(kinData, fatherData.kinData, 'father');
-      detectedSynergies.push(synergy);
-    }
-
-    if (childData.birthDate && childData.kinData) {
-      profile = calculateFamilyCollision(
-        profile,
-        kinData,
-        calculateEnergyProfile(childData.kinData),
-        childData.kinData,
-        'child'
-      );
-      const synergy = detectRelationshipSynergy(kinData, childData.kinData, 'child');
       detectedSynergies.push(synergy);
     }
 
