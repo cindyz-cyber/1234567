@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, User, Users, Baby, Share2 } from 'lucide-react';
+import { Share2 } from 'lucide-react';
 import {
   calculateKin,
   calculateEnergyProfile,
@@ -10,6 +10,9 @@ import {
   type EnergyProfile,
   type RelationshipSynergy
 } from '../utils/mayaCalendar';
+import RoleSwitcher from './RoleSwitcher';
+import ImmersiveDatePicker from './ImmersiveDatePicker';
+import CalibrationButton from './CalibrationButton';
 
 interface PersonData {
   birthDate: Date | null;
@@ -18,7 +21,10 @@ interface PersonData {
   isMidnightBirth?: boolean;
 }
 
+type Role = 'self' | 'parent' | 'child';
+
 export default function EnergyPerson() {
+  const [currentRole, setCurrentRole] = useState<Role>('self');
   const [myData, setMyData] = useState<PersonData>({
     birthDate: null,
     kinData: null,
@@ -130,9 +136,39 @@ export default function EnergyPerson() {
     }
   };
 
+  const getRoleGradient = (role: Role) => {
+    switch (role) {
+      case 'self':
+        return 'linear-gradient(135deg, rgba(10, 31, 28, 0.95) 0%, rgba(2, 10, 9, 0.98) 100%)';
+      case 'parent':
+        return 'linear-gradient(135deg, rgba(20, 25, 35, 0.95) 0%, rgba(5, 10, 15, 0.98) 100%)';
+      case 'child':
+        return 'linear-gradient(135deg, rgba(25, 35, 30, 0.95) 0%, rgba(10, 15, 12, 0.98) 100%)';
+    }
+  };
+
   return (
-    <div className="min-h-screen pt-24 pb-32 px-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen pt-24 pb-32 px-6 relative overflow-hidden">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed top-0 left-0 w-full h-full object-cover -z-10"
+        style={{ opacity: 0.3 }}
+      >
+        <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
+      </video>
+
+      <div
+        className="fixed top-0 left-0 w-full h-full -z-10 transition-all duration-1000"
+        style={{
+          background: getRoleGradient(currentRole),
+          pointerEvents: 'none'
+        }}
+      />
+
+      <div className="max-w-4xl mx-auto relative z-10">
         <div className="text-center mb-12">
           <h1
             className="text-5xl font-light mb-4"
@@ -156,39 +192,47 @@ export default function EnergyPerson() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <DateInputCard
-            icon={<User size={24} />}
-            label="我的生日"
-            value={myData.birthDate}
-            kinData={myData.kinData}
-            onChange={(date) => handleDateSelect('my', date)}
-            required
-          />
+        <RoleSwitcher currentRole={currentRole} onChange={setCurrentRole} />
 
-          <DateInputCard
-            icon={<Users size={24} />}
-            label="父亲生日"
-            value={fatherData.birthDate}
-            kinData={fatherData.kinData}
-            onChange={(date) => handleDateSelect('father', date)}
-          />
+        <div className="mb-12">
+          {currentRole === 'self' && (
+            <ImmersiveDatePicker
+              label="我的降临时刻"
+              value={myData.birthDate}
+              kinData={myData.kinData}
+              isMidnightBirth={myData.isMidnightBirth}
+              onChange={(date, isMidnight) => handleDateSelect('my', date, isMidnight)}
+            />
+          )}
 
-          <DateInputCard
-            icon={<Users size={24} />}
-            label="母亲生日"
-            value={motherData.birthDate}
-            kinData={motherData.kinData}
-            onChange={(date) => handleDateSelect('mother', date)}
-          />
+          {currentRole === 'parent' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ImmersiveDatePicker
+                label="父亲的降临时刻"
+                value={fatherData.birthDate}
+                kinData={fatherData.kinData}
+                isMidnightBirth={fatherData.isMidnightBirth}
+                onChange={(date, isMidnight) => handleDateSelect('father', date, isMidnight)}
+              />
+              <ImmersiveDatePicker
+                label="母亲的降临时刻"
+                value={motherData.birthDate}
+                kinData={motherData.kinData}
+                isMidnightBirth={motherData.isMidnightBirth}
+                onChange={(date, isMidnight) => handleDateSelect('mother', date, isMidnight)}
+              />
+            </div>
+          )}
 
-          <DateInputCard
-            icon={<Baby size={24} />}
-            label="孩子生日"
-            value={childData.birthDate}
-            kinData={childData.kinData}
-            onChange={(date) => handleDateSelect('child', date)}
-          />
+          {currentRole === 'child' && (
+            <ImmersiveDatePicker
+              label="孩子的降临时刻"
+              value={childData.birthDate}
+              kinData={childData.kinData}
+              isMidnightBirth={childData.isMidnightBirth}
+              onChange={(date, isMidnight) => handleDateSelect('child', date, isMidnight)}
+            />
+          )}
         </div>
 
         {finalProfile && myData.kinData && (
@@ -218,51 +262,10 @@ export default function EnergyPerson() {
             )}
 
             <div className="flex gap-4 justify-center mt-8">
-              {!showReport && (
-                <button
-                  onClick={handleGenerateReport}
-                  className="px-8 py-4 rounded-full transition-all duration-300"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.1) 0%, rgba(247, 231, 206, 0.05) 100%)',
-                    border: '1px solid rgba(247, 231, 206, 0.2)',
-                    color: '#F7E7CE',
-                    boxShadow: '0 4px 20px rgba(247, 231, 206, 0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 30px rgba(247, 231, 206, 0.2)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(247, 231, 206, 0.1)';
-                  }}
-                >
-                  生成我的能量报告
-                </button>
-              )}
-
-              {showReport && (
-                <button
-                  onClick={handleShare}
-                  className="px-8 py-4 rounded-full transition-all duration-300 flex items-center gap-2"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.15) 0%, rgba(247, 231, 206, 0.08) 100%)',
-                    border: '1px solid rgba(247, 231, 206, 0.3)',
-                    color: '#F7E7CE',
-                    boxShadow: '0 4px 20px rgba(247, 231, 206, 0.15)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 30px rgba(247, 231, 206, 0.25)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(247, 231, 206, 0.15)';
-                  }}
-                >
-                  <Share2 size={20} />
-                  分享报告
-                </button>
+              {!showReport ? (
+                <CalibrationButton onClick={handleGenerateReport} label="开始溯源" />
+              ) : (
+                <CalibrationButton onClick={handleShare} label="分享能量" icon={<Share2 size={20} />} />
               )}
             </div>
           </>
