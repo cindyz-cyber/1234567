@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import NamingRitual from './components/NamingRitual';
 import HomePage from './components/HomePage';
 import EmotionScan from './components/EmotionScan';
-import EnergyLab from './components/EnergyLab';
 import InnerWhisperJournal from './components/InnerWhisperJournal';
 import GoldenTransition from './components/GoldenTransition';
 import HigherSelfDialogue from './components/HigherSelfDialogue';
@@ -20,8 +19,8 @@ import VideoBackground from './components/VideoBackground';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
-type FlowStep = 'home' | 'emotion' | 'energy' | 'voice' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
-type TabType = 'breath' | 'voice' | 'archive' | 'profile' | 'admin' | 'samples' | 'lab';
+type FlowStep = 'home' | 'emotion' | 'energy' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
+type TabType = 'breath' | 'archive' | 'profile' | 'admin' | 'samples';
 
 interface JourneyData {
   emotions: string[];
@@ -43,7 +42,6 @@ function App() {
   const [isPremium, setIsPremium] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
-  const [isShowingVoiceResult, setIsShowingVoiceResult] = useState(false);
   const [journeyData, setJourneyData] = useState<JourneyData>({
     emotions: [],
     bodyStates: [],
@@ -118,10 +116,6 @@ function App() {
     setCurrentStep('innerWhisper');
   }
 
-  function handleVoiceComplete() {
-    setCurrentStep('innerWhisper');
-  }
-
   function handleInnerWhisperComplete() {
     setCurrentStep('transition');
   }
@@ -175,10 +169,6 @@ function App() {
     setCurrentStep('emotion');
   }
 
-  function handleBackToVoice() {
-    setCurrentStep('voice');
-  }
-
   function handleBackToInnerWhisper() {
     setCurrentStep('innerWhisper');
   }
@@ -197,17 +187,10 @@ function App() {
   }
 
   function handleTabChange(tab: TabType) {
-    console.log('[App] handleTabChange called with tab:', tab, 'isShowingVoiceResult:', isShowingVoiceResult);
-    console.trace('[App] Stack trace for handleTabChange');
-    if (isShowingVoiceResult) {
-      console.log('[App] Blocked tab change because isShowingVoiceResult is true');
-      return;
-    }
     setCurrentTab(tab);
     if (tab === 'breath') {
       setCurrentStep('home');
     }
-    // Don't set currentStep for voice tab - let VoiceRecognition manage its own state
   }
 
   if (loading) {
@@ -271,19 +254,7 @@ function App() {
   }
 
   return (
-    <div
-      onClick={(e) => {
-        if (isShowingVoiceResult) {
-          e.stopPropagation();
-        }
-      }}
-      onTouchStart={(e) => {
-        if (isShowingVoiceResult) {
-          e.stopPropagation();
-        }
-      }}
-      style={{ width: '100%', height: '100%' }}
-    >
+    <>
       <VideoBackground />
       <GoldenDust />
       {currentTab !== 'breath' && <Header />}
@@ -295,24 +266,6 @@ function App() {
           onStartJourney={handleStartJourney}
         />
       )}
-
-      {currentTab === 'lab' && <EnergyLab />}
-
-      {currentTab === 'voice' && (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
-          <div className="text-center text-white p-12">
-            <h2 className="text-4xl font-bold mb-4">功能已迁移</h2>
-            <p className="text-gray-400 text-lg mb-8">请使用"实验室"进行频率检测</p>
-            <button
-              onClick={() => setCurrentTab('lab')}
-              className="px-8 py-4 bg-emerald-500 rounded-xl hover:bg-emerald-600 transition-colors"
-            >
-              前往实验室
-            </button>
-          </div>
-        </div>
-      )}
-
 
       {currentTab === 'archive' && <Archive />}
 
@@ -331,11 +284,7 @@ function App() {
 
       {currentTab === 'samples' && isAdmin && <SampleUploadPanel />}
 
-      <div style={{ pointerEvents: isShowingVoiceResult ? 'none' : 'auto' }}>
-        {!isShowingVoiceResult && (
-          <Navigation currentTab={currentTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
-        )}
-      </div>
+      <Navigation currentTab={currentTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
 
       {showPremiumModal && (
         <PremiumModal
@@ -343,7 +292,7 @@ function App() {
           onSubscribe={handleSubscribe}
         />
       )}
-    </div>
+    </>
   );
 }
 

@@ -1,15 +1,14 @@
-import { Home, Mic, FileText, User, Settings, Upload, Activity } from 'lucide-react';
+import { Home, FileText, User, Settings, Upload } from 'lucide-react';
 
 interface NavigationProps {
-  currentTab: 'breath' | 'voice' | 'archive' | 'profile' | 'admin' | 'samples' | 'lab';
-  onTabChange: (tab: 'breath' | 'voice' | 'archive' | 'profile' | 'admin' | 'samples' | 'lab') => void;
+  currentTab: 'breath' | 'archive' | 'profile' | 'admin' | 'samples';
+  onTabChange: (tab: 'breath' | 'archive' | 'profile' | 'admin' | 'samples') => void;
   isAdmin?: boolean;
 }
 
 export default function Navigation({ currentTab, onTabChange, isAdmin = false }: NavigationProps) {
   const baseTabs = [
     { id: 'breath' as const, label: '呼吸', icon: Home },
-    { id: 'lab' as const, label: '实验室', icon: Activity },
     { id: 'archive' as const, label: '档案', icon: FileText },
     { id: 'profile' as const, label: '我的', icon: User },
   ];
