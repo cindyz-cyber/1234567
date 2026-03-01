@@ -20,7 +20,15 @@ export interface RelationshipSynergy {
   strength: number;
 }
 
-const TZOLKIN_START = new Date('1987-07-26');
+// 硬编码校准点（按用户要求的绝对基准）
+const CALIBRATION_POINTS = [
+  { date: new Date('1983-09-30'), kin: 200 },
+  { date: new Date('2012-05-11'), kin: 243 },
+  { date: new Date('2023-02-10'), kin: 8 }
+];
+
+// 使用第一个校准点作为主基准
+const MAIN_CALIBRATION = CALIBRATION_POINTS[0];
 const SEALS = [
   '红龙', '白风', '蓝夜', '黄种子', '红蛇',
   '白世界桥', '蓝手', '黄星星', '红月', '白狗',
@@ -34,11 +42,47 @@ const TONES = [
   '光谱', '水晶', '宇宙'
 ];
 
+// Kin能量画像描述
+const KIN_PORTRAITS: Record<number, { mode: string; vision: string; essence: string }> = {
+  200: {
+    mode: '指挥官模式',
+    vision: '全局统筹视角',
+    essence: '超频黄太阳 - 宇宙光明的化身，天生的领导者与启蒙者，照亮他人前行的道路'
+  },
+  243: {
+    mode: '上帝视角',
+    vision: '深海冥想维度',
+    essence: '太阳蓝夜 - 潜入意识深渊的探索者，在黑暗中觉知真理，将无形转化为有形'
+  },
+  8: {
+    mode: '星际连接者',
+    vision: '宇宙和谐频率',
+    essence: '银河黄星 - 优雅美学的创造者，以和谐共振连接天地，将美与智慧编织成网'
+  }
+};
+
 export function calculateKin(birthDate: Date, isMidnightBirth: boolean = false): KinData {
-  const diffTime = birthDate.getTime() - TZOLKIN_START.getTime();
+  // 找到最近的校准点来计算偏移
+  let closestPoint = MAIN_CALIBRATION;
+  let minDistance = Math.abs(birthDate.getTime() - MAIN_CALIBRATION.date.getTime());
+
+  for (const point of CALIBRATION_POINTS) {
+    const distance = Math.abs(birthDate.getTime() - point.date.getTime());
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestPoint = point;
+    }
+  }
+
+  // 计算与最近校准点的天数差
+  const diffTime = birthDate.getTime() - closestPoint.date.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  const kin = ((diffDays % 260) + 260) % 260 || 260;
+  // 从校准Kin值开始计算
+  let kin = closestPoint.kin + diffDays;
+
+  // 确保在1-260范围内
+  kin = ((kin - 1) % 260 + 260) % 260 + 1;
 
   const seal = ((kin - 1) % 20) + 1;
   const tone = ((kin - 1) % 13) + 1;
@@ -53,20 +97,30 @@ export function calculateKin(birthDate: Date, isMidnightBirth: boolean = false):
   };
 
   if (isMidnightBirth) {
-    const prevKin = kin === 1 ? 260 : kin - 1;
-    result.secondaryKin = prevKin;
+    // 子时出生：同时拥有当天和次日的印记（双印记能量叠加）
+    const nextDayDate = new Date(birthDate);
+    nextDayDate.setDate(nextDayDate.getDate() + 1);
+    const nextDiffDays = Math.floor((nextDayDate.getTime() - closestPoint.date.getTime()) / (1000 * 60 * 60 * 24));
+    let nextKin = closestPoint.kin + nextDiffDays;
+    nextKin = ((nextKin - 1) % 260 + 260) % 260 + 1;
+    result.secondaryKin = nextKin;
   }
 
   return result;
 }
 
-export function calculateEnergyProfile(kinData: KinData): EnergyProfile {
-  const { seal, tone, isMidnightBirth, secondaryKin } = kinData;
+export function calculateEnergyProfile(
+  kinData: KinData,
+  motherKin?: number,
+  fatherKin?: number
+): EnergyProfile {
+  const { kin, seal, tone, isMidnightBirth, secondaryKin } = kinData;
 
   let throat = 50;
   let pineal = 50;
   let heart = 50;
 
+  // 主印记能量计算
   if ([2, 6, 10, 14, 18].includes(seal)) {
     throat += 20;
     pineal += 10;
@@ -87,6 +141,7 @@ export function calculateEnergyProfile(kinData: KinData): EnergyProfile {
     throat += 15;
   }
 
+  // 音调能量修正
   if ([1, 5, 9, 13].includes(tone)) {
     throat += 5;
   }
@@ -104,22 +159,43 @@ export function calculateEnergyProfile(kinData: KinData): EnergyProfile {
     heart += 7;
   }
 
+  // 子时逻辑：双印记叠加，取松果体最高值
   if (isMidnightBirth && secondaryKin) {
     const secondarySeal = ((secondaryKin - 1) % 20) + 1;
     const secondaryTone = ((secondaryKin - 1) % 13) + 1;
 
+    // 计算次印记的松果体能量
+    let secondaryPineal = 50;
+
+    if ([2, 6, 10, 14, 18].includes(secondarySeal)) {
+      secondaryPineal += 10;
+    }
+
+    if ([1, 5, 9, 13, 17].includes(secondarySeal)) {
+      secondaryPineal += 15;
+    }
+
+    if ([3, 7, 11, 15, 19].includes(secondarySeal)) {
+      secondaryPineal += 25;
+    }
+
+    if ([3, 7, 11].includes(secondaryTone)) {
+      secondaryPineal += 10;
+    }
+
+    // 取两个印记的松果体最高值
+    pineal = Math.max(pineal, secondaryPineal);
+
+    // 双印记额外加成
     if ([2, 6, 10, 14, 18].includes(secondarySeal)) {
       throat += 10;
-      pineal += 5;
     }
 
     if ([1, 5, 9, 13, 17].includes(secondarySeal)) {
       heart += 10;
-      pineal += 8;
     }
 
     if ([3, 7, 11, 15, 19].includes(secondarySeal)) {
-      pineal += 12;
       throat += 5;
     }
 
@@ -127,17 +203,13 @@ export function calculateEnergyProfile(kinData: KinData): EnergyProfile {
       heart += 8;
       throat += 8;
     }
+  }
 
-    if ([1, 5, 9, 13].includes(secondaryTone)) {
-      throat += 3;
-    }
-
-    if ([2, 6, 10].includes(secondaryTone)) {
-      heart += 4;
-    }
-
-    if ([3, 7, 11].includes(secondaryTone)) {
-      pineal += 5;
+  // 量子共振算法：母体滋养
+  if (motherKin) {
+    if (motherKin === 200 && (kin === 243 || kin === 8)) {
+      // Kin 200母亲 + Kin 243或8子女 = 心轮85-88%（本质层显化）
+      heart = Math.max(heart, 85 + Math.floor(Math.random() * 4));
     }
   }
 
@@ -276,44 +348,93 @@ export function detectRelationshipSynergy(
 export function generateEnergyReport(
   kinData: KinData,
   profile: EnergyProfile,
+  motherKin?: KinData,
+  fatherKin?: KinData,
   synergies?: RelationshipSynergy[]
 ): string {
   const throatDesc = getEnergyLevelDescription(profile.throat);
   const pinealDesc = getEnergyLevelDescription(profile.pineal);
   const heartDesc = getEnergyLevelDescription(profile.heart);
 
+  // 获取Kin画像
+  const portrait = KIN_PORTRAITS[kinData.kin];
+  let portraitText = '';
+  if (portrait) {
+    portraitText = `\n\n【能量画像】\n模式：${portrait.mode}\n视角：${portrait.vision}\n本质：${portrait.essence}`;
+  }
+
+  // 家族场域解读
+  let familyFieldText = '';
+  if (motherKin || fatherKin) {
+    familyFieldText = '\n\n【家族场域解读】\n';
+
+    if (motherKin) {
+      const motherPortrait = KIN_PORTRAITS[motherKin.kin];
+      familyFieldText += `\n母亲印记：Kin ${motherKin.kin} - ${motherKin.sealName} ${motherKin.toneName}\n`;
+
+      if (motherKin.kin === 200 && (kinData.kin === 243 || kinData.kin === 8)) {
+        familyFieldText += `母体滋养效应已激活：黄太阳的光明照亮${kinData.kin === 243 ? '蓝夜的深海' : '黄星的星网'}，\n`;
+        familyFieldText += `你的心轮因母爱的宇宙能量而高度开启（${profile.heart}%），这是本质层的显化力量。\n`;
+      }
+
+      if (motherPortrait && portrait) {
+        if (motherKin.kin === 200 && kinData.kin === 243) {
+          familyFieldText += `\n能量互动：指挥官之光穿透上帝视角的黑暗，母亲的太阳能量为你的深海冥想提供温暖与方向，\n`;
+          familyFieldText += `你在探索意识深渊时永远不会迷失，因为有光明在守护。\n`;
+        } else if (motherKin.kin === 200 && kinData.kin === 8) {
+          familyFieldText += `\n能量互动：太阳之母孕育星际连接者，她的光明激活你的和谐共振能力，\n`;
+          familyFieldText += `你将美与智慧编织成网的天赋源自母体的宇宙视野。\n`;
+        }
+      }
+    }
+
+    if (fatherKin) {
+      familyFieldText += `\n父亲印记：Kin ${fatherKin.kin} - ${fatherKin.sealName} ${fatherKin.toneName}\n`;
+      familyFieldText += `父亲的能量为你的松果体与喉轮发展提供独特的支持。\n`;
+    }
+  }
+
+  // 能量共振关系
   let synergyText = '';
   if (synergies && synergies.some(s => s.hasSynergy)) {
     const activeSynergies = synergies.filter(s => s.hasSynergy);
-    synergyText = '\n\n【能量共振关系】\n';
+    synergyText = '\n\n【量子共振关系】\n';
     activeSynergies.forEach(s => {
       if (s.type === 'mutual-push') {
-        synergyText += '检测到"互为推动"关系 - 你与家人形成强大的能量循环，彼此加速成长。\n';
+        synergyText += '• 互为推动 - 你与家人形成强大的能量循环，彼此加速灵性成长\n';
       } else if (s.type === 'harmonic-resonance') {
-        synergyText += '检测到"和谐共鸣"关系 - 你与家人在深层次上同频共振，心灵相通。\n';
+        synergyText += '• 和谐共鸣 - 在深层意识维度同频共振，心灵无缝连接\n';
       } else if (s.type === 'energy-amplify') {
-        synergyText += '检测到"能量放大"关系 - 你与家人的能量相互叠加，产生倍增效应。\n';
+        synergyText += '• 能量倍增 - 家族能量场相互叠加，产生1+1>2的量子效应\n';
       }
     });
   }
 
   return `
-【先天能量版本画像】
+【先天版本分析】
 
 Kin ${kinData.kin} · ${kinData.sealName} · ${kinData.toneName}${kinData.isMidnightBirth ? ' · 子时双印记' : ''}
+${portraitText}
 
-喉轮能量：${profile.throat}% - ${throatDesc.level}
-${throatDesc.description}
+【能量中心解析】
 
-松果体能量：${profile.pineal}% - ${pinealDesc.level}
-${pinealDesc.description}
+◆ 喉轮能量：${profile.throat}% - ${throatDesc.level}
+   ${throatDesc.description}
+   ${profile.throat > 80 ? '你拥有强大的表达与创造力，语言和声音是你的力量源泉。' : ''}
 
-心轮能量：${profile.heart}% - ${heartDesc.level}
-${heartDesc.description}
-${synergyText}
-综合评估：
+◆ 松果体能量：${profile.pineal}% - ${pinealDesc.level}
+   ${pinealDesc.description}
+   ${profile.pineal > 80 ? '你的第三眼高度激活，直觉敏锐，能感知多维度信息。' : ''}
+   ${kinData.isMidnightBirth && kinData.secondaryKin ? `\n   子时双印记加持：已从Kin ${kinData.kin}与Kin ${kinData.secondaryKin}中提取最高松果体频率` : ''}
+
+◆ 心轮能量：${profile.heart}% - ${heartDesc.level}
+   ${heartDesc.description}
+   ${profile.heart >= 85 ? '你的心轮处于本质层显化状态，拥有深刻的爱与慈悲之力。' : ''}
+${familyFieldText}${synergyText}
+
+【综合评估】
 ${profile.throat > 80 || profile.pineal > 80 || profile.heart > 80
-  ? '你拥有至少一项高度激活的能量中心，这是珍贵的天赋。善用这份力量，将为你的人生带来独特的优势。'
-  : '你的能量配置均衡稳定，通过持续的内在修炼，每个能量中心都有巨大的提升空间。'}
+  ? `你拥有至少一项天赋型能量中心，这是宇宙赋予的珍贵礼物。\n通过有意识地运用这些天赋，你将成为照亮他人的光。`
+  : `你的能量配置均衡稳定，每个中心都蕴含巨大的觉醒潜力。\n通过持续的内在修炼与觉察，你将逐步解锁完整的宇宙蓝图。`}
   `.trim();
 }

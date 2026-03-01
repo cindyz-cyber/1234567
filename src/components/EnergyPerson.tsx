@@ -57,23 +57,46 @@ export default function EnergyPerson() {
     if (!myData.birthDate) return;
 
     const kinData = calculateKin(myData.birthDate, myData.isMidnightBirth);
-    let profile = calculateEnergyProfile(kinData);
+    // 传递母亲和父亲的Kin以启用量子共振逻辑
+    let profile = calculateEnergyProfile(
+      kinData,
+      motherData.kinData?.kin,
+      fatherData.kinData?.kin
+    );
     const detectedSynergies: RelationshipSynergy[] = [];
 
     if (motherData.birthDate && motherData.kinData) {
-      profile = calculateFamilyCollision(profile, kinData, calculateEnergyProfile(motherData.kinData), motherData.kinData, 'mother');
+      profile = calculateFamilyCollision(
+        profile,
+        kinData,
+        calculateEnergyProfile(motherData.kinData),
+        motherData.kinData,
+        'mother'
+      );
       const synergy = detectRelationshipSynergy(kinData, motherData.kinData, 'mother');
       detectedSynergies.push(synergy);
     }
 
     if (fatherData.birthDate && fatherData.kinData) {
-      profile = calculateFamilyCollision(profile, kinData, calculateEnergyProfile(fatherData.kinData), fatherData.kinData, 'father');
+      profile = calculateFamilyCollision(
+        profile,
+        kinData,
+        calculateEnergyProfile(fatherData.kinData),
+        fatherData.kinData,
+        'father'
+      );
       const synergy = detectRelationshipSynergy(kinData, fatherData.kinData, 'father');
       detectedSynergies.push(synergy);
     }
 
     if (childData.birthDate && childData.kinData) {
-      profile = calculateFamilyCollision(profile, kinData, calculateEnergyProfile(childData.kinData), childData.kinData, 'child');
+      profile = calculateFamilyCollision(
+        profile,
+        kinData,
+        calculateEnergyProfile(childData.kinData),
+        childData.kinData,
+        'child'
+      );
       const synergy = detectRelationshipSynergy(kinData, childData.kinData, 'child');
       detectedSynergies.push(synergy);
     }
@@ -119,7 +142,13 @@ export default function EnergyPerson() {
   const handleShare = async () => {
     if (!myData.kinData || !finalProfile) return;
 
-    const report = generateEnergyReport(myData.kinData, finalProfile, synergies);
+    const report = generateEnergyReport(
+      myData.kinData,
+      finalProfile,
+      motherData.kinData || undefined,
+      fatherData.kinData || undefined,
+      synergies
+    );
 
     if (navigator.share) {
       try {
@@ -257,7 +286,13 @@ export default function EnergyPerson() {
                     fontSize: '0.95rem'
                   }}
                 >
-                  {generateEnergyReport(myData.kinData, finalProfile, synergies)}
+                  {generateEnergyReport(
+                    myData.kinData,
+                    finalProfile,
+                    motherData.kinData || undefined,
+                    fatherData.kinData || undefined,
+                    synergies
+                  )}
                 </pre>
               </div>
             )}
