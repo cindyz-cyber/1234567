@@ -193,21 +193,24 @@ export default function Archive() {
 
   return (
     <div className="min-h-screen pb-24 pt-20 px-6 relative overflow-hidden">
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="fixed top-0 left-0 w-full h-full object-cover -z-10"
-        style={{ opacity: 0.3 }}
-      >
-        <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
-      </video>
+      <div className="fixed top-0 left-0 w-full h-full" style={{ zIndex: -20 }}>
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+          style={{ opacity: 0.5 }}
+        >
+          <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
+        </video>
+      </div>
 
       <div
-        className="fixed top-0 left-0 w-full h-full -z-10"
+        className="fixed top-0 left-0 w-full h-full"
         style={{
-          background: 'linear-gradient(135deg, rgba(10, 31, 28, 0.95) 0%, rgba(2, 10, 9, 0.98) 100%)',
+          zIndex: -10,
+          background: 'linear-gradient(135deg, rgba(10, 31, 28, 0.7) 0%, rgba(2, 10, 9, 0.85) 100%)',
           pointerEvents: 'none'
         }}
       />
