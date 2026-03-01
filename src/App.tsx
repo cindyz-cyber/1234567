@@ -256,7 +256,7 @@ function App() {
 
   return (
     <>
-      <VideoBackground />
+      {currentTab !== 'person' && <VideoBackground />}
       <GoldenDust />
       {currentTab !== 'breath' && <Header />}
 
