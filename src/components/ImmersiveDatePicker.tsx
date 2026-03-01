@@ -165,21 +165,21 @@ export default function ImmersiveDatePicker({
             </h3>
 
             <div className="flex gap-6 mb-8" style={{ height: '300px' }}>
-              <ScrollWheel
+              <ScrollWheelWithRef
                 ref={yearRef}
                 items={years}
                 selectedValue={selectedYear}
                 onChange={setSelectedYear}
                 formatter={(y) => `${y}年`}
               />
-              <ScrollWheel
+              <ScrollWheelWithRef
                 ref={monthRef}
                 items={months}
                 selectedValue={selectedMonth}
                 onChange={setSelectedMonth}
                 formatter={(m) => monthNames[m]}
               />
-              <ScrollWheel
+              <ScrollWheelWithRef
                 ref={dayRef}
                 items={days}
                 selectedValue={selectedDay}
@@ -362,4 +362,3 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter }: ScrollWheelP
 };
 
 const ScrollWheelWithRef = React.forwardRef(ScrollWheel);
-export { ScrollWheelWithRef as ScrollWheel };
