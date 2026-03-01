@@ -8,6 +8,7 @@ import HigherSelfDialogue from './components/HigherSelfDialogue';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
 import EnergyCenter from './components/EnergyCenter';
+import EnergyPerson from './components/EnergyPerson';
 import Archive from './components/Archive';
 import Profile from './components/Profile';
 import BookOfAnswers from './components/BookOfAnswers';
@@ -20,7 +21,7 @@ import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
 type FlowStep = 'home' | 'emotion' | 'energy' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
-type TabType = 'breath' | 'archive' | 'profile' | 'admin' | 'samples';
+type TabType = 'breath' | 'person' | 'archive' | 'profile' | 'admin' | 'samples';
 
 interface JourneyData {
   emotions: string[];
@@ -266,6 +267,8 @@ function App() {
           onStartJourney={handleStartJourney}
         />
       )}
+
+      {currentTab === 'person' && <EnergyPerson />}
 
       {currentTab === 'archive' && <Archive />}
 
