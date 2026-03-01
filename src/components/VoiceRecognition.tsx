@@ -455,7 +455,7 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
           playsInline
           className="portal-background-video"
         >
-          <source src="https://cdn.midjourney.com/video/661ffc10-0d89-43d1-b8f9-83e67d0421ae/2.mp4" type="video/mp4" />
+          <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
         </video>
       </div>
 
