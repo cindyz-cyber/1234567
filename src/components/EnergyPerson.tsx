@@ -10,7 +10,6 @@ import {
   type EnergyProfile,
   type RelationshipSynergy
 } from '../utils/mayaCalendar';
-import RoleSwitcher from './RoleSwitcher';
 import ImmersiveDatePicker from './ImmersiveDatePicker';
 import CalibrationButton from './CalibrationButton';
 
@@ -21,10 +20,7 @@ interface PersonData {
   isMidnightBirth?: boolean;
 }
 
-type Role = 'self' | 'parent' | 'child';
-
 export default function EnergyPerson() {
-  const [currentRole, setCurrentRole] = useState<Role>('self');
   const [myData, setMyData] = useState<PersonData>({
     birthDate: null,
     kinData: null,
@@ -43,12 +39,7 @@ export default function EnergyPerson() {
     profile: null
   });
 
-  const [childData, setChildData] = useState<PersonData>({
-    birthDate: null,
-    kinData: null,
-    profile: null
-  });
-
+  const [showOptionalInputs, setShowOptionalInputs] = useState(false);
   const [finalProfile, setFinalProfile] = useState<EnergyProfile | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [synergies, setSynergies] = useState<RelationshipSynergy[]>([]);
@@ -104,10 +95,10 @@ export default function EnergyPerson() {
     setMyData({ birthDate: myData.birthDate, kinData, profile, isMidnightBirth: myData.isMidnightBirth });
     setFinalProfile(profile);
     setSynergies(detectedSynergies);
-  }, [myData.birthDate, myData.isMidnightBirth, motherData.birthDate, motherData.isMidnightBirth, fatherData.birthDate, fatherData.isMidnightBirth, childData.birthDate, childData.isMidnightBirth]);
+  }, [myData.birthDate, myData.isMidnightBirth, motherData.birthDate, motherData.isMidnightBirth, fatherData.birthDate, fatherData.isMidnightBirth]);
 
   const handleDateSelect = (
-    type: 'my' | 'father' | 'mother' | 'child',
+    type: 'my' | 'father' | 'mother',
     dateString: string,
     isMidnightBirth: boolean = false
   ) => {
@@ -128,9 +119,6 @@ export default function EnergyPerson() {
         break;
       case 'mother':
         setMotherData(personData);
-        break;
-      case 'child':
-        setChildData(personData);
         break;
     }
   };
@@ -165,15 +153,9 @@ export default function EnergyPerson() {
     }
   };
 
-  const getRoleGradient = (role: Role) => {
-    switch (role) {
-      case 'self':
-        return 'linear-gradient(135deg, rgba(10, 31, 28, 0.3) 0%, rgba(2, 10, 9, 0.4) 100%)';
-      case 'parent':
-        return 'linear-gradient(135deg, rgba(20, 25, 35, 0.3) 0%, rgba(5, 10, 15, 0.4) 100%)';
-      case 'child':
-        return 'linear-gradient(135deg, rgba(25, 35, 30, 0.3) 0%, rgba(10, 15, 12, 0.4) 100%)';
-    }
+  const handleClearOptionalData = () => {
+    setFatherData({ birthDate: null, kinData: null, profile: null });
+    setMotherData({ birthDate: null, kinData: null, profile: null });
   };
 
   return (
@@ -190,9 +172,9 @@ export default function EnergyPerson() {
       </video>
 
       <div
-        className="fixed top-0 left-0 w-full h-full transition-all duration-1000"
+        className="fixed top-0 left-0 w-full h-full"
         style={{
-          background: getRoleGradient(currentRole),
+          background: 'linear-gradient(135deg, rgba(10, 31, 28, 0.3) 0%, rgba(2, 10, 9, 0.4) 100%)',
           pointerEvents: 'none',
           zIndex: -10
         }}
@@ -222,48 +204,62 @@ export default function EnergyPerson() {
           </p>
         </div>
 
-        <RoleSwitcher currentRole={currentRole} onChange={setCurrentRole} />
-
-        <div className="mb-12">
-          {currentRole === 'self' && (
-            <ImmersiveDatePicker
-              label="我的降临时刻"
-              value={myData.birthDate}
-              kinData={myData.kinData}
-              isMidnightBirth={myData.isMidnightBirth}
-              onChange={(date, isMidnight) => handleDateSelect('my', date, isMidnight)}
-            />
-          )}
-
-          {currentRole === 'parent' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ImmersiveDatePicker
-                label="父亲的降临时刻"
-                value={fatherData.birthDate}
-                kinData={fatherData.kinData}
-                isMidnightBirth={fatherData.isMidnightBirth}
-                onChange={(date, isMidnight) => handleDateSelect('father', date, isMidnight)}
-              />
-              <ImmersiveDatePicker
-                label="母亲的降临时刻"
-                value={motherData.birthDate}
-                kinData={motherData.kinData}
-                isMidnightBirth={motherData.isMidnightBirth}
-                onChange={(date, isMidnight) => handleDateSelect('mother', date, isMidnight)}
-              />
-            </div>
-          )}
-
-          {currentRole === 'child' && (
-            <ImmersiveDatePicker
-              label="孩子的降临时刻"
-              value={childData.birthDate}
-              kinData={childData.kinData}
-              isMidnightBirth={childData.isMidnightBirth}
-              onChange={(date, isMidnight) => handleDateSelect('child', date, isMidnight)}
-            />
-          )}
+        {/* 主要输入：我的信息 */}
+        <div className="mb-8">
+          <ImmersiveDatePicker
+            label="我的降临时刻"
+            value={myData.birthDate}
+            kinData={myData.kinData}
+            isMidnightBirth={myData.isMidnightBirth}
+            onChange={(date, isMidnight) => handleDateSelect('my', date, isMidnight)}
+          />
         </div>
+
+        {/* 可选输入：父母信息 */}
+        {!showReport && (
+          <div className="mb-12">
+            <button
+              onClick={() => setShowOptionalInputs(!showOptionalInputs)}
+              className="w-full p-4 rounded-2xl mb-6 transition-all duration-300"
+              style={{
+                background: showOptionalInputs
+                  ? 'linear-gradient(135deg, rgba(247, 231, 206, 0.12) 0%, rgba(247, 231, 206, 0.06) 100%)'
+                  : 'rgba(255, 255, 255, 0.03)',
+                border: `1px solid ${showOptionalInputs ? 'rgba(247, 231, 206, 0.3)' : 'rgba(247, 231, 206, 0.1)'}`,
+                backdropFilter: 'blur(20px)',
+                color: '#F7E7CE'
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-lg">
+                  {showOptionalInputs ? '收起' : '添加'}父母信息（可选）
+                </span>
+                <span className="text-sm opacity-60">
+                  {showOptionalInputs ? '▲' : '▼'}
+                </span>
+              </div>
+            </button>
+
+            {showOptionalInputs && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+                <ImmersiveDatePicker
+                  label="父亲的降临时刻"
+                  value={fatherData.birthDate}
+                  kinData={fatherData.kinData}
+                  isMidnightBirth={fatherData.isMidnightBirth}
+                  onChange={(date, isMidnight) => handleDateSelect('father', date, isMidnight)}
+                />
+                <ImmersiveDatePicker
+                  label="母亲的降临时刻"
+                  value={motherData.birthDate}
+                  kinData={motherData.kinData}
+                  isMidnightBirth={motherData.isMidnightBirth}
+                  onChange={(date, isMidnight) => handleDateSelect('mother', date, isMidnight)}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         {finalProfile && myData.kinData && (
           <>

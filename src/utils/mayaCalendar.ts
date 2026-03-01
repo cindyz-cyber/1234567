@@ -116,47 +116,114 @@ export function calculateEnergyProfile(
 ): EnergyProfile {
   const { kin, seal, tone, isMidnightBirth, secondaryKin } = kinData;
 
-  let throat = 50;
-  let pineal = 50;
-  let heart = 50;
+  let throat = 0;
+  let pineal = 0;
+  let heart = 0;
 
-  // 主印记能量计算
-  if ([2, 6, 10, 14, 18].includes(seal)) {
-    throat += 20;
-    pineal += 10;
+  // 印记基础能量（基于20个图腾）
+  // 黄太阳(20) = 心轮主导型
+  if (seal === 20) {
+    heart = 70;      // 基础心轮
+    throat = 55;     // 基础喉轮
+    pineal = 45;     // 基础松果体
+  }
+  // 蓝夜(3) = 松果体主导型
+  else if (seal === 3) {
+    pineal = 70;
+    heart = 50;
+    throat = 45;
+  }
+  // 黄星星(8) = 和谐型
+  else if (seal === 8) {
+    heart = 60;
+    throat = 55;
+    pineal = 55;
+  }
+  // 白风(2), 白世界桥(6), 白巫师(14), 白镜(18) = 喉轮型
+  else if ([2, 6, 14, 18].includes(seal)) {
+    throat = 60;
+    pineal = 50;
+    heart = 45;
+  }
+  // 红龙(1), 红蛇(5), 红月(9), 红天行者(13), 红地球(17) = 心轮型
+  else if ([1, 5, 9, 13, 17].includes(seal)) {
+    heart = 60;
+    pineal = 50;
+    throat = 45;
+  }
+  // 蓝手(7), 蓝猴(11), 蓝鹰(15), 蓝风暴(19) = 松果体型
+  else if ([7, 11, 15, 19].includes(seal)) {
+    pineal = 65;
+    throat = 48;
+    heart = 47;
+  }
+  // 黄种子(4), 黄人(12), 黄战士(16) = 平衡型
+  else if ([4, 12, 16].includes(seal)) {
+    throat = 52;
+    pineal = 52;
+    heart = 52;
+  }
+  // 白狗(10) = 心轮型
+  else if (seal === 10) {
+    heart = 62;
+    throat = 48;
+    pineal = 48;
+  }
+  // 默认
+  else {
+    throat = 50;
+    pineal = 50;
+    heart = 50;
   }
 
-  if ([1, 5, 9, 13, 17].includes(seal)) {
-    heart += 20;
-    pineal += 15;
-  }
-
-  if ([3, 7, 11, 15, 19].includes(seal)) {
+  // 音调修正（13个调性）
+  // 超频(5) = 强化所有能量中心
+  if (tone === 5) {
+    throat += 30;
     pineal += 25;
-    throat += 10;
+    heart += 25;
   }
-
-  if ([4, 8, 12, 16, 20].includes(seal)) {
-    heart += 15;
+  // 太阳(9) = 显化力量，心轮和喉轮增强
+  else if (tone === 9) {
+    throat += 20;
+    heart += 18;
+    pineal += 12;
+  }
+  // 银河(8) = 松果体增强
+  else if (tone === 8) {
+    pineal += 25;
     throat += 15;
+    heart += 12;
   }
-
-  // 音调能量修正
-  if ([1, 5, 9, 13].includes(tone)) {
-    throat += 5;
+  // 共振(7) = 全面调和
+  else if (tone === 7) {
+    throat += 15;
+    pineal += 15;
+    heart += 15;
   }
-
-  if ([2, 6, 10].includes(tone)) {
+  // 磁性(1), 宇宙(13) = 喉轮强化
+  else if ([1, 13].includes(tone)) {
+    throat += 15;
+    pineal += 10;
+    heart += 10;
+  }
+  // 月亮(2), 韵律(6), 行星(10) = 心轮强化
+  else if ([2, 6, 10].includes(tone)) {
+    heart += 15;
+    throat += 8;
+    pineal += 8;
+  }
+  // 电力(3), 光谱(11) = 松果体强化
+  else if ([3, 11].includes(tone)) {
+    pineal += 18;
+    throat += 10;
     heart += 8;
   }
-
-  if ([3, 7, 11].includes(tone)) {
-    pineal += 10;
-  }
-
-  if ([4, 8, 12].includes(tone)) {
-    throat += 7;
-    heart += 7;
+  // 自我存在(4), 水晶(12) = 平衡强化
+  else if ([4, 12].includes(tone)) {
+    throat += 12;
+    pineal += 12;
+    heart += 12;
   }
 
   // 子时逻辑：双印记叠加，取松果体最高值
