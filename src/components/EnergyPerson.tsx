@@ -139,11 +139,11 @@ export default function EnergyPerson() {
   const getRoleGradient = (role: Role) => {
     switch (role) {
       case 'self':
-        return 'linear-gradient(135deg, rgba(10, 31, 28, 0.95) 0%, rgba(2, 10, 9, 0.98) 100%)';
+        return 'linear-gradient(135deg, rgba(10, 31, 28, 0.3) 0%, rgba(2, 10, 9, 0.4) 100%)';
       case 'parent':
-        return 'linear-gradient(135deg, rgba(20, 25, 35, 0.95) 0%, rgba(5, 10, 15, 0.98) 100%)';
+        return 'linear-gradient(135deg, rgba(20, 25, 35, 0.3) 0%, rgba(5, 10, 15, 0.4) 100%)';
       case 'child':
-        return 'linear-gradient(135deg, rgba(25, 35, 30, 0.95) 0%, rgba(10, 15, 12, 0.98) 100%)';
+        return 'linear-gradient(135deg, rgba(25, 35, 30, 0.3) 0%, rgba(10, 15, 12, 0.4) 100%)';
     }
   };
 
@@ -154,17 +154,18 @@ export default function EnergyPerson() {
         loop
         muted
         playsInline
-        className="fixed top-0 left-0 w-full h-full object-cover -z-10"
-        style={{ opacity: 0.3 }}
+        className="fixed top-0 left-0 w-full h-full object-cover"
+        style={{ zIndex: -20 }}
       >
         <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
       </video>
 
       <div
-        className="fixed top-0 left-0 w-full h-full -z-10 transition-all duration-1000"
+        className="fixed top-0 left-0 w-full h-full transition-all duration-1000"
         style={{
           background: getRoleGradient(currentRole),
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          zIndex: -10
         }}
       />
 
