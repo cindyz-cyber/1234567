@@ -326,7 +326,7 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter }: ScrollWheelP
       {items.map((item, index) => {
         const isSelected = item === selectedValue;
         const distance = Math.abs(items.indexOf(selectedValue) - index);
-        const opacity = Math.max(0.15, 1 - distance * 0.35);
+        const opacity = Math.max(0.3, 1 - distance * 0.25);
 
         return (
           <div
@@ -335,12 +335,12 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter }: ScrollWheelP
             className="transition-all duration-500 cursor-pointer flex items-center justify-center"
             style={{
               height: '48px',
-              color: isSelected ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.3)',
-              fontSize: isSelected ? '32px' : '20px',
+              color: isSelected ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.5)',
+              fontSize: isSelected ? '32px' : '22px',
               fontWeight: isSelected ? 300 : 200,
               letterSpacing: '0.02em',
               opacity,
-              transform: `scale(${isSelected ? 1 : 0.85})`,
+              transform: `scale(${isSelected ? 1 : 0.9})`,
               fontVariantNumeric: 'tabular-nums'
             }}
           >
