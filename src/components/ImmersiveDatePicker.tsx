@@ -136,8 +136,8 @@ export default function ImmersiveDatePicker({
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{
-            background: 'rgba(0, 0, 0, 0.9)',
-            backdropFilter: 'blur(10px)'
+            background: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(20px)'
           }}
           onClick={() => setShowPicker(false)}
         >
