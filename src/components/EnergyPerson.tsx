@@ -5,14 +5,17 @@ import {
   calculateEnergyProfile,
   calculateFamilyCollision,
   generateEnergyReport,
+  detectRelationshipSynergy,
   type KinData,
-  type EnergyProfile
+  type EnergyProfile,
+  type RelationshipSynergy
 } from '../utils/mayaCalendar';
 
 interface PersonData {
   birthDate: Date | null;
   kinData: KinData | null;
   profile: EnergyProfile | null;
+  isMidnightBirth?: boolean;
 }
 
 export default function EnergyPerson() {
@@ -42,40 +45,50 @@ export default function EnergyPerson() {
 
   const [finalProfile, setFinalProfile] = useState<EnergyProfile | null>(null);
   const [showReport, setShowReport] = useState(false);
+  const [synergies, setSynergies] = useState<RelationshipSynergy[]>([]);
 
   useEffect(() => {
     if (!myData.birthDate) return;
 
-    const kinData = calculateKin(myData.birthDate);
+    const kinData = calculateKin(myData.birthDate, myData.isMidnightBirth);
     let profile = calculateEnergyProfile(kinData);
+    const detectedSynergies: RelationshipSynergy[] = [];
 
     if (motherData.birthDate && motherData.kinData) {
       profile = calculateFamilyCollision(profile, kinData, calculateEnergyProfile(motherData.kinData), motherData.kinData, 'mother');
+      const synergy = detectRelationshipSynergy(kinData, motherData.kinData, 'mother');
+      detectedSynergies.push(synergy);
     }
 
     if (fatherData.birthDate && fatherData.kinData) {
       profile = calculateFamilyCollision(profile, kinData, calculateEnergyProfile(fatherData.kinData), fatherData.kinData, 'father');
+      const synergy = detectRelationshipSynergy(kinData, fatherData.kinData, 'father');
+      detectedSynergies.push(synergy);
     }
 
     if (childData.birthDate && childData.kinData) {
       profile = calculateFamilyCollision(profile, kinData, calculateEnergyProfile(childData.kinData), childData.kinData, 'child');
+      const synergy = detectRelationshipSynergy(kinData, childData.kinData, 'child');
+      detectedSynergies.push(synergy);
     }
 
-    setMyData({ birthDate: myData.birthDate, kinData, profile });
+    setMyData({ birthDate: myData.birthDate, kinData, profile, isMidnightBirth: myData.isMidnightBirth });
     setFinalProfile(profile);
-  }, [myData.birthDate, motherData.birthDate, fatherData.birthDate, childData.birthDate]);
+    setSynergies(detectedSynergies);
+  }, [myData.birthDate, myData.isMidnightBirth, motherData.birthDate, motherData.isMidnightBirth, fatherData.birthDate, fatherData.isMidnightBirth, childData.birthDate, childData.isMidnightBirth]);
 
   const handleDateSelect = (
     type: 'my' | 'father' | 'mother' | 'child',
-    dateString: string
+    dateString: string,
+    isMidnightBirth: boolean = false
   ) => {
     if (!dateString) return;
 
     const birthDate = new Date(dateString);
-    const kinData = calculateKin(birthDate);
+    const kinData = calculateKin(birthDate, isMidnightBirth);
     const profile = calculateEnergyProfile(kinData);
 
-    const personData = { birthDate, kinData, profile };
+    const personData = { birthDate, kinData, profile, isMidnightBirth };
 
     switch (type) {
       case 'my':
@@ -100,7 +113,7 @@ export default function EnergyPerson() {
   const handleShare = async () => {
     if (!myData.kinData || !finalProfile) return;
 
-    const report = generateEnergyReport(myData.kinData, finalProfile);
+    const report = generateEnergyReport(myData.kinData, finalProfile, synergies);
 
     if (navigator.share) {
       try {
@@ -180,7 +193,7 @@ export default function EnergyPerson() {
 
         {finalProfile && myData.kinData && (
           <>
-            <EnergyRadarChart profile={finalProfile} />
+            <EnergyRadarChart profile={finalProfile} synergies={synergies} />
 
             {showReport && (
               <div
@@ -199,7 +212,7 @@ export default function EnergyPerson() {
                     fontSize: '0.95rem'
                   }}
                 >
-                  {generateEnergyReport(myData.kinData, finalProfile)}
+                  {generateEnergyReport(myData.kinData, finalProfile, synergies)}
                 </pre>
               </div>
             )}
@@ -264,12 +277,13 @@ interface DateInputCardProps {
   label: string;
   value: Date | null;
   kinData: KinData | null;
-  onChange: (date: string) => void;
+  onChange: (date: string, isMidnightBirth: boolean) => void;
   required?: boolean;
 }
 
 function DateInputCard({ icon, label, value, kinData, onChange, required }: DateInputCardProps) {
   const [showPicker, setShowPicker] = useState(false);
+  const [isMidnightBirth, setIsMidnightBirth] = useState(false);
 
   return (
     <div
@@ -300,10 +314,20 @@ function DateInputCard({ icon, label, value, kinData, onChange, required }: Date
         <div>
           <p style={{ color: '#F7E7CE', marginBottom: '8px' }}>
             {value.toLocaleDateString('zh-CN')}
+            {kinData?.isMidnightBirth && (
+              <span style={{ color: '#EBC862', marginLeft: '8px', fontSize: '0.85rem' }}>
+                · 子时
+              </span>
+            )}
           </p>
           {kinData && (
             <div style={{ color: '#EBC862', fontSize: '0.9rem', opacity: 0.8 }}>
               Kin {kinData.kin} · {kinData.sealName} · {kinData.toneName}
+              {kinData.secondaryKin && (
+                <span style={{ opacity: 0.6, marginLeft: '4px' }}>
+                  + {kinData.secondaryKin}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -328,7 +352,7 @@ function DateInputCard({ icon, label, value, kinData, onChange, required }: Date
             </h3>
             <input
               type="date"
-              className="w-full p-4 rounded-xl"
+              className="w-full p-4 rounded-xl mb-4"
               style={{
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid rgba(247, 231, 206, 0.2)',
@@ -336,11 +360,40 @@ function DateInputCard({ icon, label, value, kinData, onChange, required }: Date
                 fontSize: '1rem'
               }}
               onChange={(e) => {
-                onChange(e.target.value);
-                setShowPicker(false);
+                if (e.target.value) {
+                  onChange(e.target.value, isMidnightBirth);
+                  setShowPicker(false);
+                }
               }}
               max={new Date().toISOString().split('T')[0]}
             />
+
+            <label
+              className="flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all duration-300"
+              style={{
+                background: isMidnightBirth
+                  ? 'rgba(235, 200, 98, 0.1)'
+                  : 'rgba(255, 255, 255, 0.03)',
+                border: `1px solid ${isMidnightBirth ? 'rgba(235, 200, 98, 0.3)' : 'rgba(247, 231, 206, 0.1)'}`
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={isMidnightBirth}
+                onChange={(e) => {
+                  setIsMidnightBirth(e.target.checked);
+                }}
+                className="w-5 h-5 accent-[#EBC862]"
+              />
+              <div>
+                <div style={{ color: '#F7E7CE', fontSize: '0.95rem' }}>
+                  子时出生 (00:00 - 01:00)
+                </div>
+                <div style={{ color: '#F7E7CE', fontSize: '0.75rem', opacity: 0.5, marginTop: '2px' }}>
+                  双印记叠加模式
+                </div>
+              </div>
+            </label>
           </div>
         </div>
       )}
@@ -350,14 +403,18 @@ function DateInputCard({ icon, label, value, kinData, onChange, required }: Date
 
 interface EnergyRadarChartProps {
   profile: EnergyProfile;
+  synergies?: RelationshipSynergy[];
 }
 
-function EnergyRadarChart({ profile }: EnergyRadarChartProps) {
+function EnergyRadarChart({ profile, synergies }: EnergyRadarChartProps) {
   const data = [
     { label: '喉轮', value: profile.throat, angle: 0 },
     { label: '松果体', value: profile.pineal, angle: 120 },
     { label: '心轮', value: profile.heart, angle: 240 }
   ];
+
+  const hasSynergy = synergies?.some(s => s.hasSynergy) || false;
+  const synergyStrength = synergies?.find(s => s.hasSynergy)?.strength || 0;
 
   const maxRadius = 120;
   const centerX = 150;
@@ -374,6 +431,13 @@ function EnergyRadarChart({ profile }: EnergyRadarChartProps) {
 
   const points = data.map(d => getPoint(d.angle, d.value));
   const pathData = `M ${points[0].x},${points[0].y} L ${points[1].x},${points[1].y} L ${points[2].x},${points[2].y} Z`;
+
+  const synergyPoints = hasSynergy
+    ? data.map(d => getPoint(d.angle, Math.min(100, d.value * (1 + synergyStrength * 0.15))))
+    : null;
+  const synergyPathData = synergyPoints
+    ? `M ${synergyPoints[0].x},${synergyPoints[0].y} L ${synergyPoints[1].x},${synergyPoints[1].y} L ${synergyPoints[2].x},${synergyPoints[2].y} Z`
+    : null;
 
   return (
     <div
@@ -422,6 +486,19 @@ function EnergyRadarChart({ profile }: EnergyRadarChartProps) {
             );
           })}
 
+          {hasSynergy && synergyPathData && (
+            <path
+              d={synergyPathData}
+              fill="rgba(138, 180, 248, 0.15)"
+              stroke="rgba(138, 180, 248, 0.6)"
+              strokeWidth="2"
+              strokeDasharray="5,5"
+              style={{
+                filter: 'drop-shadow(0 0 8px rgba(138, 180, 248, 0.3))'
+              }}
+            />
+          )}
+
           <path
             d={pathData}
             fill="rgba(235, 200, 98, 0.2)"
@@ -438,6 +515,19 @@ function EnergyRadarChart({ profile }: EnergyRadarChartProps) {
               fill="#EBC862"
               style={{
                 filter: 'drop-shadow(0 0 10px rgba(235, 200, 98, 0.6))'
+              }}
+            />
+          ))}
+
+          {hasSynergy && synergyPoints && synergyPoints.map((point, i) => (
+            <circle
+              key={`synergy-${i}`}
+              cx={point.x}
+              cy={point.y}
+              r="4"
+              fill="rgba(138, 180, 248, 0.8)"
+              style={{
+                filter: 'drop-shadow(0 0 8px rgba(138, 180, 248, 0.5))'
               }}
             />
           ))}
@@ -482,6 +572,23 @@ function EnergyRadarChart({ profile }: EnergyRadarChartProps) {
           </div>
         ))}
       </div>
+
+      {hasSynergy && (
+        <div
+          className="mt-6 p-4 rounded-xl text-center"
+          style={{
+            background: 'linear-gradient(135deg, rgba(138, 180, 248, 0.1) 0%, rgba(138, 180, 248, 0.05) 100%)',
+            border: '1px solid rgba(138, 180, 248, 0.2)'
+          }}
+        >
+          <div style={{ color: 'rgba(138, 180, 248, 0.9)', fontSize: '0.9rem' }}>
+            ✦ 检测到能量共振关系
+          </div>
+          <div style={{ color: '#F7E7CE', opacity: 0.6, fontSize: '0.8rem', marginTop: '4px' }}>
+            虚线区域显示家人能量加持效果
+          </div>
+        </div>
+      )}
     </div>
   );
 }
