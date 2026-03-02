@@ -302,7 +302,7 @@ export default function EnergyPerson() {
                       lineHeight: '1.8',
                       fontSize: '0.95rem'
                     }}
-                    dangerouslySetInnerHTML={{ __html: generateDeepPortrait(myData.kinData, finalProfile).replace(/\n/g, '<br/>').replace(/###/g, '<h3 style="color: #EBC862; margin: 1.5rem 0 1rem 0; font-size: 1.3rem;">').replace(/<h3/g, '</h3><h3').slice(6) }}
+                    dangerouslySetInnerHTML={{ __html: generateDeepPortrait(myData.kinData, finalProfile, synergies).replace(/\n/g, '<br/>').replace(/###/g, '<h3 style="color: #EBC862; margin: 1.5rem 0 1rem 0; font-size: 1.3rem;">').replace(/<h3/g, '</h3><h3').slice(6) }}
                   />
                 </div>
 
