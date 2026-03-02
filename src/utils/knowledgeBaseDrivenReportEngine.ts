@@ -2,14 +2,22 @@
  * 知识库驱动报告引擎 - 100% 资料库内容显化
  * Knowledge Base Driven Report Engine - Zero AI Hallucination
  *
+ * VERSION: 2.1.0 - Gemini Calibrated (2026-03-02)
+ * - 修复心轮使用正确的 heart_chakra 字段
+ * - 校准超频调性修正值（心轮0，喉轮0，松果体+3）
+ * - 蓝风暴心轮基础值：40%
+ *
  * 三层填充逻辑：
  * 1. 画像头部：取自 kin_definitions.core_essence 或组合 [图腾关键词 + 调性描述]
- * 2. 能量中心：从 totems 表提取 pineal_gland, throat_chakra 和 operation_mode
+ * 2. 能量中心：从 totems 表提取 heart_chakra, throat_chakra, pineal_gland
  * 3. 波符底色：计算 anchorKin 后从 wavespells 表提取 life_essence
  */
 
 import { supabase } from '../lib/supabase';
 import type { KinEnergyReport, EnergyCenterScore } from '../types/kinReport';
+
+// 版本标识 - 用于强制缓存失效
+export const ENGINE_VERSION = '2.1.0-gemini-calibrated-20260302-2217';
 
 interface TotemData {
   id: number;
@@ -314,11 +322,28 @@ export async function generateKnowledgeBaseDrivenReport(
   // 从资料库获取所有数据
   const { totem, tone, wavespell, kinDef } = await fetchKinKnowledge(kin);
 
+  // 调试日志 - 显示从数据库读取的原始值
+  console.log(`🔍 [${ENGINE_VERSION}] Kin ${kin} 数据库原始值:`, {
+    图腾: totem.name_cn,
+    调性: tone.name_cn,
+    心轮基础: totem.heart_chakra,
+    喉轮基础: totem.throat_chakra,
+    松果体基础: totem.pineal_gland,
+    运作模式: totem.operation_mode
+  });
+
   // 第一层：画像头部
   const profile = generateProfileFromKB(totem, tone, kinDef);
 
   // 第二层：能量中心
   const energyCenters = generateEnergyCentersFromKB(totem, tone);
+
+  // 调试日志 - 显示计算后的能量中心值
+  console.log(`📊 [${ENGINE_VERSION}] Kin ${kin} 计算结果:`, {
+    心轮: energyCenters.find(c => c.center === 'heart')?.score,
+    喉轮: energyCenters.find(c => c.center === 'throat')?.score,
+    松果体: energyCenters.find(c => c.center === 'pineal')?.score
+  });
 
   // 第三层：波符底色
   const wavespellInfo = generateWavespellInfo(wavespell);
