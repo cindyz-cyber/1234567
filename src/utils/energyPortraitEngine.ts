@@ -47,38 +47,46 @@ async function fetchEnergyCentersFromDatabase(kin: number): Promise<EnergyCenter
 
 async function fetchKinBasicInfo(kin: number) {
   try {
-    const { data: totemData, error: totemError } = await supabase
-      .from('knowledge_base_totems')
-      .select('*')
-      .eq('kin', kin)
-      .maybeSingle();
-
-    if (totemError) throw totemError;
-
-    if (totemData) {
-      return {
-        toneName: totemData.tone_name,
-        sealName: totemData.seal_name,
-        essence: totemData.essence || '',
-        wavespellName: totemData.wavespell_name
-      };
-    }
-
     const tone = ((kin - 1) % 13) + 1;
     const seal = ((kin - 1) % 20) + 1;
     const wavespellStartKin = Math.floor((kin - 1) / 13) * 13 + 1;
+    const wavespellSeal = ((wavespellStartKin - 1) % 20) + 1;
 
-    const { data: wavespellData } = await supabase
-      .from('knowledge_base_wavespells')
-      .select('name')
-      .eq('start_kin', wavespellStartKin)
+    const { data: kinDef, error: kinError } = await supabase
+      .from('kin_definitions')
+      .select('*, totem:totems(name_cn, operation_mode), tone:tones(name_cn, description)')
+      .eq('kin_number', kin)
       .maybeSingle();
 
+    if (kinError) throw kinError;
+
+    const { data: wavespellTotem } = await supabase
+      .from('totems')
+      .select('name_cn')
+      .eq('id', wavespellSeal)
+      .maybeSingle();
+
+    if (kinDef && kinDef.totem && kinDef.tone) {
+      return {
+        toneName: kinDef.tone.name_cn,
+        sealName: kinDef.totem.name_cn,
+        essence: kinDef.core_essence || '',
+        wavespellName: wavespellTotem?.name_cn || '',
+        style: kinDef.totem.operation_mode || '',
+        toneDesc: kinDef.tone.description || ''
+      };
+    }
+
+    const { data: toneData } = await supabase.from('tones').select('name_cn').eq('id', tone).maybeSingle();
+    const { data: totemData } = await supabase.from('totems').select('name_cn').eq('id', seal).maybeSingle();
+
     return {
-      toneName: `第${tone}调性`,
-      sealName: `第${seal}图腾`,
+      toneName: toneData?.name_cn || `第${tone}调性`,
+      sealName: totemData?.name_cn || `第${seal}图腾`,
       essence: '',
-      wavespellName: wavespellData?.name || `第${Math.floor((kin - 1) / 13) + 1}波符`
+      wavespellName: wavespellTotem?.name_cn || '',
+      style: '',
+      toneDesc: ''
     };
   } catch (error) {
     console.error('Failed to fetch basic info:', error);
@@ -88,7 +96,9 @@ async function fetchKinBasicInfo(kin: number) {
       toneName: `第${tone}调性`,
       sealName: `第${seal}图腾`,
       essence: '',
-      wavespellName: `第${Math.floor((kin - 1) / 13) + 1}波符`
+      wavespellName: '',
+      style: '',
+      toneDesc: ''
     };
   }
 }
@@ -137,9 +147,9 @@ export async function generateEnergyReport(
   const centers = await fetchEnergyCentersFromDatabase(kin);
 
   const portrait = {
-    mode: '数据库模式',
-    perspective: '知识库视角',
-    essence: `${basicInfo.toneName}${basicInfo.sealName}。${basicInfo.essence}`,
+    mode: basicInfo.style || '数据库模式',
+    perspective: basicInfo.toneDesc || '知识库视角',
+    essence: basicInfo.essence || `${basicInfo.toneName}的${basicInfo.sealName}`,
     centers
   };
 
