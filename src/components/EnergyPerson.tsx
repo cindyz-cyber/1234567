@@ -82,6 +82,11 @@ export default function EnergyPerson() {
     const profile = calculateEnergyProfile(kinData);
 
     setMyData({ birthDate, kinData, profile, midnightType });
+
+    // 自动显示报告
+    setTimeout(() => {
+      setShowReport(true);
+    }, 500);
   };
 
   const handleResonanceDateSelect = (
