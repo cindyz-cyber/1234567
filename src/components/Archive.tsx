@@ -193,14 +193,25 @@ export default function Archive() {
 
   return (
     <div className="min-h-screen pb-24 pt-20 px-6 relative overflow-hidden">
-      <div className="fixed top-0 left-0 w-full h-full" style={{ zIndex: -20 }}>
+      <div className="fixed top-0 left-0 w-full h-full" style={{
+        zIndex: -20,
+        backgroundColor: 'rgba(10, 20, 30, 0.5)',
+        WebkitTransform: 'translate3d(0,0,0)',
+        transform: 'translate3d(0,0,0)'
+      }}>
         <video
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
+          crossOrigin="anonymous"
           className="w-full h-full object-cover"
-          style={{ opacity: 0.5 }}
+          style={{
+            opacity: 0.5,
+            WebkitTransform: 'translate3d(0,0,0)',
+            transform: 'translate3d(0,0,0)'
+          }}
         >
           <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
         </video>

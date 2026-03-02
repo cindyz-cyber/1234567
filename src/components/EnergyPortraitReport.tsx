@@ -27,6 +27,8 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           loop
           muted
           playsInline
+          preload="auto"
+          crossOrigin="anonymous"
           className="portal-background-video"
         >
           <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
@@ -364,6 +366,9 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           position: fixed;
           inset: 0;
           z-index: 1;
+          background-color: rgba(10, 20, 30, 0.5);
+          -webkit-transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
         }
 
         .portal-background-video {
@@ -371,6 +376,8 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           height: 100%;
           object-fit: cover;
           filter: brightness(1.1) contrast(1.05);
+          -webkit-transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
         }
 
         .energy-content-wrapper {

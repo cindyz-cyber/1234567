@@ -114,6 +114,8 @@ export default function ZenVoiceResults({ result, reportData, onBack }: ZenVoice
           loop
           muted
           playsInline
+          preload="auto"
+          crossOrigin="anonymous"
           className="portal-background-video"
         >
           <source src="https://cdn.midjourney.com/video/661ffc10-0d89-43d1-b8f9-83e67d0421ae/2.mp4" type="video/mp4" />
@@ -330,6 +332,28 @@ export default function ZenVoiceResults({ result, reportData, onBack }: ZenVoice
 
       {/* 动画样式 */}
       <style>{`
+        .portal-background-layer {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100vh;
+          z-index: 0;
+          pointer-events: none;
+          background-color: rgba(10, 20, 30, 0.5);
+          -webkit-transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
+        }
+
+        .portal-background-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          filter: brightness(1.3) contrast(1.15) saturate(1.1);
+          -webkit-transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
+        }
+
         @keyframes breathe {
           0%, 100% {
             transform: scale(1);

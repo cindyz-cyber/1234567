@@ -48,9 +48,11 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           loop
           muted
           playsInline
+          preload="auto"
+          crossOrigin="anonymous"
           className="home-background-video"
         >
-          <source src="https://cdn.midjourney.com/video/48fc39c6-3c66-4f02-a3e2-3445b7fec438/1.mp4" type="video/mp4" />
+          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
         </video>
         <div className="home-background-overlay" />
       </div>
@@ -61,6 +63,8 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           loop
           muted
           playsInline
+          preload="auto"
+          crossOrigin="anonymous"
           className="portal-video"
         >
           <source src="https://cdn.midjourney.com/video/7e901a1c-929f-466d-8def-ac47f9d0c15b/3.mp4" type="video/mp4" />
@@ -258,6 +262,9 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           height: 100%;
           z-index: -1;
           overflow: hidden;
+          background-color: rgba(2, 13, 10, 0.8);
+          -webkit-transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
         }
 
         .home-background-video {
@@ -268,6 +275,8 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           height: 100%;
           object-fit: cover;
           filter: brightness(0.7) contrast(1.15) saturate(0.9);
+          -webkit-transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
         }
 
         .home-background-overlay {
@@ -292,6 +301,9 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           height: 33.333vh;
           overflow: hidden;
           z-index: 1;
+          background-color: rgba(5, 10, 20, 0.5);
+          -webkit-transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
         }
 
         .portal-video {
@@ -299,6 +311,8 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           height: 100%;
           object-fit: cover;
           filter: brightness(0.95) contrast(1.05) saturate(1.15);
+          -webkit-transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
         }
 
         .portal-glow-effect {
