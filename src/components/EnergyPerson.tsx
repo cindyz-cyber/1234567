@@ -81,7 +81,28 @@ export default function EnergyPerson() {
 
     const birthDate = new Date(dateString);
     const kinData = calculateKin(birthDate, midnightType);
-    const profile = calculateEnergyProfile(kinData);
+
+    // 如果是子时，需要用加权合成的能量
+    let profile: EnergyProfile;
+
+    if (midnightType && kinData.secondaryKin) {
+      // 子时双Kin合成
+      const primaryProfile = calculateEnergyProfile(kinData);
+      const secondaryKinData = calculateKin(birthDate, null);
+      secondaryKinData.kin = kinData.secondaryKin;
+      const secondaryProfile = calculateEnergyProfile(secondaryKinData);
+
+      const primaryWeight = midnightType === 'early' ? 0.4 : 0.6;
+      const secondaryWeight = midnightType === 'early' ? 0.6 : 0.4;
+
+      profile = {
+        heart: Math.round(primaryProfile.heart * primaryWeight + secondaryProfile.heart * secondaryWeight),
+        throat: Math.round(primaryProfile.throat * primaryWeight + secondaryProfile.throat * secondaryWeight),
+        pineal: Math.round(primaryProfile.pineal * primaryWeight + secondaryProfile.pineal * secondaryWeight)
+      };
+    } else {
+      profile = calculateEnergyProfile(kinData);
+    }
 
     setMyData({ birthDate, kinData, profile, midnightType });
 
@@ -105,7 +126,7 @@ export default function EnergyPerson() {
     }, 500);
   };
 
-  const handleResonanceDateSelect = (
+  const handleResonanceDateSelect = async (
     id: string,
     dateString: string,
     midnightType: 'early' | 'late' | null
@@ -122,6 +143,33 @@ export default function EnergyPerson() {
           : person
       )
     );
+
+    // 如果主用户数据已存在，重新生成报告以包含量子共振关系
+    if (myData.kinData) {
+      setTimeout(async () => {
+        setIsGeneratingReport(true);
+        try {
+          const updatedPersons = resonancePersons.map((person) =>
+            person.id === id
+              ? { ...person, birthDate, kinData, midnightType }
+              : person
+          );
+
+          const report = await generateNewEnergyReport(
+            myData.kinData!.kin,
+            updatedPersons
+              .filter(p => p.kinData)
+              .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
+          );
+          setGeneratedReport(report);
+          setShowReport(true);
+        } catch (error) {
+          console.error('Failed to generate report:', error);
+        } finally {
+          setIsGeneratingReport(false);
+        }
+      }, 500);
+    }
   };
 
   const handleGenerateReport = async () => {

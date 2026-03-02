@@ -138,10 +138,15 @@ export default function ImmersiveDatePicker({
                 }}
               >
                 Kin {kinData.kin} · {kinData.toneName}的{kinData.sealName}
-                {kinData.midnightType && (
-                  <span style={{ color: '#8AB4F8', marginLeft: '8px' }}>
-                    ⦿ {kinData.midnightType === 'early' ? '前子时' : '后子时'}
-                  </span>
+                {kinData.midnightType && kinData.secondaryKin && (
+                  <div style={{ marginTop: '6px' }}>
+                    <span style={{ color: '#8AB4F8', fontSize: '0.85rem' }}>
+                      ⦿ {kinData.midnightType === 'early' ? '前子时' : '后子时'}双Kin能量携带者
+                    </span>
+                    <div style={{ color: '#8AB4F8', fontSize: '0.75rem', marginTop: '4px', opacity: 0.8 }}>
+                      主Kin {kinData.kin} ({kinData.midnightType === 'early' ? '40' : '60'}%) + 副Kin {kinData.secondaryKin} ({kinData.midnightType === 'early' ? '60' : '40'}%)
+                    </div>
+                  </div>
                 )}
               </div>
             )}

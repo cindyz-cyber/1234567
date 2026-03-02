@@ -1,5 +1,6 @@
 import { KinEnergyReport, EnergyCenter, QuantumResonance } from '../types/energyPortrait';
 import { supabase } from '../lib/supabase';
+import { analyzeQuantumResonance, calculateSynthesizedField } from './quantumResonanceEngine';
 
 function getDefaultIcon(centerName: string): string {
   const iconMap: Record<string, string> = {
@@ -109,29 +110,45 @@ async function calculateQuantumResonance(
   familyName: string
 ): Promise<QuantumResonance | null> {
   try {
+    // 使用新的量子共振引擎分析关系
+    const resonanceRelation = analyzeQuantumResonance(userKin, familyKin);
+
     const userCenters = await fetchEnergyCentersFromDatabase(userKin);
     const familyCenters = await fetchEnergyCentersFromDatabase(familyKin);
 
     const userWeakest = userCenters.reduce((min, c) => c.percentage < min.percentage ? c : min);
     const familyStrongest = familyCenters.reduce((max, c) => c.percentage > max.percentage ? c : max);
 
-    const kinDiff = Math.abs(userKin - familyKin);
+    // 根据关系类型确定共振强度和类型标签
+    let typeLabel = '普通共振';
     let synergyStrength = 0.5;
+    let description = resonanceRelation.description;
 
-    if (userWeakest.name === familyStrongest.name) {
+    if (resonanceRelation.type === 'push') {
+      typeLabel = '母体灌溉型';
+      synergyStrength = 1.0;
+    } else if (resonanceRelation.type === 'challenge') {
+      typeLabel = '生命磨刀石';
+      synergyStrength = 0.95;
+    } else if (resonanceRelation.type === 'guide') {
+      typeLabel = '指引导航位';
       synergyStrength = 0.9;
-    } else if (kinDiff < 20) {
-      synergyStrength = 0.7;
+    } else if (resonanceRelation.type === 'hidden') {
+      typeLabel = '隐藏力量位';
+      synergyStrength = 0.85;
+    } else if (resonanceRelation.type === 'support') {
+      typeLabel = '支持共振位';
+      synergyStrength = 0.8;
     }
 
     return {
       familyMember: familyName,
-      type: userWeakest.name === familyStrongest.name ? 'pusher' : 'mirror',
-      typeLabel: userWeakest.name === familyStrongest.name ? '推动因子' : '镜像因子',
-      description: `${familyName}的${familyStrongest.name}能量（${familyStrongest.percentage}%）与你的${userWeakest.name}（${userWeakest.percentage}%）形成共振`,
+      type: resonanceRelation.type || 'mirror',
+      typeLabel,
+      description,
       synergyType: 'harmonic-resonance',
       synergyStrength,
-      synergyDescription: `能量共振强度：${Math.round(synergyStrength * 100)}%`
+      synergyDescription: `${typeLabel}：能量共振强度 ${Math.round(synergyStrength * 100)}%`
     };
   } catch (error) {
     console.error('Failed to calculate quantum resonance:', error);

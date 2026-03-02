@@ -5,6 +5,7 @@ import type { KinData } from '../utils/mayaCalendar';
 
 interface ResonancePerson {
   id: string;
+  name?: string;
   relationship: 'father' | 'mother' | 'child' | 'partner' | 'other';
   birthDate: Date | null;
   kinData: KinData | null;
@@ -41,6 +42,7 @@ export default function QuantumResonanceAdder({
   const handleAddPerson = () => {
     const newPerson: ResonancePerson = {
       id: Date.now().toString(),
+      name: selectedRelationship === 'other' ? customLabel : getRelationshipLabel({ relationship: selectedRelationship } as ResonancePerson),
       relationship: selectedRelationship,
       birthDate: null,
       kinData: null,
