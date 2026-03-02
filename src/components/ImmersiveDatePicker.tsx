@@ -25,7 +25,7 @@ export default function ImmersiveDatePicker({
   const [selectedDay, setSelectedDay] = useState(value?.getDate() || 1);
   const [selectedMidnightType, setSelectedMidnightType] = useState<'early' | 'late' | null>(midnightType);
 
-  const years = Array.from({ length: new Date().getFullYear() - 1980 + 1 }, (_, i) => 1980 + i);
+  const years = Array.from({ length: new Date().getFullYear() - 1950 + 1 }, (_, i) => 1950 + i);
   const months = Array.from({ length: 12 }, (_, i) => i);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
