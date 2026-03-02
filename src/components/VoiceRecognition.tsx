@@ -456,6 +456,10 @@ export default function VoiceRecognition({ onBack, onNext, onResultStateChange }
           preload="auto"
           crossOrigin="anonymous"
           className="portal-background-video"
+          style={{
+            WebkitTransform: 'translate3d(0,0,0)',
+            transform: 'translate3d(0,0,0)'
+          }}
         >
           <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
         </video>

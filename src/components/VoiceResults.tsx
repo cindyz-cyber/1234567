@@ -50,6 +50,10 @@ export default function VoiceResults({ result, reportData, onPlayAudio, onBack }
           preload="auto"
           crossOrigin="anonymous"
           className="portal-background-video"
+          style={{
+            WebkitTransform: 'translate3d(0,0,0)',
+            transform: 'translate3d(0,0,0)'
+          }}
         >
           <source src="https://cdn.midjourney.com/video/661ffc10-0d89-43d1-b8f9-83e67d0421ae/2.mp4" type="video/mp4" />
         </video>

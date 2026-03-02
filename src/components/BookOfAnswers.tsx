@@ -51,6 +51,10 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           preload="auto"
           crossOrigin="anonymous"
           className="home-background-video"
+          style={{
+            WebkitTransform: 'translate3d(0,0,0)',
+            transform: 'translate3d(0,0,0)'
+          }}
         >
           <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
         </video>
@@ -66,6 +70,10 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           preload="auto"
           crossOrigin="anonymous"
           className="portal-video"
+          style={{
+            WebkitTransform: 'translate3d(0,0,0)',
+            transform: 'translate3d(0,0,0)'
+          }}
         >
           <source src="https://cdn.midjourney.com/video/7e901a1c-929f-466d-8def-ac47f9d0c15b/3.mp4" type="video/mp4" />
         </video>

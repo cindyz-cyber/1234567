@@ -125,6 +125,9 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
         className="fixed inset-0 w-full h-full"
         style={{
           zIndex: 1,
+          backgroundColor: 'rgba(2, 13, 10, 0.5)',
+          WebkitTransform: 'translate3d(0,0,0)',
+          transform: 'translate3d(0,0,0)'
         }}
       >
         <video
