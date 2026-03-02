@@ -45,7 +45,8 @@ for (const testCase of calibrationCases) {
   console.log(`日期: ${testCase.date}`);
   console.log(`  Kin: ${kinData.kin} ${kinMatch ? '✓' : '✗'}`);
   console.log(`  图腾: ${kinData.toneName}的${kinData.sealName}`);
-  console.log(`  波符: ${kinData.wavespellName} ${wavespellMatch ? '✓' : '✗ (期望: ' + testCase.expectedWavespell + ')'}`);
+  console.log(`  波符起始Kin: ${kinData.wavespellStartKin}`);
+  console.log(`  波符名称: ${kinData.wavespellName} ${wavespellMatch ? '✓' : '✗ (期望: ' + testCase.expectedWavespell + ')'}`);
   console.log(`  推导: ${testCase.description}`);
   console.log('');
 

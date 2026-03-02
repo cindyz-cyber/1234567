@@ -6,6 +6,7 @@ export interface KinData {
   toneName: string;
   wavespell: number;
   wavespellName: string;
+  wavespellStartKin: number; // 波符起始Kin（锚点）
   hiddenPower: number;
   hiddenPowerName: string;
   toneType: string;
@@ -80,12 +81,23 @@ function calculateDaysExcludingLeapDays(date1: Date, date2: Date): number {
 
   return isNegative ? -days : days;
 }
+// 图腾名称映射表（用于快速查询，索引0-19对应Kin模20的结果）
 const SEALS = [
   '红龙', '白风', '蓝夜', '黄种子', '红蛇',
   '白世界桥', '蓝手', '黄星星', '红月', '白狗',
   '蓝猴', '黄人', '红天行者', '白巫师', '蓝鹰',
   '黄战士', '红地球', '白镜', '蓝风暴', '黄太阳'
 ];
+
+/**
+ * 根据Kin号获取图腾名称
+ * @param kinNumber Kin序号 (1-260)
+ * @returns 图腾名称（中文）
+ */
+function getTotemNameByKin(kinNumber: number): string {
+  const sealIndex = (kinNumber - 1) % 20;
+  return SEALS[sealIndex];
+}
 
 const TONES = [
   '磁性', '月亮', '电力', '自我存在', '超频',
@@ -99,20 +111,33 @@ const TONE_TYPES = [
   '释放解放', '合作奉献', '超越临在'
 ];
 
-function calculateWavespell(kin: number): { wavespell: number; wavespellName: string } {
-  // 步骤 A: 计算波符起始 Kin（波符锚点）
-  const wavespellStartKin = Math.floor((kin - 1) / 13) * 13 + 1;
+/**
+ * Kin驱动型波符计算引擎
+ *
+ * 核心逻辑：
+ * 1. 波符作为Kin的衍生属性存在
+ * 2. 波符名称 = 该波符起始Kin的主图腾
+ * 3. 禁止独立计算波符，必须从Kin反推
+ *
+ * @param kin 当前Kin序号 (1-260)
+ * @returns 波符序号和名称
+ */
+function calculateWavespell(kin: number): { wavespell: number; wavespellName: string; wavespellStartKin: number } {
+  // 第一步：计算所属波符的起始 Kin (Anchor Kin)
+  // 数学公式: anchorKin = floor((currentKin - 1) / 13) * 13 + 1
+  const anchorKin = Math.floor((kin - 1) / 13) * 13 + 1;
 
-  // 步骤 B: 波符图腾 = 起始Kin的图腾
-  // 起始Kin的图腾索引 (0-based)
-  const wavespellSealIndex = (wavespellStartKin - 1) % 20;
+  // 第二步：从资料库提取起始Kin的主图腾作为波符名称
+  // 图腾索引 = (anchorKin - 1) % 20
+  const wavespellName = getTotemNameByKin(anchorKin);
 
-  // 步骤 C: 波符序号 (1-based)
+  // 第三步：计算波符序号 (1-based)
   const wavespellIndex = Math.floor((kin - 1) / 13);
 
   return {
     wavespell: wavespellIndex + 1,
-    wavespellName: SEALS[wavespellSealIndex]
+    wavespellName,
+    wavespellStartKin: anchorKin
   };
 }
 
@@ -261,7 +286,7 @@ export function calculateKin(birthDate: Date, midnightType: 'early' | 'late' | n
 
   const seal = ((kin - 1) % 20) + 1;
   const tone = ((kin - 1) % 13) + 1;
-  const { wavespell, wavespellName } = calculateWavespell(kin);
+  const { wavespell, wavespellName, wavespellStartKin } = calculateWavespell(kin);
   const { hiddenPower, hiddenPowerName } = calculateHiddenPower(kin);
   const toneType = TONE_TYPES[tone - 1];
 
@@ -273,6 +298,7 @@ export function calculateKin(birthDate: Date, midnightType: 'early' | 'late' | n
     toneName: TONES[tone - 1],
     wavespell,
     wavespellName,
+    wavespellStartKin,
     hiddenPower,
     hiddenPowerName,
     toneType,
