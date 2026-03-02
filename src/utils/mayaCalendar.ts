@@ -198,27 +198,16 @@ const KIN_PORTRAITS: Record<number, { mode: string; vision: string; essence: str
 };
 
 export function calculateKin(birthDate: Date, midnightType: 'early' | 'late' | null = null): KinData {
-  // 找到最近的校准点来计算偏移
-  let closestPoint = MAIN_CALIBRATION;
-  let minDistance = Math.abs(birthDate.getTime() - MAIN_CALIBRATION.date.getTime());
+  // 绝对基准：1983-09-30 = Kin 200
+  const anchorDate = new Date('1983-09-30');
+  const anchorKin = 200;
 
-  for (const point of CALIBRATION_POINTS) {
-    const distance = Math.abs(birthDate.getTime() - point.date.getTime());
-    if (distance < minDistance) {
-      minDistance = distance;
-      closestPoint = point;
-    }
-  }
+  // 计算精确天数差（使用毫秒差除以一天的毫秒数）
+  const diffTime = birthDate.getTime() - anchorDate.getTime();
+  const diffDays = Math.floor(diffTime / 86400000);
 
-  // 计算与最近校准点的天数差
-  const diffTime = birthDate.getTime() - closestPoint.date.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  // 从校准Kin值开始计算
-  let kin = closestPoint.kin + diffDays;
-
-  // 确保在1-260范围内
-  kin = ((kin - 1) % 260 + 260) % 260 + 1;
+  // 从基准 Kin 值计算目标 Kin（保证结果在 1-260 范围内）
+  let kin = ((anchorKin - 1 + diffDays) % 260 + 260) % 260 + 1;
 
   const seal = ((kin - 1) % 20) + 1;
   const tone = ((kin - 1) % 13) + 1;
@@ -251,9 +240,8 @@ export function calculateKin(birthDate: Date, midnightType: 'early' | 'late' | n
       secondaryDate.setDate(secondaryDate.getDate() - 1);
     }
 
-    const secondaryDiffDays = Math.floor((secondaryDate.getTime() - closestPoint.date.getTime()) / (1000 * 60 * 60 * 24));
-    let secondaryKin = closestPoint.kin + secondaryDiffDays;
-    secondaryKin = ((secondaryKin - 1) % 260 + 260) % 260 + 1;
+    const secondaryDiffDays = Math.floor((secondaryDate.getTime() - anchorDate.getTime()) / 86400000);
+    const secondaryKin = ((anchorKin - 1 + secondaryDiffDays) % 260 + 260) % 260 + 1;
     result.secondaryKin = secondaryKin;
   }
 
