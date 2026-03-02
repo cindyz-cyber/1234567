@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kin 239 前端引擎测试</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #fff;
+    }
+    .test-card {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: 12px;
+      padding: 30px;
+      margin: 20px 0;
+      border: 1px solid #333;
+    }
+    .result {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .center {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .score {
+      font-size: 48px;
+      font-weight: bold;
+      color: #f0a500;
+      margin: 10px 0;
+    }
+    .match {
+      font-size: 24px;
+      margin: 10px 0;
+    }
+    .success { color: #4caf50; }
+    .error { color: #f44336; }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .log {
+      background: #000;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-card">
+    <h1>🔬 Kin 239 前端引擎测试</h1>
+    <p>测试前端是否正确读取数据库中的心轮值（应为40%）</p>
+
+    <div>
+      <button onclick="testKin239()">测试 Kin 239</button>
+      <button onclick="testDatabase()">直接查询数据库</button>
+      <button onclick="clearLog()">清除日志</button>
+    </div>
+
+    <div class="result" id="result"></div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './src/lib/supabase.ts';
+    import { generateKnowledgeBaseDrivenReport } from './src/utils/knowledgeBaseDrivenReportEngine.ts';
+
+    window.supabase = supabase;
+    window.generateKnowledgeBaseDrivenReport = generateKnowledgeBaseDrivenReport;
+
+    window.log = function(msg, color = '#aaa') {
+      const logDiv = document.getElementById('log');
+      const time = new Date().toLocaleTimeString();
+      logDiv.innerHTML += `<div style="color: ${color}">[${time}] ${msg}</div>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    };
+
+    window.clearLog = function() {
+      document.getElementById('log').innerHTML = '';
+    };
+
+    window.testDatabase = async function() {
+      log('🔍 直接查询数据库...', '#4caf50');
+
+      try {
+        const { data, error } = await supabase
+          .from('totems')
+          .select('id, name_cn, heart_chakra, throat_chakra, pineal_gland')
+          .eq('id', 19)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        log(`✅ 数据库返回: ${JSON.stringify(data, null, 2)}`, '#4caf50');
+        log(`   心轮: ${data.heart_chakra}%`, '#f0a500');
+        log(`   喉轮: ${data.throat_chakra}%`, '#f0a500');
+        log(`   松果体: ${data.pineal_gland}%`, '#f0a500');
+
+        if (data.heart_chakra === 40) {
+          log('✅ 数据库心轮值正确！', '#4caf50');
+        } else {
+          log(`❌ 数据库心轮值错误！预期40，实际${data.heart_chakra}`, '#f44336');
+        }
+      } catch (err) {
+        log(`❌ 数据库查询失败: ${err.message}`, '#f44336');
+      }
+    };
+
+    window.testKin239 = async function() {
+      log('🚀 开始测试 Kin 239...', '#4caf50');
+      const resultDiv = document.getElementById('result');
+
+      const gemini = {
+        heart: 40,
+        throat: 82,
+        pineal: 98
+      };
+
+      try {
+        log('📡 调用 generateKnowledgeBaseDrivenReport(239)...', '#aaa');
+        const report = await generateKnowledgeBaseDrivenReport(239);
+
+        log(`✅ 报告生成成功`, '#4caf50');
+        log(`   Kin: ${report.kin}`, '#aaa');
+        log(`   图腾: ${report.totemName}`, '#aaa');
+        log(`   调性: ${report.toneName}`, '#aaa');
+
+        const heart = report.energyCenters.find(c => c.center === 'heart');
+        const throat = report.energyCenters.find(c => c.center === 'throat');
+        const pineal = report.energyCenters.find(c => c.center === 'pineal');
+
+        log(`📊 生成的能量中心：`, '#f0a500');
+        log(`   心轮: ${heart.score}% (预期: ${gemini.heart}%)`, heart.score === gemini.heart ? '#4caf50' : '#f44336');
+        log(`   喉轮: ${throat.score}% (预期: ${gemini.throat}%)`, throat.score === gemini.throat ? '#4caf50' : '#f44336');
+        log(`   松果体: ${pineal.score}% (预期: ${gemini.pineal}%)`, pineal.score === gemini.pineal ? '#4caf50' : '#f44336');
+
+        resultDiv.innerHTML = `
+          <div class="center">
+            <div>❤️ 心轮</div>
+            <div class="score">${heart.score}%</div>
+            <div class="match ${heart.score === gemini.heart ? 'success' : 'error'}">
+              ${heart.score === gemini.heart ? '✅ 正确' : '❌ 错误'}
+            </div>
+            <div style="font-size: 12px; margin-top: 10px;">预期: ${gemini.heart}%</div>
+          </div>
+          <div class="center">
+            <div>🗣️ 喉轮</div>
+            <div class="score">${throat.score}%</div>
+            <div class="match ${throat.score === gemini.throat ? 'success' : 'error'}">
+              ${throat.score === gemini.throat ? '✅ 正确' : '❌ 错误'}
+            </div>
+            <div style="font-size: 12px; margin-top: 10px;">预期: ${gemini.throat}%</div>
+          </div>
+          <div class="center">
+            <div>👁️ 松果体</div>
+            <div class="score">${pineal.score}%</div>
+            <div class="match ${pineal.score === gemini.pineal ? 'success' : 'error'}">
+              ${pineal.score === gemini.pineal ? '✅ 正确' : '❌ 错误'}
+            </div>
+            <div style="font-size: 12px; margin-top: 10px;">预期: ${gemini.pineal}%</div>
+          </div>
+        `;
+
+        if (heart.score === gemini.heart && throat.score === gemini.throat && pineal.score === gemini.pineal) {
+          log('🎉 完美！所有值都匹配 Gemini 标准答案！', '#4caf50');
+        } else {
+          log('⚠️ 存在不匹配的值', '#f44336');
+        }
+
+      } catch (err) {
+        log(`❌ 测试失败: ${err.message}`, '#f44336');
+        console.error(err);
+      }
+    };
+
+    // 页面加载时自动运行
+    log('✨ 测试页面已加载', '#4caf50');
+    log('💡 点击按钮开始测试', '#aaa');
+  </script>
+</body>
+</html>

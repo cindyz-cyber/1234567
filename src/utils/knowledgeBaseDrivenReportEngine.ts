@@ -17,6 +17,7 @@ interface TotemData {
   name_en: string;
   pineal_gland: number;
   throat_chakra: number;
+  heart_chakra: number;  // 添加心轮字段
   operation_mode: string;
   core_keyword: string;
   description: string;
@@ -138,8 +139,8 @@ function generateEnergyCentersFromKB(
   totem: TotemData,
   tone: ToneData
 ): EnergyCenterScore[] {
-  // 计算心轮：基于松果体数值 + 调性修正
-  const heartBase = totem.pineal_gland;
+  // 计算心轮：使用心轮数值 + 调性修正
+  const heartBase = totem.heart_chakra;
   const heartScore = Math.min(100, Math.max(30, heartBase + getToneHeartModifier(tone.id)));
 
   // 计算喉轮：直接使用喉轮数值 + 调性修正
