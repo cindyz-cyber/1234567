@@ -20,28 +20,20 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="fixed top-0 left-0 w-full h-full object-cover"
-        style={{ zIndex: -20 }}
-      >
-        <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
-      </video>
+    <div className="energy-portrait-container">
+      <div className="portal-background-layer">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="portal-background-video"
+        >
+          <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
+        </video>
+      </div>
 
-      <div
-        className="fixed top-0 left-0 w-full h-full"
-        style={{
-          background: 'linear-gradient(135deg, rgba(10, 31, 28, 0.85) 0%, rgba(2, 10, 9, 0.9) 100%)',
-          pointerEvents: 'none',
-          zIndex: -10
-        }}
-      />
-
-      <div className={`max-w-6xl mx-auto px-6 pt-8 pb-32 relative transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      <div className={`energy-content-wrapper ${isVisible ? 'visible' : ''}`}>
         <button
           onClick={onBack}
           className="mb-12 px-6 py-3 rounded-full transition-all duration-300 hover:scale-105"
@@ -703,6 +695,44 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           </div>
         </div>
       </div>
+
+      <style>{`
+        .energy-portrait-container {
+          position: fixed;
+          inset: 0;
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+
+        .portal-background-layer {
+          position: fixed;
+          inset: 0;
+          z-index: 1;
+        }
+
+        .portal-background-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          filter: brightness(1.1) contrast(1.05);
+        }
+
+        .energy-content-wrapper {
+          position: relative;
+          z-index: 10;
+          max-width: 1536px;
+          margin: 0 auto;
+          padding: 2rem 1.5rem 8rem;
+          opacity: 0;
+          transform: translateY(2rem);
+          transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .energy-content-wrapper.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      `}</style>
     </div>
   );
 }
