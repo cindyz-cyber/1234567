@@ -2,17 +2,16 @@ import { useState } from 'react';
 import { Home, FileText, User, Settings, Upload, Sparkles } from 'lucide-react';
 
 interface NavigationProps {
-  currentTab: 'breath' | 'person' | 'archive' | 'profile' | 'admin' | 'samples';
-  onTabChange: (tab: 'breath' | 'person' | 'archive' | 'profile' | 'admin' | 'samples') => void;
+  currentTab: 'breath' | 'person' | 'profile' | 'admin' | 'samples';
+  onTabChange: (tab: 'breath' | 'person' | 'profile' | 'admin' | 'samples') => void;
   isAdmin?: boolean;
 }
 
 export default function Navigation({ currentTab, onTabChange, isAdmin = false }: NavigationProps) {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const baseTabs = [
-    { id: 'breath' as const, label: '呼吸', icon: Home },
-    { id: 'person' as const, label: '识人', icon: Sparkles },
-    { id: 'archive' as const, label: '档案', icon: FileText },
+    { id: 'breath' as const, label: '觉察日记', icon: Home },
+    { id: 'person' as const, label: '能量自测', icon: Sparkles },
     { id: 'profile' as const, label: '我的', icon: User },
   ];
 
