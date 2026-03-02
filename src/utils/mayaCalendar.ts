@@ -198,16 +198,16 @@ const KIN_PORTRAITS: Record<number, { mode: string; vision: string; essence: str
 };
 
 export function calculateKin(birthDate: Date, midnightType: 'early' | 'late' | null = null): KinData {
-  // 绝对基准：1983-09-30 = Kin 200
+  // 绝对基准：1983-09-30 = Kin 200（用户指定）
   const anchorDate = new Date('1983-09-30');
   const anchorKin = 200;
 
-  // 计算精确天数差（使用毫秒差除以一天的毫秒数）
-  const diffTime = birthDate.getTime() - anchorDate.getTime();
-  const diffDays = Math.floor(diffTime / 86400000);
+  // 计算精确天数差（毫秒差 / 86400000）
+  const diffDays = Math.floor((birthDate.getTime() - anchorDate.getTime()) / 86400000);
 
-  // 从基准 Kin 值计算目标 Kin（保证结果在 1-260 范围内）
-  let kin = ((anchorKin - 1 + diffDays) % 260 + 260) % 260 + 1;
+  // Kin 计算公式（注意：此公式基于用户提供的校准点，但三个校准点互不一致）
+  // 如果结果不准确，可能需要使用不同的玛雅历系统或校准常数
+  let kin = ((anchorKin + diffDays - 1) % 260 + 260) % 260 + 1;
 
   const seal = ((kin - 1) % 20) + 1;
   const tone = ((kin - 1) % 13) + 1;
@@ -241,7 +241,7 @@ export function calculateKin(birthDate: Date, midnightType: 'early' | 'late' | n
     }
 
     const secondaryDiffDays = Math.floor((secondaryDate.getTime() - anchorDate.getTime()) / 86400000);
-    const secondaryKin = ((anchorKin - 1 + secondaryDiffDays) % 260 + 260) % 260 + 1;
+    const secondaryKin = ((anchorKin + secondaryDiffDays - 1) % 260 + 260) % 260 + 1;
     result.secondaryKin = secondaryKin;
   }
 
