@@ -38,6 +38,8 @@ export default function EnergyPerson() {
   const [showReport, setShowReport] = useState(false);
   const [synergies, setSynergies] = useState<RelationshipSynergy[]>([]);
   const [useNewReport, setUseNewReport] = useState(true);
+  const [generatedReport, setGeneratedReport] = useState<any | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   useEffect(() => {
     if (!myData.kinData) return;
@@ -74,7 +76,7 @@ export default function EnergyPerson() {
     setSynergies(detectedSynergies);
   }, [myData.kinData, resonancePersons]);
 
-  const handleMyDateSelect = (dateString: string, midnightType: 'early' | 'late' | null) => {
+  const handleMyDateSelect = async (dateString: string, midnightType: 'early' | 'late' | null) => {
     if (!dateString) return;
 
     const birthDate = new Date(dateString);
@@ -83,9 +85,23 @@ export default function EnergyPerson() {
 
     setMyData({ birthDate, kinData, profile, midnightType });
 
-    // 自动显示报告
-    setTimeout(() => {
-      setShowReport(true);
+    // 自动生成并显示报告
+    setTimeout(async () => {
+      setIsGeneratingReport(true);
+      try {
+        const report = await generateNewEnergyReport(
+          kinData.kin,
+          resonancePersons
+            .filter(p => p.kinData)
+            .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
+        );
+        setGeneratedReport(report);
+        setShowReport(true);
+      } catch (error) {
+        console.error('Failed to generate report:', error);
+      } finally {
+        setIsGeneratingReport(false);
+      }
     }, 500);
   };
 
@@ -108,8 +124,25 @@ export default function EnergyPerson() {
     );
   };
 
-  const handleGenerateReport = () => {
-    setShowReport(true);
+  const handleGenerateReport = async () => {
+    if (!myData.kinData) return;
+
+    setIsGeneratingReport(true);
+    try {
+      const report = await generateNewEnergyReport(
+        myData.kinData.kin,
+        resonancePersons
+          .filter(p => p.kinData)
+          .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
+      );
+      setGeneratedReport(report);
+      setShowReport(true);
+    } catch (error) {
+      console.error('Failed to generate report:', error);
+      alert('生成报告失败，请重试');
+    } finally {
+      setIsGeneratingReport(false);
+    }
   };
 
   const handleShare = async () => {
@@ -171,7 +204,31 @@ export default function EnergyPerson() {
       />
 
       <div className="max-w-4xl mx-auto relative z-10">
-        {!showReport ? (
+        {isGeneratingReport ? (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <div
+                className="w-12 h-12 rounded-full border-2 animate-spin mx-auto mb-4"
+                style={{
+                  borderColor: '#EBC862',
+                  borderTopColor: 'transparent',
+                  opacity: 0.8,
+                  boxShadow: '0 0 20px rgba(235, 200, 98, 0.4)'
+                }}
+              />
+              <p
+                className="text-lg"
+                style={{
+                  color: '#F7E7CE',
+                  opacity: 0.6,
+                  letterSpacing: '0.1em'
+                }}
+              >
+                正在生成能量画像...
+              </p>
+            </div>
+          </div>
+        ) : !showReport ? (
           <>
             <div className="text-center mb-12">
               <h1
@@ -215,19 +272,20 @@ export default function EnergyPerson() {
 
             {finalProfile && myData.kinData && (
               <div className="flex justify-center mt-8">
-                <CalibrationButton onClick={handleGenerateReport} label="生成能量画像" />
+                <CalibrationButton
+                  onClick={handleGenerateReport}
+                  label={isGeneratingReport ? "生成中..." : "生成能量画像"}
+                />
               </div>
             )}
           </>
-        ) : useNewReport && myData.kinData ? (
+        ) : useNewReport && generatedReport ? (
           <EnergyPortraitReport
-            report={generateNewEnergyReport(
-              myData.kinData.kin,
-              resonancePersons
-                .filter(p => p.kinData)
-                .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
-            )}
-            onBack={() => setShowReport(false)}
+            report={generatedReport}
+            onBack={() => {
+              setShowReport(false);
+              setGeneratedReport(null);
+            }}
           />
         ) : (
           <>
