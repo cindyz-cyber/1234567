@@ -103,6 +103,9 @@ function App() {
         userName,
         higherSelfName,
       });
+
+      setCurrentStep('home');
+      setCurrentTab('breath');
     } catch (error) {
       console.error('Error saving profile:', error);
     }
