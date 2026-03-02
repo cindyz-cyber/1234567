@@ -49,7 +49,14 @@ function App() {
   });
 
   useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.warn('Loading timeout - forcing app to render');
+      setLoading(false);
+    }, 5000);
+
     loadProfile();
+
+    return () => clearTimeout(timeout);
   }, []);
 
   async function loadProfile() {
@@ -63,15 +70,21 @@ function App() {
           higherSelfName: storedHigherSelfName,
         });
 
-        const { data } = await supabase
-          .from('user_profile')
-          .select('is_admin')
-          .eq('user_name', storedUserName)
-          .eq('higher_self_name', storedHigherSelfName)
-          .maybeSingle();
+        try {
+          const { data, error } = await supabase
+            .from('user_profile')
+            .select('is_admin')
+            .eq('user_name', storedUserName)
+            .eq('higher_self_name', storedHigherSelfName)
+            .maybeSingle();
 
-        if (data?.is_admin) {
-          setIsAdmin(true);
+          if (error) {
+            console.warn('Supabase query error (non-critical):', error);
+          } else if (data?.is_admin) {
+            setIsAdmin(true);
+          }
+        } catch (dbError) {
+          console.warn('Database connection issue (non-critical):', dbError);
         }
       }
     } catch (error) {
