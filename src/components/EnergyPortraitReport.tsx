@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { KinEnergyReport } from '../types/energyPortrait';
-import { Sparkles, Heart, Radio, Eye, Zap, Users } from 'lucide-react';
 
 interface Props {
   report: KinEnergyReport;
@@ -9,75 +8,250 @@ interface Props {
 
 export default function EnergyPortraitReport({ report, onBack }: Props) {
   const [hoveredCenter, setHoveredCenter] = useState<number | null>(null);
+  const [scrollY, setScrollY] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
   const hasQuantumResonance = report.quantumResonances.length > 0;
 
+  useEffect(() => {
+    setIsVisible(true);
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900/20 to-gray-900 text-white pb-24">
-      <div className="max-w-4xl mx-auto px-6 pt-8">
+    <div className="min-h-screen relative overflow-hidden">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed top-0 left-0 w-full h-full object-cover"
+        style={{ zIndex: -20 }}
+      >
+        <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
+      </video>
+
+      <div
+        className="fixed top-0 left-0 w-full h-full"
+        style={{
+          background: 'linear-gradient(135deg, rgba(10, 31, 28, 0.85) 0%, rgba(2, 10, 9, 0.9) 100%)',
+          pointerEvents: 'none',
+          zIndex: -10
+        }}
+      />
+
+      <div className={`max-w-6xl mx-auto px-6 pt-8 pb-32 relative transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         <button
           onClick={onBack}
-          className="mb-6 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors flex items-center gap-2"
+          className="mb-12 px-6 py-3 rounded-full transition-all duration-300 hover:scale-105"
+          style={{
+            background: 'rgba(247, 231, 206, 0.05)',
+            border: '1px solid rgba(247, 231, 206, 0.2)',
+            color: '#F7E7CE',
+            backdropFilter: 'blur(20px)',
+            letterSpacing: '0.1em'
+          }}
         >
           ← 返回
         </button>
 
-        <div className="text-center mb-12">
-          <div className="inline-block px-6 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full text-sm font-bold mb-4">
+        <div className="text-center mb-20" style={{ transform: `translateY(${scrollY * 0.1}px)` }}>
+          <div
+            className="inline-block px-8 py-3 rounded-full text-sm mb-6 animate-breath"
+            style={{
+              background: 'linear-gradient(135deg, rgba(235, 200, 98, 0.15) 0%, rgba(247, 231, 206, 0.15) 100%)',
+              border: '1px solid rgba(235, 200, 98, 0.3)',
+              color: '#EBC862',
+              letterSpacing: '0.2em'
+            }}
+          >
             Kin {report.kin}
           </div>
-          <h1 className="text-4xl font-bold mb-2">能量画像报告</h1>
-          <p className="text-gray-400">量子层面的灵魂解析</p>
+          <h1
+            className="text-5xl font-light mb-4"
+            style={{
+              color: '#F7E7CE',
+              textShadow: '0 0 40px rgba(247, 231, 206, 0.2)',
+              letterSpacing: '0.15em'
+            }}
+          >
+            能量画像
+          </h1>
+          <p
+            className="text-lg"
+            style={{
+              color: '#F7E7CE',
+              opacity: 0.5,
+              letterSpacing: '0.3em'
+            }}
+          >
+            量子层面的灵魂解析
+          </p>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 mb-8 border border-white/10">
-          <div className="flex items-center gap-3 mb-6">
-            <Sparkles className="text-yellow-400" size={24} />
-            <h2 className="text-2xl font-bold">能量画像</h2>
-          </div>
+        <div
+          className="mb-20 p-12 rounded-3xl transition-all duration-700 hover:scale-[1.01]"
+          style={{
+            background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.06) 0%, rgba(247, 231, 206, 0.02) 100%)',
+            border: '1px solid rgba(247, 231, 206, 0.15)',
+            backdropFilter: 'blur(30px)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+          }}
+        >
+          <h2
+            className="text-3xl font-light text-center mb-12"
+            style={{
+              color: '#EBC862',
+              letterSpacing: '0.2em'
+            }}
+          >
+            能量画像
+          </h2>
 
-          <div className="space-y-4 text-lg">
-            <div className="flex items-start gap-3">
-              <span className="text-purple-400 font-semibold min-w-24">模式：</span>
-              <span className="text-white">{report.portrait.mode}</span>
+          <div className="space-y-8 max-w-2xl mx-auto">
+            <div className="flex items-start gap-6 group">
+              <span
+                className="font-light min-w-32 transition-all duration-300 group-hover:text-amber-400"
+                style={{
+                  color: '#F7E7CE',
+                  opacity: 0.6,
+                  letterSpacing: '0.15em'
+                }}
+              >
+                模式
+              </span>
+              <span
+                className="font-light text-xl leading-relaxed"
+                style={{
+                  color: '#F7E7CE',
+                  letterSpacing: '0.05em'
+                }}
+              >
+                {report.portrait.mode}
+              </span>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-purple-400 font-semibold min-w-24">视角：</span>
-              <span className="text-white">{report.portrait.perspective}</span>
+            <div className="flex items-start gap-6 group">
+              <span
+                className="font-light min-w-32 transition-all duration-300 group-hover:text-amber-400"
+                style={{
+                  color: '#F7E7CE',
+                  opacity: 0.6,
+                  letterSpacing: '0.15em'
+                }}
+              >
+                视角
+              </span>
+              <span
+                className="font-light text-xl leading-relaxed"
+                style={{
+                  color: '#F7E7CE',
+                  letterSpacing: '0.05em'
+                }}
+              >
+                {report.portrait.perspective}
+              </span>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-purple-400 font-semibold min-w-24">本质：</span>
-              <span className="text-white leading-relaxed">{report.portrait.essence}</span>
+            <div className="flex items-start gap-6 group">
+              <span
+                className="font-light min-w-32 transition-all duration-300 group-hover:text-amber-400"
+                style={{
+                  color: '#F7E7CE',
+                  opacity: 0.6,
+                  letterSpacing: '0.15em'
+                }}
+              >
+                本质
+              </span>
+              <span
+                className="font-light text-xl leading-relaxed"
+                style={{
+                  color: '#F7E7CE',
+                  letterSpacing: '0.05em',
+                  lineHeight: '2'
+                }}
+              >
+                {report.portrait.essence}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 mb-8 border border-white/10 relative overflow-hidden">
+        <div
+          className="mb-20 p-12 rounded-3xl relative overflow-hidden transition-all duration-700"
+          style={{
+            background: hasQuantumResonance
+              ? 'linear-gradient(135deg, rgba(235, 200, 98, 0.08) 0%, rgba(247, 231, 206, 0.03) 100%)'
+              : 'linear-gradient(135deg, rgba(247, 231, 206, 0.04) 0%, rgba(247, 231, 206, 0.01) 100%)',
+            border: hasQuantumResonance
+              ? '1px solid rgba(235, 200, 98, 0.25)'
+              : '1px solid rgba(247, 231, 206, 0.12)',
+            backdropFilter: 'blur(30px)',
+            boxShadow: hasQuantumResonance
+              ? '0 8px 32px rgba(235, 200, 98, 0.15), 0 0 80px rgba(235, 200, 98, 0.05)'
+              : '0 8px 32px rgba(0, 0, 0, 0.3)'
+          }}
+        >
           {hasQuantumResonance && (
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute inset-0 bg-gradient-radial from-yellow-500/10 via-transparent to-transparent animate-pulse-slow"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl animate-ripple"></div>
-            </div>
+            <>
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl animate-pulse-slow"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-400/3 rounded-full blur-3xl animate-pulse-slow-delayed"></div>
+              </div>
+              <div className="absolute top-6 right-6 z-10">
+                <div
+                  className="px-4 py-2 rounded-full text-xs animate-breath"
+                  style={{
+                    background: 'rgba(235, 200, 98, 0.15)',
+                    border: '1px solid rgba(235, 200, 98, 0.3)',
+                    color: '#EBC862',
+                    letterSpacing: '0.15em'
+                  }}
+                >
+                  家族共振激活
+                </div>
+              </div>
+            </>
           )}
 
-          <div className="flex items-center gap-3 mb-8 relative z-10">
-            <Radio className="text-cyan-400" size={24} />
-            <h2 className="text-2xl font-bold">能量雷达图</h2>
-            {hasQuantumResonance && (
-              <span className="ml-auto text-xs px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full border border-yellow-500/30">
-                检测到家族共振
-              </span>
-            )}
-          </div>
+          <h2
+            className="text-3xl font-light text-center mb-4 relative z-10"
+            style={{
+              color: '#EBC862',
+              letterSpacing: '0.2em'
+            }}
+          >
+            能量中心解析
+          </h2>
+          <p
+            className="text-center mb-12 relative z-10"
+            style={{
+              color: '#F7E7CE',
+              opacity: 0.5,
+              letterSpacing: '0.2em',
+              fontSize: '0.875rem'
+            }}
+          >
+            三维能量雷达图
+          </p>
 
-          <div className="relative w-full aspect-square max-w-md mx-auto mb-8">
+          <div className="relative w-full aspect-square max-w-lg mx-auto mb-16 relative z-10">
             <svg viewBox="0 0 400 400" className="w-full h-full">
               <defs>
                 <radialGradient id="glowGradient">
-                  <stop offset="0%" stopColor="rgba(147, 51, 234, 0.4)" />
-                  <stop offset="100%" stopColor="rgba(147, 51, 234, 0)" />
+                  <stop offset="0%" stopColor="rgba(235, 200, 98, 0.3)" />
+                  <stop offset="50%" stopColor="rgba(247, 231, 206, 0.15)" />
+                  <stop offset="100%" stopColor="rgba(235, 200, 98, 0)" />
                 </radialGradient>
                 <filter id="glow">
-                  <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+                <filter id="softGlow">
+                  <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
                   <feMerge>
                     <feMergeNode in="coloredBlur"/>
                     <feMergeNode in="SourceGraphic"/>
@@ -92,8 +266,10 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                   cy="200"
                   r={level * 30}
                   fill="none"
-                  stroke="rgba(255, 255, 255, 0.1)"
-                  strokeWidth="1"
+                  stroke="rgba(247, 231, 206, 0.08)"
+                  strokeWidth="0.5"
+                  className="animate-pulse-slow"
+                  style={{ animationDelay: `${level * 0.2}s` }}
                 />
               ))}
 
@@ -108,19 +284,27 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                     y1="200"
                     x2={x2}
                     y2={y2}
-                    stroke="rgba(255, 255, 255, 0.1)"
-                    strokeWidth="1"
+                    stroke="rgba(247, 231, 206, 0.1)"
+                    strokeWidth="0.5"
                   />
                 );
               })}
 
+              <circle
+                cx="200"
+                cy="200"
+                r="3"
+                fill="rgba(235, 200, 98, 0.6)"
+                filter="url(#softGlow)"
+              />
+
               <path
                 d={generateRadarPath(report.portrait.centers)}
                 fill="url(#glowGradient)"
-                stroke="#a78bfa"
-                strokeWidth="3"
+                stroke="rgba(235, 200, 98, 0.6)"
+                strokeWidth="2"
                 filter="url(#glow)"
-                className="transition-all duration-300"
+                className="transition-all duration-700"
               />
 
               {report.portrait.centers.map((center, i) => {
@@ -135,26 +319,38 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                     <circle
                       cx={x}
                       cy={y}
-                      r={isHovered ? "8" : "6"}
-                      fill="#8b5cf6"
-                      stroke="#fff"
-                      strokeWidth="2"
-                      filter="url(#glow)"
-                      className="cursor-pointer transition-all"
+                      r={isHovered ? "10" : "6"}
+                      fill="rgba(235, 200, 98, 0.8)"
+                      stroke="rgba(247, 231, 206, 0.9)"
+                      strokeWidth={isHovered ? "3" : "2"}
+                      filter="url(#softGlow)"
+                      className="cursor-pointer transition-all duration-300"
                       onMouseEnter={() => setHoveredCenter(i)}
                       onMouseLeave={() => setHoveredCenter(null)}
                     />
                     {isHovered && (
-                      <text
-                        x={x}
-                        y={y - 15}
-                        textAnchor="middle"
-                        fill="#fff"
-                        fontSize="14"
-                        fontWeight="bold"
-                      >
-                        {center.percentage}%
-                      </text>
+                      <>
+                        <circle
+                          cx={x}
+                          cy={y}
+                          r="20"
+                          fill="none"
+                          stroke="rgba(235, 200, 98, 0.3)"
+                          strokeWidth="1"
+                          className="animate-pulse-slow"
+                        />
+                        <text
+                          x={x}
+                          y={y - 25}
+                          textAnchor="middle"
+                          fill="#EBC862"
+                          fontSize="16"
+                          fontWeight="300"
+                          style={{ letterSpacing: '0.1em' }}
+                        >
+                          {center.percentage}%
+                        </text>
+                      </>
                     )}
                   </g>
                 );
@@ -162,7 +358,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
 
               {report.portrait.centers.map((center, i) => {
                 const angle = (i * 120 - 90) * (Math.PI / 180);
-                const labelRadius = 180;
+                const labelRadius = 185;
                 const x = 200 + Math.cos(angle) * labelRadius;
                 const y = 200 + Math.sin(angle) * labelRadius;
 
@@ -172,9 +368,11 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                     x={x}
                     y={y}
                     textAnchor="middle"
-                    fill="#fff"
-                    fontSize="16"
-                    fontWeight="600"
+                    fill="#F7E7CE"
+                    fontSize="14"
+                    fontWeight="300"
+                    style={{ letterSpacing: '0.1em' }}
+                    opacity="0.9"
                   >
                     {center.icon} {center.name}
                   </text>
@@ -183,94 +381,325 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
             </svg>
           </div>
 
-          <div className="grid gap-4 relative z-10">
+          <div className="grid gap-6 relative z-10 max-w-3xl mx-auto">
             {report.portrait.centers.map((center, i) => (
               <div
                 key={i}
-                className="bg-white/5 rounded-2xl p-4 border border-white/10 hover:border-purple-500/30 transition-colors"
+                className="rounded-3xl p-8 transition-all duration-500 hover:scale-[1.02] cursor-pointer"
+                style={{
+                  background: hoveredCenter === i
+                    ? 'linear-gradient(135deg, rgba(235, 200, 98, 0.1) 0%, rgba(247, 231, 206, 0.05) 100%)'
+                    : 'rgba(247, 231, 206, 0.03)',
+                  border: hoveredCenter === i
+                    ? '1px solid rgba(235, 200, 98, 0.3)'
+                    : '1px solid rgba(247, 231, 206, 0.1)',
+                  backdropFilter: 'blur(20px)'
+                }}
                 onMouseEnter={() => setHoveredCenter(i)}
                 onMouseLeave={() => setHoveredCenter(null)}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{center.icon}</span>
-                    <span className="font-bold text-lg">{center.name}</span>
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl opacity-80">{center.icon}</span>
+                    <div>
+                      <div
+                        className="text-2xl font-light mb-1"
+                        style={{
+                          color: '#F7E7CE',
+                          letterSpacing: '0.1em'
+                        }}
+                      >
+                        {center.name}
+                      </div>
+                      <div
+                        className="text-xs"
+                        style={{
+                          color: '#EBC862',
+                          opacity: 0.7,
+                          letterSpacing: '0.15em'
+                        }}
+                      >
+                        {center.mode}
+                      </div>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-purple-400">{center.percentage}%</div>
-                    <div className="text-xs text-gray-400">{center.mode}</div>
+                    <div
+                      className="text-4xl font-light mb-1"
+                      style={{
+                        color: '#EBC862',
+                        letterSpacing: '0.05em'
+                      }}
+                    >
+                      {center.percentage}%
+                    </div>
                   </div>
                 </div>
-                <p className="text-sm text-gray-300 leading-relaxed">{center.description}</p>
+                <p
+                  className="leading-relaxed"
+                  style={{
+                    color: '#F7E7CE',
+                    opacity: 0.8,
+                    fontSize: '0.95rem',
+                    lineHeight: '1.9',
+                    letterSpacing: '0.03em'
+                  }}
+                >
+                  {center.description}
+                </p>
               </div>
             ))}
           </div>
         </div>
 
         {hasQuantumResonance && (
-          <div className="bg-gradient-to-br from-yellow-900/20 to-amber-900/20 backdrop-blur-lg rounded-3xl p-8 mb-8 border border-yellow-500/30">
-            <div className="flex items-center gap-3 mb-6">
-              <Users className="text-yellow-400" size={24} />
-              <h2 className="text-2xl font-bold">量子信息共振</h2>
+          <div
+            className="mb-20 p-12 rounded-3xl relative overflow-hidden transition-all duration-700"
+            style={{
+              background: 'linear-gradient(135deg, rgba(235, 200, 98, 0.1) 0%, rgba(247, 231, 206, 0.04) 100%)',
+              border: '1px solid rgba(235, 200, 98, 0.25)',
+              backdropFilter: 'blur(30px)',
+              boxShadow: '0 8px 32px rgba(235, 200, 98, 0.2)'
+            }}
+          >
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div className="absolute top-0 left-1/4 w-64 h-64 bg-amber-400/5 rounded-full blur-3xl animate-pulse-slow"></div>
+              <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-yellow-400/5 rounded-full blur-3xl animate-pulse-slow-delayed"></div>
             </div>
 
-            <div className="space-y-4">
+            <h2
+              className="text-3xl font-light text-center mb-4 relative z-10"
+              style={{
+                color: '#EBC862',
+                letterSpacing: '0.2em'
+              }}
+            >
+              量子信息共振
+            </h2>
+            <p
+              className="text-center mb-12 relative z-10"
+              style={{
+                color: '#F7E7CE',
+                opacity: 0.5,
+                letterSpacing: '0.2em',
+                fontSize: '0.875rem'
+              }}
+            >
+              家族能量场的量子纠缠
+            </p>
+
+            <div className="space-y-6 max-w-3xl mx-auto relative z-10">
               {report.quantumResonances.map((resonance, i) => (
                 <div
                   key={i}
-                  className="bg-white/5 rounded-2xl p-6 border border-yellow-500/20 hover:border-yellow-500/40 transition-colors"
+                  className="rounded-3xl p-8 transition-all duration-500 hover:scale-[1.01]"
+                  style={{
+                    background: 'rgba(247, 231, 206, 0.04)',
+                    border: '1px solid rgba(235, 200, 98, 0.2)',
+                    backdropFilter: 'blur(20px)'
+                  }}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-light"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(235, 200, 98, 0.3) 0%, rgba(247, 231, 206, 0.2) 100%)',
+                          border: '1px solid rgba(235, 200, 98, 0.4)',
+                          color: '#EBC862',
+                          letterSpacing: '0.1em'
+                        }}
+                      >
                         {resonance.relationName.slice(0, 1)}
                       </div>
                       <div>
-                        <div className="font-bold">{resonance.relationName}</div>
-                        <div className="text-sm text-gray-400">Kin {resonance.kin}</div>
+                        <div
+                          className="text-xl font-light mb-1"
+                          style={{
+                            color: '#F7E7CE',
+                            letterSpacing: '0.1em'
+                          }}
+                        >
+                          {resonance.relationName}
+                        </div>
+                        <div
+                          className="text-sm"
+                          style={{
+                            color: '#F7E7CE',
+                            opacity: 0.5,
+                            letterSpacing: '0.15em'
+                          }}
+                        >
+                          Kin {resonance.kin}
+                        </div>
                       </div>
                     </div>
-                    <div className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs border border-yellow-500/30">
+                    <div
+                      className="px-4 py-2 rounded-full text-xs"
+                      style={{
+                        background: 'rgba(235, 200, 98, 0.15)',
+                        border: '1px solid rgba(235, 200, 98, 0.3)',
+                        color: '#EBC862',
+                        letterSpacing: '0.15em'
+                      }}
+                    >
                       {resonance.typeLabel}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed">{resonance.description}</p>
+                  <p
+                    className="leading-relaxed"
+                    style={{
+                      color: '#F7E7CE',
+                      opacity: 0.8,
+                      fontSize: '0.95rem',
+                      lineHeight: '1.9',
+                      letterSpacing: '0.03em'
+                    }}
+                  >
+                    {resonance.description}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        <div className="bg-gradient-to-br from-cyan-900/20 to-blue-900/20 backdrop-blur-lg rounded-3xl p-8 mb-8 border border-cyan-500/30">
-          <div className="flex items-center gap-3 mb-6">
-            <Zap className="text-cyan-400" size={24} />
-            <h2 className="text-2xl font-bold">2026 白风年显化建议</h2>
-          </div>
+        <div
+          className="mb-20 p-12 rounded-3xl transition-all duration-700"
+          style={{
+            background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.06) 0%, rgba(247, 231, 206, 0.02) 100%)',
+            border: '1px solid rgba(247, 231, 206, 0.15)',
+            backdropFilter: 'blur(30px)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+          }}
+        >
+          <h2
+            className="text-3xl font-light text-center mb-4"
+            style={{
+              color: '#EBC862',
+              letterSpacing: '0.2em'
+            }}
+          >
+            2026 白风年显化建议
+          </h2>
+          <p
+            className="text-center mb-12"
+            style={{
+              color: '#F7E7CE',
+              opacity: 0.5,
+              letterSpacing: '0.2em',
+              fontSize: '0.875rem'
+            }}
+          >
+            宇宙周期的实修指引
+          </p>
 
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <span className="text-cyan-400 font-semibold min-w-32">年度主题：</span>
-              <span className="text-white">{report.yearGuidance.theme} - {report.yearGuidance.mainEnergy}</span>
+          <div className="space-y-8 max-w-2xl mx-auto">
+            <div className="flex items-start gap-6">
+              <span
+                className="font-light min-w-32"
+                style={{
+                  color: '#F7E7CE',
+                  opacity: 0.6,
+                  letterSpacing: '0.15em'
+                }}
+              >
+                年度主题
+              </span>
+              <span
+                className="font-light text-xl leading-relaxed"
+                style={{
+                  color: '#F7E7CE',
+                  letterSpacing: '0.05em'
+                }}
+              >
+                {report.yearGuidance.theme} - {report.yearGuidance.mainEnergy}
+              </span>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-cyan-400 font-semibold min-w-32">实修建议：</span>
-              <span className="text-white leading-relaxed">{report.yearGuidance.advice}</span>
+            <div className="flex items-start gap-6">
+              <span
+                className="font-light min-w-32"
+                style={{
+                  color: '#F7E7CE',
+                  opacity: 0.6,
+                  letterSpacing: '0.15em'
+                }}
+              >
+                实修建议
+              </span>
+              <span
+                className="font-light text-lg leading-relaxed"
+                style={{
+                  color: '#F7E7CE',
+                  letterSpacing: '0.03em',
+                  lineHeight: '2'
+                }}
+              >
+                {report.yearGuidance.advice}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-red-900/20 to-orange-900/20 backdrop-blur-lg rounded-3xl p-8 border border-red-500/30">
-          <div className="flex items-center gap-3 mb-6">
-            <Eye className="text-red-400" size={24} />
-            <h2 className="text-2xl font-bold">核心卡点与突破路径</h2>
-          </div>
+        <div
+          className="mb-12 p-12 rounded-3xl transition-all duration-700"
+          style={{
+            background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.05) 0%, rgba(235, 200, 98, 0.02) 100%)',
+            border: '1px solid rgba(247, 231, 206, 0.12)',
+            backdropFilter: 'blur(30px)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+          }}
+        >
+          <h2
+            className="text-3xl font-light text-center mb-12"
+            style={{
+              color: '#EBC862',
+              letterSpacing: '0.2em'
+            }}
+          >
+            核心卡点与突破路径
+          </h2>
 
-          <div className="bg-white/5 rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Heart className="text-red-400" size={20} />
-              <span className="font-bold text-lg">当前卡点：{report.weakestCenter}</span>
+          <div
+            className="rounded-3xl p-8 max-w-2xl mx-auto"
+            style={{
+              background: 'rgba(247, 231, 206, 0.03)',
+              border: '1px solid rgba(247, 231, 206, 0.15)'
+            }}
+          >
+            <div className="mb-6">
+              <span
+                className="text-lg font-light"
+                style={{
+                  color: '#F7E7CE',
+                  opacity: 0.6,
+                  letterSpacing: '0.15em'
+                }}
+              >
+                当前卡点
+              </span>
+              <div
+                className="text-2xl font-light mt-2"
+                style={{
+                  color: '#EBC862',
+                  letterSpacing: '0.1em'
+                }}
+              >
+                {report.weakestCenter}
+              </div>
             </div>
-            <p className="text-gray-300 leading-relaxed">{report.challengeAdvice}</p>
+            <p
+              className="leading-relaxed"
+              style={{
+                color: '#F7E7CE',
+                opacity: 0.8,
+                fontSize: '0.95rem',
+                lineHeight: '2',
+                letterSpacing: '0.03em'
+              }}
+            >
+              {report.challengeAdvice}
+            </p>
           </div>
         </div>
       </div>
