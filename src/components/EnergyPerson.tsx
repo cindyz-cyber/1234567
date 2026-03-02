@@ -305,7 +305,7 @@ export default function EnergyPerson() {
                   </div>
                 </div>
 
-                <EnergyRadarChart profile={finalProfile} synergies={synergies} />
+                <EnergyRadarChart profile={finalProfile} synergies={synergies} kinData={myData.kinData} />
 
                 <div
                   className="mt-8 p-8 rounded-2xl"
