@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown, Check } from 'lucide-react';
 import type { KinData } from '../utils/mayaCalendar';
 
 interface ImmersiveDatePickerProps {
+  icon?: React.ReactNode;
   label: string;
   value: Date | null;
   kinData: KinData | null;
@@ -10,18 +12,18 @@ interface ImmersiveDatePickerProps {
 }
 
 export default function ImmersiveDatePicker({
+  icon,
   label,
   value,
   kinData,
   isMidnightBirth = false,
   onChange
 }: ImmersiveDatePickerProps) {
-  const [showPicker, setShowPicker] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [selectedYear, setSelectedYear] = useState(value?.getFullYear() || new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(value?.getMonth() || 0);
   const [selectedDay, setSelectedDay] = useState(value?.getDate() || 1);
   const [midnightToggle, setMidnightToggle] = useState(isMidnightBirth);
-  const [rippleActive, setRippleActive] = useState(false);
 
   const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
   const months = Array.from({ length: 12 }, (_, i) => i);
@@ -39,91 +41,106 @@ export default function ImmersiveDatePicker({
   const handleConfirm = () => {
     const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
     onChange(dateStr, midnightToggle);
-    setRippleActive(true);
     setTimeout(() => {
-      setRippleActive(false);
-      setShowPicker(false);
-    }, 600);
+      setIsExpanded(false);
+    }, 300);
   };
 
   const scrollToCenter = (ref: React.RefObject<HTMLDivElement>, index: number) => {
     if (ref.current) {
-      const itemHeight = 48;
+      const itemHeight = 40;
       ref.current.scrollTop = index * itemHeight - itemHeight * 2;
     }
   };
 
   useEffect(() => {
-    if (showPicker) {
+    if (isExpanded) {
       setTimeout(() => {
         scrollToCenter(yearRef, years.indexOf(selectedYear));
         scrollToCenter(monthRef, selectedMonth);
         scrollToCenter(dayRef, selectedDay - 1);
       }, 100);
     }
-  }, [showPicker]);
+  }, [isExpanded]);
 
   return (
-    <>
+    <div
+      className="rounded-2xl transition-all duration-500"
+      style={{
+        background: value
+          ? 'linear-gradient(135deg, rgba(247, 231, 206, 0.08) 0%, rgba(247, 231, 206, 0.03) 100%)'
+          : 'rgba(255, 255, 255, 0.02)',
+        border: `1px solid ${value ? 'rgba(247, 231, 206, 0.2)' : 'rgba(247, 231, 206, 0.08)'}`,
+        backdropFilter: 'blur(20px)'
+      }}
+    >
       <div
-        className="p-8 rounded-2xl transition-all duration-500 cursor-pointer group"
-        style={{
-          background: value
-            ? 'linear-gradient(135deg, rgba(247, 231, 206, 0.1) 0%, rgba(247, 231, 206, 0.05) 100%)'
-            : 'rgba(255, 255, 255, 0.03)',
-          border: `1px solid ${value ? 'rgba(247, 231, 206, 0.25)' : 'rgba(247, 231, 206, 0.1)'}`,
-          backdropFilter: 'blur(30px)',
-          boxShadow: value
-            ? '0 8px 32px rgba(247, 231, 206, 0.1)'
-            : '0 4px 20px rgba(0, 0, 0, 0.2)'
-        }}
-        onClick={() => setShowPicker(true)}
+        className="p-6 cursor-pointer transition-all duration-300"
+        onClick={() => setIsExpanded(!isExpanded)}
       >
-        <h2
-          className="text-2xl mb-6 text-center"
-          style={{
-            color: '#F7E7CE',
-            letterSpacing: '0.15em',
-            fontFamily: '"Playfair Display", serif',
-            fontWeight: 300
-          }}
-        >
-          {label}
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            {icon && (
+              <div style={{ color: '#EBC862', opacity: 0.6 }}>
+                {icon}
+              </div>
+            )}
+            <h3
+              className="text-lg"
+              style={{
+                color: '#F7E7CE',
+                letterSpacing: '0.1em',
+                fontWeight: 300,
+                opacity: 0.7
+              }}
+            >
+              {label}
+            </h3>
+          </div>
+          <div
+            className="transition-transform duration-300"
+            style={{
+              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              color: '#F7E7CE',
+              opacity: 0.4
+            }}
+          >
+            <ChevronDown size={20} />
+          </div>
+        </div>
 
         {!value ? (
           <div
-            className="text-center py-12 transition-opacity duration-300 group-hover:opacity-80"
-            style={{ color: '#F7E7CE', opacity: 0.4, letterSpacing: '0.1em' }}
+            className="text-center py-3"
+            style={{ color: '#F7E7CE', opacity: 0.3, fontSize: '0.9rem', letterSpacing: '0.05em' }}
           >
-            轻触以选择时刻
+            轻触展开选择时刻
           </div>
         ) : (
           <div className="text-center">
             <div
-              className="text-4xl mb-4"
+              className="text-2xl mb-2"
               style={{
                 color: '#EBC862',
                 letterSpacing: '0.05em',
-                fontFamily: '"Playfair Display", serif',
-                textShadow: '0 0 20px rgba(235, 200, 98, 0.4)'
+                fontWeight: 300
               }}
             >
               {value.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
             </div>
             {kinData && (
               <div
-                className="text-lg"
+                className="text-sm"
                 style={{
                   color: '#F7E7CE',
-                  opacity: 0.7,
-                  letterSpacing: '0.1em'
+                  opacity: 0.6,
+                  letterSpacing: '0.05em'
                 }}
               >
-                Kin {kinData.kin} · {kinData.sealName} · {kinData.toneName}
+                Kin {kinData.kin} · {kinData.toneName}的{kinData.sealName}
                 {kinData.isMidnightBirth && (
-                  <span style={{ color: '#8AB4F8', marginLeft: '12px' }}>
-                    子时双印记
+                  <span style={{ color: '#8AB4F8', marginLeft: '8px' }}>
+                    ⦿ 子时双印记
                   </span>
                 )}
               </div>
@@ -132,165 +149,135 @@ export default function ImmersiveDatePicker({
         )}
       </div>
 
-      {showPicker && (
+      <div
+        className="overflow-hidden transition-all duration-500"
+        style={{
+          maxHeight: isExpanded ? '600px' : '0',
+          opacity: isExpanded ? 1 : 0
+        }}
+      >
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="px-6 pb-6"
           style={{
-            background: 'rgba(0, 0, 0, 0.92)',
-            backdropFilter: 'blur(40px)'
+            borderTop: '1px solid rgba(247, 231, 206, 0.08)'
           }}
-          onClick={() => setShowPicker(false)}
         >
-          <div
-            className="w-full max-w-md mx-6"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'rgba(8, 8, 8, 0.7)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '32px',
-              padding: '40px 32px 32px',
-              boxShadow: '0 40px 120px rgba(0, 0, 0, 0.8)'
-            }}
-          >
-            <h3
-              className="text-center mb-16"
-              style={{
-                color: 'rgba(255, 255, 255, 0.5)',
-                fontSize: '11px',
-                letterSpacing: '0.25em',
-                fontWeight: 400,
-                textTransform: 'uppercase'
-              }}
-            >
-              {label}
-            </h3>
-
-            <div className="flex gap-2 mb-12" style={{ height: '240px' }}>
+          <div className="pt-6">
+            <div className="flex gap-2 mb-6" style={{ height: '200px' }}>
               <ScrollWheelWithRef
                 ref={yearRef}
                 items={years}
                 selectedValue={selectedYear}
                 onChange={setSelectedYear}
                 formatter={(y) => `${y}`}
+                label="年"
               />
               <ScrollWheelWithRef
                 ref={monthRef}
                 items={months}
                 selectedValue={selectedMonth}
                 onChange={setSelectedMonth}
-                formatter={(m) => `${m + 1 < 10 ? '0' : ''}${m + 1}`}
+                formatter={(m) => monthNames[m]}
+                label="月"
               />
               <ScrollWheelWithRef
                 ref={dayRef}
                 items={days}
                 selectedValue={selectedDay}
                 onChange={setSelectedDay}
-                formatter={(d) => `${d < 10 ? '0' : ''}${d}`}
+                formatter={(d) => `${d}日`}
+                label="日"
               />
             </div>
 
             <div
-              className="mb-8 cursor-pointer transition-all duration-700"
+              className="mb-6 cursor-pointer transition-all duration-300 p-4 rounded-xl"
               style={{
-                background: 'transparent',
-                borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                paddingTop: '24px'
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(247, 231, 206, 0.08)'
               }}
               onClick={() => setMidnightToggle(!midnightToggle)}
             >
               <div className="flex items-center justify-between">
-                <div
-                  style={{
-                    color: 'rgba(255, 255, 255, 0.4)',
-                    fontSize: '12px',
-                    letterSpacing: '0.05em',
-                    fontWeight: 300
-                  }}
-                >
-                  子时降临
-                </div>
-                <div
-                  className="transition-all duration-700"
-                  style={{
-                    width: '44px',
-                    height: '24px',
-                    borderRadius: '12px',
-                    background: midnightToggle
-                      ? 'rgba(255, 255, 255, 0.15)'
-                      : 'rgba(255, 255, 255, 0.06)',
-                    position: 'relative',
-                    border: '1px solid rgba(255, 255, 255, 0.08)'
-                  }}
-                >
+                <div className="flex items-center gap-3">
                   <div
-                    className="transition-all duration-700"
+                    className="transition-all duration-300"
                     style={{
-                      width: '18px',
-                      height: '18px',
-                      borderRadius: '9px',
-                      background: midnightToggle ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.3)',
-                      position: 'absolute',
-                      top: '2px',
-                      left: midnightToggle ? '22px' : '2px'
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '4px',
+                      background: midnightToggle
+                        ? 'rgba(235, 200, 98, 0.2)'
+                        : 'rgba(255, 255, 255, 0.05)',
+                      border: `1px solid ${midnightToggle ? '#EBC862' : 'rgba(247, 231, 206, 0.2)'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
-                  />
+                  >
+                    {midnightToggle && (
+                      <Check size={14} style={{ color: '#EBC862' }} />
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      color: '#F7E7CE',
+                      fontSize: '0.9rem',
+                      letterSpacing: '0.05em',
+                      fontWeight: 300,
+                      opacity: 0.7
+                    }}
+                  >
+                    子时降临（23:00-01:00出生）
+                  </div>
                 </div>
               </div>
+              {midnightToggle && (
+                <div
+                  className="mt-3 pt-3"
+                  style={{
+                    borderTop: '1px solid rgba(247, 231, 206, 0.08)',
+                    color: '#F7E7CE',
+                    fontSize: '0.75rem',
+                    opacity: 0.5,
+                    lineHeight: '1.6',
+                    letterSpacing: '0.03em'
+                  }}
+                >
+                  子时跨越两日，拥有双重印记能量
+                </div>
+              )}
             </div>
 
             <button
               onClick={handleConfirm}
               className="w-full relative overflow-hidden transition-all duration-300"
               style={{
-                height: '52px',
-                borderRadius: '26px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                color: 'rgba(255, 255, 255, 0.9)',
-                fontSize: '11px',
-                fontWeight: 400,
-                letterSpacing: '0.25em',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                cursor: 'pointer',
-                textTransform: 'uppercase'
+                height: '48px',
+                borderRadius: '12px',
+                background: 'rgba(235, 200, 98, 0.1)',
+                color: '#EBC862',
+                fontSize: '0.9rem',
+                fontWeight: 300,
+                letterSpacing: '0.15em',
+                border: '1px solid rgba(235, 200, 98, 0.2)',
+                cursor: 'pointer'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                e.currentTarget.style.background = 'rgba(235, 200, 98, 0.15)';
+                e.currentTarget.style.borderColor = 'rgba(235, 200, 98, 0.3)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.background = 'rgba(235, 200, 98, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(235, 200, 98, 0.2)';
               }}
             >
-              {rippleActive && (
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: 'radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%)',
-                    animation: 'ripple 0.6s ease-out',
-                    borderRadius: '26px'
-                  }}
-                />
-              )}
-              <span className="relative z-10">确认</span>
+              锁定时刻
             </button>
           </div>
         </div>
-      )}
-
-      <style>{`
-        @keyframes ripple {
-          0% {
-            transform: scale(0);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(4);
-            opacity: 0;
-          }
-        }
-      `}</style>
-    </>
+      </div>
+    </div>
   );
 }
 
@@ -299,56 +286,78 @@ interface ScrollWheelProps {
   selectedValue: number;
   onChange: (value: number) => void;
   formatter: (value: number) => string;
+  label: string;
 }
 
-const ScrollWheel = ({ items, selectedValue, onChange, formatter }: ScrollWheelProps, ref: React.Ref<HTMLDivElement>) => {
+const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: ScrollWheelProps, ref: React.Ref<HTMLDivElement>) => {
   return (
-    <div
-      ref={ref}
-      className="flex-1 overflow-y-auto relative"
-      style={{
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-        maskImage: 'linear-gradient(to bottom, transparent, black 25%, black 75%, transparent)',
-        WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 25%, black 75%, transparent)'
-      }}
-      onScroll={(e) => {
-        const container = e.currentTarget;
-        const scrollTop = container.scrollTop;
-        const itemHeight = 48;
-        const index = Math.round(scrollTop / itemHeight);
-        if (items[index] !== undefined) {
-          onChange(items[index]);
-        }
-      }}
-    >
-      <div style={{ height: '96px' }} />
-      {items.map((item, index) => {
-        const isSelected = item === selectedValue;
-        const distance = Math.abs(items.indexOf(selectedValue) - index);
-        const opacity = Math.max(0.3, 1 - distance * 0.25);
+    <div className="flex-1 flex flex-col">
+      <div
+        className="text-center mb-2"
+        style={{
+          color: '#F7E7CE',
+          opacity: 0.4,
+          fontSize: '0.7rem',
+          letterSpacing: '0.1em'
+        }}
+      >
+        {label}
+      </div>
+      <div
+        ref={ref}
+        className="overflow-y-auto relative flex-1 rounded-lg"
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          background: 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid rgba(247, 231, 206, 0.08)',
+          maskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)'
+        }}
+        onScroll={(e) => {
+          const container = e.currentTarget;
+          const scrollTop = container.scrollTop;
+          const itemHeight = 40;
+          const index = Math.round(scrollTop / itemHeight);
+          if (items[index] !== undefined) {
+            onChange(items[index]);
+          }
+        }}
+      >
+        <div style={{ height: '80px' }} />
+        {items.map((item, index) => {
+          const isSelected = item === selectedValue;
+          const distance = Math.abs(items.indexOf(selectedValue) - index);
+          const opacity = Math.max(0.2, 1 - distance * 0.3);
 
-        return (
-          <div
-            key={item}
-            onClick={() => onChange(item)}
-            className="transition-all duration-500 cursor-pointer flex items-center justify-center"
-            style={{
-              height: '48px',
-              color: isSelected ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.5)',
-              fontSize: isSelected ? '32px' : '22px',
-              fontWeight: isSelected ? 300 : 200,
-              letterSpacing: '0.02em',
-              opacity,
-              transform: `scale(${isSelected ? 1 : 0.9})`,
-              fontVariantNumeric: 'tabular-nums'
-            }}
-          >
-            {formatter(item)}
-          </div>
-        );
-      })}
-      <div style={{ height: '96px' }} />
+          return (
+            <div
+              key={item}
+              onClick={() => {
+                onChange(item);
+                if (ref && 'current' in ref && ref.current) {
+                  const itemHeight = 40;
+                  ref.current.scrollTop = index * itemHeight - itemHeight * 2;
+                }
+              }}
+              className="transition-all duration-300 cursor-pointer flex items-center justify-center"
+              style={{
+                height: '40px',
+                color: isSelected ? '#EBC862' : '#F7E7CE',
+                fontSize: isSelected ? '1.3rem' : '0.95rem',
+                fontWeight: isSelected ? 300 : 200,
+                letterSpacing: '0.05em',
+                opacity,
+                transform: `scale(${isSelected ? 1 : 0.85})`,
+                fontVariantNumeric: 'tabular-nums'
+              }}
+            >
+              {formatter(item)}
+            </div>
+          );
+        })}
+        <div style={{ height: '80px' }} />
+      </div>
     </div>
   );
 };
