@@ -9,7 +9,7 @@ export interface KinData {
   hiddenPower: number;
   hiddenPowerName: string;
   toneType: string;
-  isMidnightBirth?: boolean;
+  midnightType?: 'early' | 'late' | null;
   secondaryKin?: number;
 }
 
@@ -194,7 +194,7 @@ const KIN_PORTRAITS: Record<number, { mode: string; vision: string; essence: str
   }
 };
 
-export function calculateKin(birthDate: Date, isMidnightBirth: boolean = false): KinData {
+export function calculateKin(birthDate: Date, midnightType: 'early' | 'late' | null = null): KinData {
   // 找到最近的校准点来计算偏移
   let closestPoint = MAIN_CALIBRATION;
   let minDistance = Math.abs(birthDate.getTime() - MAIN_CALIBRATION.date.getTime());
@@ -234,17 +234,24 @@ export function calculateKin(birthDate: Date, isMidnightBirth: boolean = false):
     hiddenPower,
     hiddenPowerName,
     toneType,
-    isMidnightBirth
+    midnightType
   };
 
-  if (isMidnightBirth) {
-    // 子时出生：同时拥有当天和次日的印记（双印记能量叠加）
-    const nextDayDate = new Date(birthDate);
-    nextDayDate.setDate(nextDayDate.getDate() + 1);
-    const nextDiffDays = Math.floor((nextDayDate.getTime() - closestPoint.date.getTime()) / (1000 * 60 * 60 * 24));
-    let nextKin = closestPoint.kin + nextDiffDays;
-    nextKin = ((nextKin - 1) % 260 + 260) % 260 + 1;
-    result.secondaryKin = nextKin;
+  if (midnightType) {
+    let secondaryDate = new Date(birthDate);
+
+    if (midnightType === 'early') {
+      // 前子时（23:00-00:00）：当天 + 次日（当天+1）
+      secondaryDate.setDate(secondaryDate.getDate() + 1);
+    } else {
+      // 后子时（00:00-01:00）：当天 + 前日（当天-1）
+      secondaryDate.setDate(secondaryDate.getDate() - 1);
+    }
+
+    const secondaryDiffDays = Math.floor((secondaryDate.getTime() - closestPoint.date.getTime()) / (1000 * 60 * 60 * 24));
+    let secondaryKin = closestPoint.kin + secondaryDiffDays;
+    secondaryKin = ((secondaryKin - 1) % 260 + 260) % 260 + 1;
+    result.secondaryKin = secondaryKin;
   }
 
   return result;
@@ -255,7 +262,7 @@ export function calculateEnergyProfile(
   motherKin?: number,
   fatherKin?: number
 ): EnergyProfile {
-  const { kin, seal, tone, isMidnightBirth, secondaryKin, wavespellName } = kinData;
+  const { kin, seal, tone, midnightType, secondaryKin, wavespellName } = kinData;
 
   let throat = 0;
   let pineal = 0;
@@ -387,7 +394,7 @@ export function calculateEnergyProfile(
   }
 
   // 子时逻辑：双印记叠加，取松果体最高值
-  if (isMidnightBirth && secondaryKin) {
+  if (midnightType && secondaryKin) {
     const secondarySeal = ((secondaryKin - 1) % 20) + 1;
     const secondaryTone = ((secondaryKin - 1) % 13) + 1;
 
@@ -732,7 +739,7 @@ export function generateEnergyReport(
   return `
 【先天版本分析】
 
-Kin ${kinData.kin} · ${kinData.toneName}的${kinData.sealName}${kinData.isMidnightBirth ? ' · 子时双印记' : ''}
+Kin ${kinData.kin} · ${kinData.toneName}的${kinData.sealName}${kinData.midnightType ? ` · ${kinData.midnightType === 'early' ? '前子时' : '后子时'}双印记` : ''}
 
 【核心计算维度】
 

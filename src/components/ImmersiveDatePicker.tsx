@@ -7,8 +7,8 @@ interface ImmersiveDatePickerProps {
   label: string;
   value: Date | null;
   kinData: KinData | null;
-  isMidnightBirth?: boolean;
-  onChange: (date: string, isMidnightBirth: boolean) => void;
+  midnightType?: 'early' | 'late' | null;
+  onChange: (date: string, midnightType: 'early' | 'late' | null) => void;
 }
 
 export default function ImmersiveDatePicker({
@@ -16,14 +16,14 @@ export default function ImmersiveDatePicker({
   label,
   value,
   kinData,
-  isMidnightBirth = false,
+  midnightType = null,
   onChange
 }: ImmersiveDatePickerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedYear, setSelectedYear] = useState(value?.getFullYear() || new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(value?.getMonth() || 0);
   const [selectedDay, setSelectedDay] = useState(value?.getDate() || 1);
-  const [midnightToggle, setMidnightToggle] = useState(isMidnightBirth);
+  const [selectedMidnightType, setSelectedMidnightType] = useState<'early' | 'late' | null>(midnightType);
 
   const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
   const months = Array.from({ length: 12 }, (_, i) => i);
@@ -40,7 +40,7 @@ export default function ImmersiveDatePicker({
 
   const handleConfirm = () => {
     const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
-    onChange(dateStr, midnightToggle);
+    onChange(dateStr, selectedMidnightType);
     setTimeout(() => {
       setIsExpanded(false);
     }, 300);
@@ -138,9 +138,9 @@ export default function ImmersiveDatePicker({
                 }}
               >
                 Kin {kinData.kin} · {kinData.toneName}的{kinData.sealName}
-                {kinData.isMidnightBirth && (
+                {kinData.midnightType && (
                   <span style={{ color: '#8AB4F8', marginLeft: '8px' }}>
-                    ⦿ 子时双印记
+                    ⦿ {kinData.midnightType === 'early' ? '前子时' : '后子时'}
                   </span>
                 )}
               </div>
@@ -191,62 +191,138 @@ export default function ImmersiveDatePicker({
             </div>
 
             <div
-              className="mb-6 cursor-pointer transition-all duration-300 p-4 rounded-xl"
+              className="mb-6"
               style={{
                 background: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid rgba(247, 231, 206, 0.08)'
+                border: '1px solid rgba(247, 231, 206, 0.08)',
+                borderRadius: '12px',
+                padding: '16px'
               }}
-              onClick={() => setMidnightToggle(!midnightToggle)}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="transition-all duration-300"
-                    style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '4px',
-                      background: midnightToggle
-                        ? 'rgba(235, 200, 98, 0.2)'
-                        : 'rgba(255, 255, 255, 0.05)',
-                      border: `1px solid ${midnightToggle ? '#EBC862' : 'rgba(247, 231, 206, 0.2)'}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    {midnightToggle && (
-                      <Check size={14} style={{ color: '#EBC862' }} />
-                    )}
+              <div
+                style={{
+                  color: '#F7E7CE',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.05em',
+                  fontWeight: 300,
+                  opacity: 0.6,
+                  marginBottom: '12px'
+                }}
+              >
+                子时出生（可选）
+              </div>
+
+              <div className="space-y-2">
+                <div
+                  className="cursor-pointer transition-all duration-300 p-3 rounded-lg"
+                  style={{
+                    background: selectedMidnightType === 'early'
+                      ? 'rgba(235, 200, 98, 0.15)'
+                      : 'rgba(255, 255, 255, 0.03)',
+                    border: `1px solid ${selectedMidnightType === 'early' ? 'rgba(235, 200, 98, 0.3)' : 'rgba(247, 231, 206, 0.08)'}`
+                  }}
+                  onClick={() => setSelectedMidnightType(selectedMidnightType === 'early' ? null : 'early')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="transition-all duration-300"
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '4px',
+                        background: selectedMidnightType === 'early'
+                          ? 'rgba(235, 200, 98, 0.2)'
+                          : 'rgba(255, 255, 255, 0.05)',
+                        border: `1px solid ${selectedMidnightType === 'early' ? '#EBC862' : 'rgba(247, 231, 206, 0.2)'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {selectedMidnightType === 'early' && (
+                        <Check size={12} style={{ color: '#EBC862' }} />
+                      )}
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          color: '#F7E7CE',
+                          fontSize: '0.85rem',
+                          letterSpacing: '0.05em',
+                          fontWeight: 300
+                        }}
+                      >
+                        前子时（23:00-00:00）
+                      </div>
+                      <div
+                        style={{
+                          color: '#F7E7CE',
+                          fontSize: '0.7rem',
+                          opacity: 0.5,
+                          marginTop: '2px'
+                        }}
+                      >
+                        当天 + 次日Kin互相影响
+                      </div>
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      color: '#F7E7CE',
-                      fontSize: '0.9rem',
-                      letterSpacing: '0.05em',
-                      fontWeight: 300,
-                      opacity: 0.7
-                    }}
-                  >
-                    子时降临（23:00-01:00出生）
+                </div>
+
+                <div
+                  className="cursor-pointer transition-all duration-300 p-3 rounded-lg"
+                  style={{
+                    background: selectedMidnightType === 'late'
+                      ? 'rgba(235, 200, 98, 0.15)'
+                      : 'rgba(255, 255, 255, 0.03)',
+                    border: `1px solid ${selectedMidnightType === 'late' ? 'rgba(235, 200, 98, 0.3)' : 'rgba(247, 231, 206, 0.08)'}`
+                  }}
+                  onClick={() => setSelectedMidnightType(selectedMidnightType === 'late' ? null : 'late')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="transition-all duration-300"
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '4px',
+                        background: selectedMidnightType === 'late'
+                          ? 'rgba(235, 200, 98, 0.2)'
+                          : 'rgba(255, 255, 255, 0.05)',
+                        border: `1px solid ${selectedMidnightType === 'late' ? '#EBC862' : 'rgba(247, 231, 206, 0.2)'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {selectedMidnightType === 'late' && (
+                        <Check size={12} style={{ color: '#EBC862' }} />
+                      )}
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          color: '#F7E7CE',
+                          fontSize: '0.85rem',
+                          letterSpacing: '0.05em',
+                          fontWeight: 300
+                        }}
+                      >
+                        后子时（00:00-01:00）
+                      </div>
+                      <div
+                        style={{
+                          color: '#F7E7CE',
+                          fontSize: '0.7rem',
+                          opacity: 0.5,
+                          marginTop: '2px'
+                        }}
+                      >
+                        当天 + 前日Kin互相影响
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-              {midnightToggle && (
-                <div
-                  className="mt-3 pt-3"
-                  style={{
-                    borderTop: '1px solid rgba(247, 231, 206, 0.08)',
-                    color: '#F7E7CE',
-                    fontSize: '0.75rem',
-                    opacity: 0.5,
-                    lineHeight: '1.6',
-                    letterSpacing: '0.03em'
-                  }}
-                >
-                  子时跨越两日，拥有双重印记能量
-                </div>
-              )}
             </div>
 
             <button
