@@ -92,6 +92,29 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                 }}>
                   {extractToneAndSeal(report.portrait.essence).toneName}{extractToneAndSeal(report.portrait.essence).sealName}
                 </div>
+
+                {/* 子时双Kin标识 */}
+                {report.midnightType && report.secondaryKin && (
+                  <div className="mt-4 inline-block px-6 py-2 rounded-full" style={{
+                    background: 'rgba(138, 180, 248, 0.15)',
+                    border: '1px solid rgba(138, 180, 248, 0.3)',
+                    backdropFilter: 'blur(10px)'
+                  }}>
+                    <div className="text-sm" style={{
+                      color: '#8AB4F8',
+                      letterSpacing: '0.1em'
+                    }}>
+                      ⦿ {report.midnightType === 'early' ? '前子时' : '后子时'}双Kin能量携带者
+                    </div>
+                    <div className="text-xs mt-1" style={{
+                      color: '#8AB4F8',
+                      opacity: 0.8,
+                      letterSpacing: '0.05em'
+                    }}>
+                      主Kin {report.kin} ({report.midnightType === 'early' ? '40' : '60'}%) + 副Kin {report.secondaryKin} ({report.midnightType === 'early' ? '60' : '40'}%)
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 能量背景卡片 */}
@@ -218,25 +241,25 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                         background: 'rgba(235, 200, 98, 0.2)',
                         border: '1px solid rgba(235, 200, 98, 0.3)'
                       }}>
-                        {resonance.relationIcon}
+                        ⚡
                       </div>
                       <div className="flex-1">
                         <div className="text-sm font-light" style={{ color: '#F7E7CE' }}>
-                          {resonance.relation} · Kin {resonance.kin}
+                          {resonance.familyMember}
                         </div>
-                        <div className="text-xs opacity-70" style={{ color: '#EBC862' }}>{resonance.synergy.type}</div>
+                        <div className="text-xs opacity-70" style={{ color: '#EBC862' }}>{resonance.typeLabel}</div>
                       </div>
                       <div className="text-lg font-light" style={{ color: '#EBC862' }}>
-                        {Math.round(resonance.synergy.strength * 100)}%
+                        {Math.round(resonance.synergyStrength * 100)}%
                       </div>
                     </div>
                     <p className="text-sm font-light leading-relaxed opacity-90" style={{ color: '#F7E7CE' }}>
                       {resonance.description}
                     </p>
-                    {resonance.synergy.description && (
+                    {resonance.synergyDescription && (
                       <div className="mt-3 pt-3 border-t border-white/10">
                         <p className="text-xs font-light opacity-70" style={{ color: '#EBC862' }}>
-                          {resonance.synergy.description}
+                          {resonance.synergyDescription}
                         </p>
                       </div>
                     )}

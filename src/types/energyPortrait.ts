@@ -16,18 +16,13 @@ export interface EnergyPortrait {
 }
 
 export interface QuantumResonance {
-  relationName: string;
-  relation: string;
-  kin: number;
-  type: 'pusher' | 'integrator' | 'mirror' | 'anchor';
+  familyMember: string;
+  type: string;
   typeLabel: string;
   description: string;
-  relationIcon: string;
-  synergy: {
-    type: string;
-    strength: number;
-    description?: string;
-  };
+  synergyType: string;
+  synergyStrength: number;
+  synergyDescription: string;
 }
 
 export interface YearGuidance {
@@ -39,6 +34,10 @@ export interface YearGuidance {
 
 export interface KinEnergyReport {
   kin: number;
+  midnightType?: 'early' | 'late' | null;
+  secondaryKin?: number;
+  toneName?: string;
+  sealName?: string;
   portrait: EnergyPortrait;
   quantumResonances: QuantumResonance[];
   yearGuidance: YearGuidance;

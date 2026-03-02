@@ -116,6 +116,13 @@ export default function EnergyPerson() {
             .filter(p => p.kinData)
             .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
         );
+
+        // 添加子时信息
+        report.midnightType = kinData.midnightType || null;
+        report.secondaryKin = kinData.secondaryKin;
+        report.toneName = kinData.toneName;
+        report.sealName = kinData.sealName;
+
         setGeneratedReport(report);
         setShowReport(true);
       } catch (error) {
@@ -161,6 +168,13 @@ export default function EnergyPerson() {
               .filter(p => p.kinData)
               .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
           );
+
+          // 添加子时信息
+          report.midnightType = myData.kinData!.midnightType || null;
+          report.secondaryKin = myData.kinData!.secondaryKin;
+          report.toneName = myData.kinData!.toneName;
+          report.sealName = myData.kinData!.sealName;
+
           setGeneratedReport(report);
           setShowReport(true);
         } catch (error) {
@@ -183,6 +197,13 @@ export default function EnergyPerson() {
           .filter(p => p.kinData)
           .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
       );
+
+      // 添加子时信息
+      report.midnightType = myData.kinData.midnightType || null;
+      report.secondaryKin = myData.kinData.secondaryKin;
+      report.toneName = myData.kinData.toneName;
+      report.sealName = myData.kinData.sealName;
+
       setGeneratedReport(report);
       setShowReport(true);
     } catch (error) {
