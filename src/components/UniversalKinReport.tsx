@@ -92,26 +92,36 @@ export default function UniversalKinReport({ kin, familyData, onClose }: Univers
           </div>
         </div>
 
-        {/* 能量画像 */}
+        {/* 能量画像 - 横向布局 */}
         <section className="mb-12 bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-amber-500/20">
           <h2 className="text-2xl font-light text-amber-300 mb-6 flex items-center gap-2">
             <Sparkles className="w-6 h-6" />
             能量画像
           </h2>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <span className="text-amber-200/60 w-20">模式</span>
-              <span className="text-xl text-amber-100">{report.profile.mode}</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="p-4 bg-white/5 rounded-xl border border-amber-500/10">
+              <span className="text-amber-200/60 text-sm block mb-2">模式</span>
+              <span className="text-lg text-amber-100">{report.profile.mode}</span>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-amber-200/60 w-20">视角</span>
-              <span className="text-xl text-amber-100">{report.profile.perspective}</span>
+            <div className="p-4 bg-white/5 rounded-xl border border-amber-500/10">
+              <span className="text-amber-200/60 text-sm block mb-2">视角</span>
+              <span className="text-lg text-amber-100">{report.profile.perspective}</span>
             </div>
-            <div className="mt-6 p-4 bg-amber-500/10 rounded-xl border border-amber-500/20">
-              <span className="text-amber-200/80 text-sm block mb-2">本质</span>
-              <p className="text-amber-100 leading-relaxed">{report.profile.essence}</p>
+            <div className="p-4 bg-white/5 rounded-xl border border-amber-500/10">
+              <span className="text-amber-200/60 text-sm block mb-2">波符</span>
+              <span className="text-lg text-amber-100">{report.wavespellName || '计算中'}</span>
             </div>
           </div>
+          <div className="p-4 bg-amber-500/10 rounded-xl border border-amber-500/20">
+            <span className="text-amber-200/80 text-sm block mb-2">本质</span>
+            <p className="text-amber-100 leading-relaxed">{report.profile.essence}</p>
+          </div>
+          {report.wavespellInfluence && (
+            <div className="mt-4 p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
+              <span className="text-purple-200/80 text-sm block mb-2">生命底色</span>
+              <p className="text-purple-100 leading-relaxed">{report.wavespellInfluence}</p>
+            </div>
+          )}
         </section>
 
         {/* 能量中心雷达图 */}
@@ -257,32 +267,33 @@ export default function UniversalKinReport({ kin, familyData, onClose }: Univers
           </section>
         )}
 
-        {/* 2026 白风年显化建议 */}
+        {/* 2026 白风年显化建议 - 横向布局 */}
         <section className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-sm rounded-2xl p-8 border-2 border-blue-400/30">
           <h2 className="text-2xl font-light text-blue-300 mb-6 flex items-center gap-2">
             <Calendar className="w-6 h-6" />
             2026 白风年显化建议
           </h2>
 
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <span className="text-blue-200/60 text-sm mt-1 whitespace-nowrap">核心卡点</span>
-              <span className="text-blue-100">{report.year2026Advice.coreWeakness}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
+              <span className="text-blue-200/60 text-sm block mb-2">核心卡点</span>
+              <span className="text-blue-100 text-lg">{report.year2026Advice.coreWeakness}</span>
             </div>
 
             <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
-              <p className="text-blue-200/80 leading-relaxed">{report.year2026Advice.whiteWindEnergy}</p>
+              <span className="text-blue-200/60 text-sm block mb-2">白风年能量</span>
+              <p className="text-blue-100 leading-relaxed text-sm">{report.year2026Advice.whiteWindEnergy}</p>
             </div>
+          </div>
 
-            <div className="p-6 bg-gradient-to-r from-amber-500/20 to-blue-500/20 rounded-xl border-2 border-amber-400/40">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-5 h-5 text-amber-300" />
-                <span className="text-amber-300 font-light">实操建议</span>
-              </div>
-              <p className="text-amber-100 leading-relaxed text-lg">
-                {report.year2026Advice.practicalAdvice}
-              </p>
+          <div className="p-6 bg-gradient-to-r from-amber-500/20 to-blue-500/20 rounded-xl border-2 border-amber-400/40">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-5 h-5 text-amber-300" />
+              <span className="text-amber-300 font-light">实操建议</span>
             </div>
+            <p className="text-amber-100 leading-relaxed">
+              {report.year2026Advice.practicalAdvice}
+            </p>
           </div>
         </section>
 

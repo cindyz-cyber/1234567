@@ -40,6 +40,8 @@ export interface KinEnergyReport {
   energyCenters: EnergyCenterScore[];
   quantumResonances?: QuantumResonance[]; // 可选，仅在有家人数据时显示
   year2026Advice: Year2026Advice;
+  wavespellName?: string; // 波符名称
+  wavespellInfluence?: string; // 生命底色描述
   generatedAt: Date;
 }
 

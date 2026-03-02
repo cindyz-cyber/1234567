@@ -410,6 +410,53 @@ export function generate2026Advice(
 }
 
 /**
+ * 从 mayaCalendar 获取波符信息
+ */
+function getWavespellInfo(kin: number): { name: string; influence: string } {
+  // 使用精准的数学逻辑计算波符
+  const wavespellIndex = Math.floor((kin - 1) / 13);
+  const wavespellStartKin = wavespellIndex * 13 + 1;
+  const wavespellSeal = ((wavespellStartKin - 1) % 20) + 1;
+
+  const SEALS = [
+    '红龙', '白风', '蓝夜', '黄种子', '红蛇',
+    '白世界桥', '蓝手', '黄星星', '红月', '白狗',
+    '蓝猴', '黄人', '红天行者', '白巫师', '蓝鹰',
+    '黄战士', '红地球', '白镜', '蓝风暴', '黄太阳'
+  ];
+
+  const influences: Record<string, string> = {
+    '红龙': '滋养与诞生的原初能量',
+    '白风': '精神与沟通的灵性气息',
+    '蓝夜': '梦境与丰盛的深渊智慧',
+    '黄种子': '觉察与目标的生命潜能',
+    '红蛇': '生命力与生存的本能驱动',
+    '白世界桥': '连接与死亡的转化之桥',
+    '蓝手': '疗愈与实现的双手创造',
+    '黄星星': '美学与和谐的优雅频率',
+    '红月': '流动与净化的水之能量',
+    '白狗': '忠诚与爱的心之守护',
+    '蓝猴': '魔法与游戏的童真智慧',
+    '黄人': '自由意志与智慧的人类精神',
+    '红天行者': '探索与空间的旅者之路',
+    '白巫师': '永恒与魔法的时间掌控',
+    '蓝鹰': '远见与心智的天空视角',
+    '黄战士': '质疑与勇气的战斗智慧',
+    '红地球': '进化与导航的地球母体',
+    '白镜': '无限与秩序的映照真理',
+    '蓝风暴': '转化与催化的风暴能量',
+    '黄太阳': '启蒙与生命的宇宙之光'
+  };
+
+  const wavespellName = SEALS[wavespellSeal - 1];
+
+  return {
+    name: wavespellName,
+    influence: influences[wavespellName] || '独特的宇宙能量'
+  };
+}
+
+/**
  * 生成完整的 Kin 能量报告
  */
 export function generateKinReport(
@@ -419,6 +466,7 @@ export function generateKinReport(
   const profile = generateEnergyProfile(kin);
   const energyCenters = calculateEnergyCenters(kin);
   const year2026Advice = generate2026Advice(kin, energyCenters);
+  const wavespellInfo = getWavespellInfo(kin);
 
   let quantumResonances: QuantumResonance[] | undefined;
 
@@ -444,6 +492,8 @@ export function generateKinReport(
     energyCenters,
     quantumResonances,
     year2026Advice,
+    wavespellName: wavespellInfo.name,
+    wavespellInfluence: wavespellInfo.influence,
     generatedAt: new Date()
   };
 }

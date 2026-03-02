@@ -100,8 +100,15 @@ const TONE_TYPES = [
 ];
 
 function calculateWavespell(kin: number): { wavespell: number; wavespellName: string } {
+  // 步骤 A: 计算所属波符序号 (0-based)
   const wavespellIndex = Math.floor((kin - 1) / 13);
-  const wavespellSeal = (wavespellIndex % 20) + 1;
+
+  // 步骤 B: 确定波符起始 Kin
+  const wavespellStartKin = wavespellIndex * 13 + 1;
+
+  // 步骤 C: 映射波符图腾 - 使用起始Kin的主图腾
+  const wavespellSeal = ((wavespellStartKin - 1) % 20) + 1;
+
   return {
     wavespell: wavespellIndex + 1,
     wavespellName: SEALS[wavespellSeal - 1]
