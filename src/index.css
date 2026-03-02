@@ -53,13 +53,24 @@ body {
 
 @keyframes ripple {
   0% {
-    transform: scale(0);
+    transform: translate(-50%, -50%) scale(0.8);
     opacity: 0.6;
   }
+  50% {
+    opacity: 0.3;
+  }
   100% {
-    transform: scale(4);
+    transform: translate(-50%, -50%) scale(1.2);
     opacity: 0;
   }
+}
+
+.animate-ripple {
+  animation: ripple 3s ease-out infinite;
+}
+
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
 }
 
 @keyframes starlight {

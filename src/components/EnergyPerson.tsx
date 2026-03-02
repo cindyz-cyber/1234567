@@ -11,10 +11,12 @@ import {
   type EnergyProfile,
   type RelationshipSynergy
 } from '../utils/mayaCalendar';
+import { generateEnergyReport as generateNewEnergyReport } from '../utils/energyPortraitEngine';
 import ImmersiveDatePicker from './ImmersiveDatePicker';
 import QuantumResonanceAdder, { type ResonancePerson } from './QuantumResonanceAdder';
 import CalibrationButton from './CalibrationButton';
 import EnergyRadarChart from './EnergyRadarChart';
+import EnergyPortraitReport from './EnergyPortraitReport';
 
 interface PersonData {
   birthDate: Date | null;
@@ -35,6 +37,7 @@ export default function EnergyPerson() {
   const [finalProfile, setFinalProfile] = useState<EnergyProfile | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [synergies, setSynergies] = useState<RelationshipSynergy[]>([]);
+  const [useNewReport, setUseNewReport] = useState(true);
 
   useEffect(() => {
     if (!myData.kinData) return;
@@ -204,6 +207,16 @@ export default function EnergyPerson() {
               </div>
             )}
           </>
+        ) : useNewReport && myData.kinData ? (
+          <EnergyPortraitReport
+            report={generateNewEnergyReport(
+              myData.kinData.kin,
+              resonancePersons
+                .filter(p => p.kinData)
+                .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
+            )}
+            onBack={() => setShowReport(false)}
+          />
         ) : (
           <>
             <div className="text-center mb-12">
