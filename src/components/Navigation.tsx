@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Home, FileText, User, Settings, Upload, Sparkles } from 'lucide-react';
 
 interface NavigationProps {
@@ -7,6 +8,7 @@ interface NavigationProps {
 }
 
 export default function Navigation({ currentTab, onTabChange, isAdmin = false }: NavigationProps) {
+  const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const baseTabs = [
     { id: 'breath' as const, label: '呼吸', icon: Home },
     { id: 'person' as const, label: '识人', icon: Sparkles },
@@ -40,6 +42,8 @@ export default function Navigation({ currentTab, onTabChange, isAdmin = false }:
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
+              onMouseEnter={() => setHoveredTab(tab.id)}
+              onMouseLeave={() => setHoveredTab(null)}
               className="flex flex-col items-center gap-1.5 ethereal-transition nav-tab"
               style={{
                 color: '#F7E7CE',
@@ -65,6 +69,43 @@ export default function Navigation({ currentTab, onTabChange, isAdmin = false }:
                   }}
                 />
               )}
+              {hoveredTab === tab.id && (
+                <div
+                  className="tooltip-label"
+                  style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%) translateY(-8px)',
+                    whiteSpace: 'nowrap',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(247, 231, 206, 0.95)',
+                    color: '#1a1a1a',
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    letterSpacing: '0.05em',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 0 20px rgba(247, 231, 206, 0.4)',
+                    pointerEvents: 'none',
+                    animation: 'tooltipFadeIn 0.2s ease-out forwards',
+                  }}
+                >
+                  {tab.label}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: '0',
+                      height: '0',
+                      borderLeft: '6px solid transparent',
+                      borderRight: '6px solid transparent',
+                      borderTop: '6px solid rgba(247, 231, 206, 0.95)',
+                    }}
+                  />
+                </div>
+              )}
             </button>
           );
         })}
@@ -87,6 +128,17 @@ export default function Navigation({ currentTab, onTabChange, isAdmin = false }:
         .nav-tab:hover {
           opacity: 1 !important;
           transform: scale(1.1);
+        }
+
+        @keyframes tooltipFadeIn {
+          0% {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-4px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-8px);
+          }
         }
       `}</style>
     </nav>
