@@ -46,12 +46,11 @@ export default function EnergyPerson() {
   const [synergies, setSynergies] = useState<RelationshipSynergy[]>([]);
 
   useEffect(() => {
-    if (!myData.birthDate) return;
+    if (!myData.kinData) return;
 
-    const kinData = calculateKin(myData.birthDate, myData.isMidnightBirth);
-    // 传递母亲和父亲的Kin以启用量子共振逻辑
+    // 重新计算能量档案，考虑父母的影响
     let profile = calculateEnergyProfile(
-      kinData,
+      myData.kinData,
       motherData.kinData?.kin,
       fatherData.kinData?.kin
     );
@@ -60,31 +59,30 @@ export default function EnergyPerson() {
     if (motherData.birthDate && motherData.kinData) {
       profile = calculateFamilyCollision(
         profile,
-        kinData,
+        myData.kinData,
         calculateEnergyProfile(motherData.kinData),
         motherData.kinData,
         'mother'
       );
-      const synergy = detectRelationshipSynergy(kinData, motherData.kinData, 'mother');
+      const synergy = detectRelationshipSynergy(myData.kinData, motherData.kinData, 'mother');
       detectedSynergies.push(synergy);
     }
 
     if (fatherData.birthDate && fatherData.kinData) {
       profile = calculateFamilyCollision(
         profile,
-        kinData,
+        myData.kinData,
         calculateEnergyProfile(fatherData.kinData),
         fatherData.kinData,
         'father'
       );
-      const synergy = detectRelationshipSynergy(kinData, fatherData.kinData, 'father');
+      const synergy = detectRelationshipSynergy(myData.kinData, fatherData.kinData, 'father');
       detectedSynergies.push(synergy);
     }
 
-    setMyData({ birthDate: myData.birthDate, kinData, profile, isMidnightBirth: myData.isMidnightBirth });
     setFinalProfile(profile);
     setSynergies(detectedSynergies);
-  }, [myData.birthDate, myData.isMidnightBirth, motherData.birthDate, motherData.isMidnightBirth, fatherData.birthDate, fatherData.isMidnightBirth]);
+  }, [myData.kinData, motherData.kinData, fatherData.kinData]);
 
   const handleDateSelect = (
     type: 'my' | 'father' | 'mother',
