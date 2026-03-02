@@ -15,13 +15,14 @@ import BookOfAnswers from './components/BookOfAnswers';
 import PremiumModal from './components/PremiumModal';
 import AdminPanel from './components/AdminPanel';
 import SampleUploadPanel from './components/SampleUploadPanel';
+import KinReportDemo from './components/KinReportDemo';
 import GoldenDust from './components/GoldenDust';
 import VideoBackground from './components/VideoBackground';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 
 type FlowStep = 'home' | 'emotion' | 'energy' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
-type TabType = 'breath' | 'person' | 'archive' | 'profile' | 'admin' | 'samples';
+type TabType = 'breath' | 'person' | 'archive' | 'profile' | 'admin' | 'samples' | 'kinreport';
 
 interface JourneyData {
   emotions: string[];
@@ -286,6 +287,8 @@ function App() {
       {currentTab === 'admin' && isAdmin && <AdminPanel />}
 
       {currentTab === 'samples' && isAdmin && <SampleUploadPanel />}
+
+      {currentTab === 'kinreport' && <KinReportDemo />}
 
       <Navigation currentTab={currentTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
 
