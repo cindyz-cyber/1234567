@@ -20,7 +20,7 @@ export interface EnergyCenterScore {
 export interface QuantumResonance {
   relationKin: number;
   relationName: string;   // 女儿、儿子、伴侣等
-  resonanceType: 'push' | 'integrate' | 'mirror' | 'complement';
+  resonanceType: 'push' | 'integrate' | 'mirror' | 'complement' | 'challenge' | 'support';
   impact: string;         // 对用户的影响描述
   modifier: {
     center: 'heart' | 'throat' | 'pineal';
@@ -195,8 +195,10 @@ export const WavespellAttributes: Record<number, {
 
 // 共振类型描述
 export const ResonanceTypeDescriptions = {
-  push: '推动因子',
+  push: '推动因子/母体灌溉',
   integrate: '频率整合',
   mirror: '镜像映照',
-  complement: '互补平衡'
+  complement: '互补平衡',
+  challenge: '挑战位/极性扩张',
+  support: '支持位/喉轮增强'
 };

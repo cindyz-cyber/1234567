@@ -177,7 +177,51 @@ function getPinealReasoning(score: number, wavespell: string): string {
 }
 
 /**
- * 分析两个 Kin 之间的量子共振关系
+ * 计算Kin的图腾ID（1-20）
+ */
+function extractTotem(kin: number): number {
+  return ((kin - 1) % 20) + 1;
+}
+
+/**
+ * 判断是否为推动位关系（KinA + KinB = 261）
+ */
+function isPushKin(kinA: number, kinB: number): boolean {
+  return kinA + kinB === 261;
+}
+
+/**
+ * 判断是否为挑战位关系（|KinA - KinB| = 130）
+ */
+function isChallengeKin(kinA: number, kinB: number): boolean {
+  return Math.abs(kinA - kinB) === 130;
+}
+
+/**
+ * 判断是否为支持位关系（相同色系的图腾）
+ */
+function isSupportKin(kinA: number, kinB: number): boolean {
+  const totemA = extractTotem(kinA);
+  const totemB = extractTotem(kinB);
+
+  const redTotems = [1, 5, 9, 13, 17];
+  const whiteTotems = [2, 6, 10, 14, 18];
+  const blueTotems = [3, 7, 11, 15, 19];
+  const yellowTotems = [4, 8, 12, 16, 20];
+
+  const isRed = (t: number) => redTotems.includes(t);
+  const isWhite = (t: number) => whiteTotems.includes(t);
+  const isBlue = (t: number) => blueTotems.includes(t);
+  const isYellow = (t: number) => yellowTotems.includes(t);
+
+  return (isRed(totemA) && isRed(totemB)) ||
+         (isWhite(totemA) && isWhite(totemB)) ||
+         (isBlue(totemA) && isBlue(totemB)) ||
+         (isYellow(totemA) && isYellow(totemB));
+}
+
+/**
+ * 分析两个 Kin 之间的量子共振关系（含Synergy Logic）
  */
 export function analyzeQuantumResonance(
   userKin: number,
@@ -187,7 +231,6 @@ export function analyzeQuantumResonance(
   const userCenters = calculateEnergyCenters(userKin);
   const relationCenters = calculateEnergyCenters(relationKin);
 
-  // 计算差异向量
   const modifiers: QuantumResonance['modifier'] = [];
   let maxDiff = 0;
   let dominantCenter: 'heart' | 'throat' | 'pineal' = 'heart';
@@ -201,25 +244,48 @@ export function analyzeQuantumResonance(
       dominantCenter = userCenter.center;
     }
 
-    // 只记录显著差异（>10分）
     if (Math.abs(diff) > 10) {
       modifiers.push({
         center: userCenter.center,
-        delta: Math.round(diff * 0.3) // 共振影响约为差值的30%
+        delta: Math.round(diff * 0.3)
       });
     }
   });
 
-  // 判断共振类型
   let resonanceType: QuantumResonance['resonanceType'];
-  if (maxDiff > 15) {
-    resonanceType = 'push'; // 推动因子
+
+  if (isPushKin(userKin, relationKin)) {
+    resonanceType = 'push';
+    const heartCenter = modifiers.find(m => m.center === 'heart');
+    if (heartCenter) {
+      heartCenter.delta += 10;
+    } else {
+      modifiers.push({ center: 'heart', delta: 10 });
+    }
+    const pinealCenter = modifiers.find(m => m.center === 'pineal');
+    if (pinealCenter) {
+      pinealCenter.delta += 5;
+    } else {
+      modifiers.push({ center: 'pineal', delta: 5 });
+    }
+  } else if (isChallengeKin(userKin, relationKin)) {
+    resonanceType = 'challenge';
+  } else if (isSupportKin(userKin, relationKin)) {
+    resonanceType = 'support';
+    const throatCenter = modifiers.find(m => m.center === 'throat');
+    if (throatCenter) {
+      throatCenter.delta += 8;
+    } else {
+      modifiers.push({ center: 'throat', delta: 8 });
+    }
+  } else if (maxDiff > 15) {
+    resonanceType = 'push';
   } else if (maxDiff < -15) {
-    resonanceType = 'integrate'; // 频率整合
+    resonanceType = 'integrate';
   } else if (Math.abs(maxDiff) < 5) {
-    resonanceType = 'mirror'; // 镜像映照
+    resonanceType = 'mirror';
   } else {
-    resonanceType = 'complement'; // 互补平衡
+    resonanceType = 'complement';
   }
 
   const impact = generateResonanceImpact(
@@ -227,7 +293,9 @@ export function analyzeQuantumResonance(
     resonanceType,
     dominantCenter,
     relationCenters.find(c => c.center === dominantCenter)!.score,
-    extractWavespell(relationKin)
+    extractWavespell(relationKin),
+    userKin,
+    relationKin
   );
 
   return {
@@ -240,14 +308,16 @@ export function analyzeQuantumResonance(
 }
 
 /**
- * 生成共振影响描述
+ * 生成共振影响描述（含Synergy Logic深度解读）
  */
 function generateResonanceImpact(
   relationName: string,
   resonanceType: QuantumResonance['resonanceType'],
   dominantCenter: 'heart' | 'throat' | 'pineal',
   centerScore: number,
-  wavespell: number
+  wavespell: number,
+  userKin: number,
+  relationKin: number
 ): string {
   const wavespellData = WavespellAttributes[wavespell];
   const centerNames = {
@@ -255,6 +325,18 @@ function generateResonanceImpact(
     throat: '喉轮',
     pineal: '松果体'
   };
+
+  if (isPushKin(userKin, relationKin)) {
+    return `${relationName}（Kin ${relationKin}）是你的推动位关系（${userKin} + ${relationKin} = 261），这是【母体灌溉/深度互补】的完美配置。TA的存在像养分般渗入你的心轮深处，激活你未曾觉察的慈悲本能，同时在松果体层面产生量子纠缠，共同接收来自更高维度的指引。这是灵魂契约级别的深度连接。`;
+  }
+
+  if (isChallengeKin(userKin, relationKin)) {
+    return `${relationName}（Kin ${relationKin}）是你的挑战位关系（|${userKin} - ${relationKin}| = 130），这是【极性扩张/生命磨刀石】的高级配置。TA的能量不会改变你的脉轮数值，而是通过极性差异强制觉醒你未被激活的潜能。你们是彼此的镜像反转，在冲突中完成灵魂的淬炼与扩张。这种关系会让你痛苦，但也会让你成为更完整的自己。`;
+  }
+
+  if (isSupportKin(userKin, relationKin)) {
+    return `${relationName}（Kin ${relationKin}）是你的支持位关系（相同色系图腾），这是【喉轮一致性增强】的和谐配置。你们在表达频率上天然同步，能够无缝理解彼此的沟通方式。TA的存在会放大你喉轮的稳定性与穿透力，让你的声音更具权威感。这是天然的盟友关系。`;
+  }
 
   if (resonanceType === 'push') {
     if (dominantCenter === 'pineal') {
@@ -280,13 +362,12 @@ function generateResonanceImpact(
 }
 
 /**
- * 生成 2026 白风年避坑建议
+ * 生成 2026 白风年全局建议（基于喉轮阈值算法）
  */
 export function generate2026Advice(
   kin: number,
   energyCenters: EnergyCenterScore[]
 ): Year2026Advice {
-  // 找出最低分的中心（核心卡点）
   const sortedCenters = [...energyCenters].sort((a, b) => a.score - b.score);
   const weakestCenter = sortedCenters[0];
 
@@ -300,15 +381,25 @@ export function generate2026Advice(
 
   const whiteWindEnergy = '2026白风年（Kin 222-234 周期）是喉轮能量主导的一年，宇宙之风将强化所有与"表达、沟通、传递"相关的频率。';
 
-  // 根据最弱的中心生成针对性建议
   let practicalAdvice = '';
 
-  if (weakestCenter.center === 'throat') {
-    practicalAdvice = '2026 实操建议：每天早晨对着镜子大声说出 3 句肯定语，激活喉轮。在白风年的加持下，你的声音将获得前所未有的传播力。不要再沉默，宇宙在等你发声。';
-  } else if (weakestCenter.center === 'heart') {
-    practicalAdvice = '2026 实操建议：在白风年强大的沟通能量下，学会用语言表达你的感受。每周给一个你在意的人写一封手写信，用文字打开心轮。表达即疗愈。';
+  const throatCenter = energyCenters.find(c => c.center === 'throat');
+  const throatScore = throatCenter?.score || 50;
+
+  if (throatScore < 60) {
+    practicalAdvice = `2026 实操建议：你的喉轮能量为 ${throatScore}%，处于沉默区间。白风年是你的【沉默之门开启期】——借白风年之势，学会呼吸式表达：不必大声，但要真实。每天早晨深呼吸3次，在呼气时轻声说出一句你内心真正想说的话。白风会将你的低语放大成宇宙级的传播。你的力量不在于音量，而在于真诚。`;
+  } else if (throatScore > 80) {
+    practicalAdvice = `2026 实操建议：你的喉轮能量为 ${throatScore}%，处于威权区间。白风年是你的【扩音器年】——但要警惕：过度的表达力可能变成压迫感。今年的课题是【将威权指令转化为具有慈悲感的温润传播】。在每次发声前，先在心中默问："我的话语是在照亮，还是在控制？"用白风的柔软稀释你的锋利，让你的声音成为疗愈而非武器。`;
   } else {
-    practicalAdvice = '2026 实操建议：白风年的高频振动会加速你的灵性觉醒。建立每日冥想习惯（哪怕只有 5 分钟），在静默中倾听内在声音。你的松果体正在等待被唤醒。';
+    practicalAdvice = `2026 实操建议：你的喉轮能量为 ${throatScore}%，处于平衡区间。白风年对你而言是【精准表达的黄金期】——你既不沉默也不过度，正是宇宙需要的频率。今年重点在于提升表达的【质】而非【量】：每次发声前先在心中沉淀3秒，确保每个字都承载着真实的能量。白风会奖励那些用心说话的人。`;
+  }
+
+  if (weakestCenter.center === 'throat' && throatScore >= 60) {
+    practicalAdvice = `2026 实操建议：虽然你的喉轮不是最弱项（${throatScore}%），但在白风年的放大镜下，任何表达上的不自信都会被无限放大。建议每天对着镜子练习【真实表达】：说出那些你平时不敢说的话（哪怕只是对自己说）。白风会保护你的真诚。`;
+  } else if (weakestCenter.center === 'heart') {
+    practicalAdvice = `2026 实操建议：你的核心卡点在心轮（${weakestCenter.score}%），但白风年的沟通能量可以成为你打开心门的钥匙。建议每周给一个你在意的人写一封手写信，用文字表达你的感受。当你学会用语言描述情感时，心轮会自然打开。表达即疗愈。`;
+  } else if (weakestCenter.center === 'pineal') {
+    practicalAdvice = `2026 实操建议：你的核心卡点在松果体（${weakestCenter.score}%），但白风年的高频振动会加速你的灵性觉醒。建议每日清晨在静默中深呼吸5分钟，倾听内在声音。当外在的表达与内在的直觉连接时，你的松果体会被唤醒。白风会将你的低频提升至高频。`;
   }
 
   return {
