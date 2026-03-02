@@ -28,15 +28,53 @@ export interface RelationshipSynergy {
   description?: string;
 }
 
-// 硬编码校准点（按用户要求的绝对基准）
+// 硬编码校准点（强制自检用例）
 const CALIBRATION_POINTS = [
-  { date: new Date('1983-09-30'), kin: 200 },
-  { date: new Date('2012-05-11'), kin: 243 },
-  { date: new Date('2023-02-10'), kin: 8 }
+  { date: new Date('1983-09-30'), kin: 200 },  // 绝对基准
+  { date: new Date('1963-09-30'), kin: 180 },  // 自检用例1
+  { date: new Date('1994-07-16'), kin: 239 },  // 自检用例2
+  { date: new Date('2000-11-03'), kin: 199 },  // 自检用例3
+  { date: new Date('2023-02-10'), kin: 8 }     // 自检用例4
 ];
 
 // 使用第一个校准点作为主基准
 const MAIN_CALIBRATION = CALIBRATION_POINTS[0];
+
+// 判断是否为闰年
+function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+}
+
+// 计算两个日期之间的天数差，完全剔除所有2月29日
+function calculateDaysExcludingLeapDays(date1: Date, date2: Date): number {
+  let startDate = new Date(date1);
+  let endDate = new Date(date2);
+  let isNegative = false;
+
+  // 确保 startDate <= endDate
+  if (startDate > endDate) {
+    [startDate, endDate] = [endDate, startDate];
+    isNegative = true;
+  }
+
+  let days = 0;
+  let currentDate = new Date(startDate);
+
+  while (currentDate < endDate) {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const day = currentDate.getDate();
+
+    // 跳过2月29日
+    if (!(month === 1 && day === 29 && isLeapYear(year))) {
+      days++;
+    }
+
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return isNegative ? -days : days;
+}
 const SEALS = [
   '红龙', '白风', '蓝夜', '黄种子', '红蛇',
   '白世界桥', '蓝手', '黄星星', '红月', '白狗',
@@ -202,12 +240,11 @@ export function calculateKin(birthDate: Date, midnightType: 'early' | 'late' | n
   const anchorDate = new Date('1983-09-30');
   const anchorKin = 200;
 
-  // 计算精确天数差（毫秒差 / 86400000）
-  const diffDays = Math.floor((birthDate.getTime() - anchorDate.getTime()) / 86400000);
+  // 计算剔除闰日后的有效天数
+  const effectiveDays = calculateDaysExcludingLeapDays(anchorDate, birthDate);
 
-  // Kin 计算公式（注意：此公式基于用户提供的校准点，但三个校准点互不一致）
-  // 如果结果不准确，可能需要使用不同的玛雅历系统或校准常数
-  let kin = ((anchorKin + diffDays - 1) % 260 + 260) % 260 + 1;
+  // Kin 计算公式：Kin = (200 + 剔除闰日后的有效天数) mod 260
+  let kin = ((anchorKin + effectiveDays - 1) % 260 + 260) % 260 + 1;
 
   const seal = ((kin - 1) % 20) + 1;
   const tone = ((kin - 1) % 13) + 1;
@@ -240,12 +277,43 @@ export function calculateKin(birthDate: Date, midnightType: 'early' | 'late' | n
       secondaryDate.setDate(secondaryDate.getDate() - 1);
     }
 
-    const secondaryDiffDays = Math.floor((secondaryDate.getTime() - anchorDate.getTime()) / 86400000);
-    const secondaryKin = ((anchorKin + secondaryDiffDays - 1) % 260 + 260) % 260 + 1;
+    const secondaryEffectiveDays = calculateDaysExcludingLeapDays(anchorDate, secondaryDate);
+    const secondaryKin = ((anchorKin + secondaryEffectiveDays - 1) % 260 + 260) % 260 + 1;
     result.secondaryKin = secondaryKin;
   }
 
+  // 强制自检校准（运行前必须通过）
+  validateCalibration();
+
   return result;
+}
+
+// 强制自检函数
+function validateCalibration(): void {
+  const testCases = [
+    { date: new Date('1963-09-30'), expectedKin: 180, description: '1963-09-30 = Kin 180' },
+    { date: new Date('1994-07-16'), expectedKin: 239, description: '1994-07-16 = Kin 239' },
+    { date: new Date('2000-11-03'), expectedKin: 199, description: '2000-11-03 = Kin 199' },
+    { date: new Date('2023-02-10'), expectedKin: 8, description: '2023-02-10 = Kin 8' }
+  ];
+
+  const anchorDate = new Date('1983-09-30');
+  const anchorKin = 200;
+
+  for (const testCase of testCases) {
+    const effectiveDays = calculateDaysExcludingLeapDays(anchorDate, testCase.date);
+    const calculatedKin = ((anchorKin + effectiveDays - 1) % 260 + 260) % 260 + 1;
+
+    if (calculatedKin !== testCase.expectedKin) {
+      console.error(`❌ 校准失败: ${testCase.description}`);
+      console.error(`   计算值: Kin ${calculatedKin}`);
+      console.error(`   期望值: Kin ${testCase.expectedKin}`);
+      console.error(`   有效天数: ${effectiveDays}`);
+      throw new Error(`玛雅历算法校准失败: ${testCase.description}`);
+    }
+  }
+
+  console.log('✅ 玛雅历算法校准通过');
 }
 
 export function calculateEnergyProfile(
