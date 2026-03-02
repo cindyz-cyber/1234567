@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Share2, Baby, Users } from 'lucide-react';
+import { Share2 } from 'lucide-react';
 import {
   calculateKin,
   calculateEnergyProfile,
@@ -12,6 +12,7 @@ import {
   type RelationshipSynergy
 } from '../utils/mayaCalendar';
 import ImmersiveDatePicker from './ImmersiveDatePicker';
+import QuantumResonanceAdder, { type ResonancePerson } from './QuantumResonanceAdder';
 import CalibrationButton from './CalibrationButton';
 import EnergyRadarChart from './EnergyRadarChart';
 
@@ -30,28 +31,7 @@ export default function EnergyPerson() {
     midnightType: null
   });
 
-  const [fatherData, setFatherData] = useState<PersonData>({
-    birthDate: null,
-    kinData: null,
-    profile: null,
-    midnightType: null
-  });
-
-  const [motherData, setMotherData] = useState<PersonData>({
-    birthDate: null,
-    kinData: null,
-    profile: null,
-    midnightType: null
-  });
-
-  const [childData, setChildData] = useState<PersonData>({
-    birthDate: null,
-    kinData: null,
-    profile: null,
-    midnightType: null
-  });
-
-  const [showOptionalInputs, setShowOptionalInputs] = useState(false);
+  const [resonancePersons, setResonancePersons] = useState<ResonancePerson[]>([]);
   const [finalProfile, setFinalProfile] = useState<EnergyProfile | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [synergies, setSynergies] = useState<RelationshipSynergy[]>([]);
@@ -59,80 +39,65 @@ export default function EnergyPerson() {
   useEffect(() => {
     if (!myData.kinData) return;
 
-    let profile = calculateEnergyProfile(
-      myData.kinData,
-      motherData.kinData?.kin,
-      fatherData.kinData?.kin
-    );
+    let profile = calculateEnergyProfile(myData.kinData);
     const detectedSynergies: RelationshipSynergy[] = [];
 
-    if (motherData.birthDate && motherData.kinData) {
-      profile = calculateFamilyCollision(
-        profile,
-        myData.kinData,
-        calculateEnergyProfile(motherData.kinData),
-        motherData.kinData,
-        'mother'
-      );
-      const synergy = detectRelationshipSynergy(myData.kinData, motherData.kinData, 'mother');
-      detectedSynergies.push(synergy);
-    }
+    resonancePersons.forEach((person) => {
+      if (person.birthDate && person.kinData) {
+        const relationMap: Record<string, 'father' | 'mother' | 'child'> = {
+          'father': 'father',
+          'mother': 'mother',
+          'child': 'child',
+          'partner': 'child',
+          'other': 'child'
+        };
 
-    if (fatherData.birthDate && fatherData.kinData) {
-      profile = calculateFamilyCollision(
-        profile,
-        myData.kinData,
-        calculateEnergyProfile(fatherData.kinData),
-        fatherData.kinData,
-        'father'
-      );
-      const synergy = detectRelationshipSynergy(myData.kinData, fatherData.kinData, 'father');
-      detectedSynergies.push(synergy);
-    }
+        const relation = relationMap[person.relationship] || 'child';
 
-    if (childData.birthDate && childData.kinData) {
-      profile = calculateFamilyCollision(
-        profile,
-        myData.kinData,
-        calculateEnergyProfile(childData.kinData),
-        childData.kinData,
-        'child'
-      );
-      const synergy = detectRelationshipSynergy(myData.kinData, childData.kinData, 'child');
-      detectedSynergies.push(synergy);
-    }
+        profile = calculateFamilyCollision(
+          profile,
+          myData.kinData,
+          calculateEnergyProfile(person.kinData),
+          person.kinData,
+          relation
+        );
+
+        const synergy = detectRelationshipSynergy(myData.kinData, person.kinData, relation);
+        detectedSynergies.push(synergy);
+      }
+    });
 
     setFinalProfile(profile);
     setSynergies(detectedSynergies);
-  }, [myData.kinData, motherData.kinData, fatherData.kinData, childData.kinData]);
+  }, [myData.kinData, resonancePersons]);
 
-  const handleDateSelect = (
-    type: 'my' | 'father' | 'mother' | 'child',
-    dateString: string,
-    midnightType: 'early' | 'late' | null = null
-  ) => {
+  const handleMyDateSelect = (dateString: string, midnightType: 'early' | 'late' | null) => {
     if (!dateString) return;
 
     const birthDate = new Date(dateString);
     const kinData = calculateKin(birthDate, midnightType);
     const profile = calculateEnergyProfile(kinData);
 
-    const personData = { birthDate, kinData, profile, midnightType };
+    setMyData({ birthDate, kinData, profile, midnightType });
+  };
 
-    switch (type) {
-      case 'my':
-        setMyData(personData);
-        break;
-      case 'father':
-        setFatherData(personData);
-        break;
-      case 'mother':
-        setMotherData(personData);
-        break;
-      case 'child':
-        setChildData(personData);
-        break;
-    }
+  const handleResonanceDateSelect = (
+    id: string,
+    dateString: string,
+    midnightType: 'early' | 'late' | null
+  ) => {
+    if (!dateString) return;
+
+    const birthDate = new Date(dateString);
+    const kinData = calculateKin(birthDate, midnightType);
+
+    setResonancePersons((prev) =>
+      prev.map((person) =>
+        person.id === id
+          ? { ...person, birthDate, kinData, midnightType }
+          : person
+      )
+    );
   };
 
   const handleGenerateReport = () => {
@@ -142,11 +107,14 @@ export default function EnergyPerson() {
   const handleShare = async () => {
     if (!myData.kinData || !finalProfile) return;
 
+    const motherKin = resonancePersons.find(p => p.relationship === 'mother')?.kinData;
+    const fatherKin = resonancePersons.find(p => p.relationship === 'father')?.kinData;
+
     const report = generateEnergyReport(
       myData.kinData,
       finalProfile,
-      motherData.kinData || undefined,
-      fatherData.kinData || undefined,
+      motherKin || undefined,
+      fatherKin || undefined,
       synergies
     );
 
@@ -219,67 +187,15 @@ export default function EnergyPerson() {
                 value={myData.birthDate}
                 kinData={myData.kinData}
                 midnightType={myData.midnightType}
-                onChange={(date, midnight) => handleDateSelect('my', date, midnight)}
+                onChange={handleMyDateSelect}
               />
             </div>
 
             <div className="mb-12">
-              <button
-                onClick={() => setShowOptionalInputs(!showOptionalInputs)}
-                className="w-full p-5 rounded-2xl mb-6 transition-all duration-300"
-                style={{
-                  background: showOptionalInputs
-                    ? 'linear-gradient(135deg, rgba(247, 231, 206, 0.12) 0%, rgba(247, 231, 206, 0.06) 100%)'
-                    : 'rgba(255, 255, 255, 0.03)',
-                  border: `1px solid ${showOptionalInputs ? 'rgba(247, 231, 206, 0.3)' : 'rgba(247, 231, 206, 0.1)'}`,
-                  backdropFilter: 'blur(20px)',
-                  color: '#F7E7CE'
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Users size={20} style={{ opacity: 0.7 }} />
-                    <span className="text-lg font-light" style={{ letterSpacing: '0.05em' }}>
-                      {showOptionalInputs ? '收起' : '添加'}父母和孩子信息（可选）
-                    </span>
-                  </div>
-                  <span className="text-sm opacity-60">
-                    {showOptionalInputs ? '▲' : '▼'}
-                  </span>
-                </div>
-              </button>
-
-              {showOptionalInputs && (
-                <div className="space-y-6 animate-fadeIn">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ImmersiveDatePicker
-                      icon={<Users size={20} />}
-                      label="父亲的出生日期"
-                      value={fatherData.birthDate}
-                      kinData={fatherData.kinData}
-                      midnightType={fatherData.midnightType}
-                      onChange={(date, midnight) => handleDateSelect('father', date, midnight)}
-                    />
-                    <ImmersiveDatePicker
-                      icon={<Users size={20} />}
-                      label="母亲的出生日期"
-                      value={motherData.birthDate}
-                      kinData={motherData.kinData}
-                      midnightType={motherData.midnightType}
-                      onChange={(date, midnight) => handleDateSelect('mother', date, midnight)}
-                    />
-                  </div>
-
-                  <ImmersiveDatePicker
-                    icon={<Baby size={20} />}
-                    label="孩子的出生日期"
-                    value={childData.birthDate}
-                    kinData={childData.kinData}
-                    midnightType={childData.midnightType}
-                    onChange={(date, midnight) => handleDateSelect('child', date, midnight)}
-                  />
-                </div>
-              )}
+              <QuantumResonanceAdder
+                onPersonsChange={setResonancePersons}
+                onDateSelect={handleResonanceDateSelect}
+              />
             </div>
 
             {finalProfile && myData.kinData && (
@@ -409,8 +325,8 @@ export default function EnergyPerson() {
                     {generateEnergyReport(
                       myData.kinData,
                       finalProfile,
-                      motherData.kinData || undefined,
-                      fatherData.kinData || undefined,
+                      resonancePersons.find(p => p.relationship === 'mother')?.kinData || undefined,
+                      resonancePersons.find(p => p.relationship === 'father')?.kinData || undefined,
                       synergies
                     )}
                   </pre>

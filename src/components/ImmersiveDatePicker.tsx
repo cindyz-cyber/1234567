@@ -366,6 +366,8 @@ interface ScrollWheelProps {
 }
 
 const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: ScrollWheelProps, ref: React.Ref<HTMLDivElement>) => {
+  const [isDragging, setIsDragging] = useState(false);
+
   return (
     <div className="flex-1 flex flex-col">
       <div
@@ -390,12 +392,18 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
           maskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)',
           WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)'
         }}
+        onMouseDown={() => setIsDragging(true)}
+        onMouseUp={() => setIsDragging(false)}
+        onMouseLeave={() => setIsDragging(false)}
+        onTouchStart={() => setIsDragging(true)}
+        onTouchEnd={() => setIsDragging(false)}
         onScroll={(e) => {
+          if (!isDragging) return;
           const container = e.currentTarget;
           const scrollTop = container.scrollTop;
           const itemHeight = 40;
           const index = Math.round(scrollTop / itemHeight);
-          if (items[index] !== undefined) {
+          if (items[index] !== undefined && items[index] !== selectedValue) {
             onChange(items[index]);
           }
         }}
@@ -416,15 +424,16 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
                   ref.current.scrollTop = index * itemHeight - itemHeight * 2;
                 }
               }}
-              className="transition-all duration-300 cursor-pointer flex items-center justify-center"
+              className="transition-all duration-200 cursor-pointer flex items-center justify-center"
               style={{
                 height: '40px',
                 color: isSelected ? '#EBC862' : '#F7E7CE',
-                fontSize: isSelected ? '1.3rem' : '0.95rem',
-                fontWeight: isSelected ? 300 : 200,
+                fontSize: '0.95rem',
+                fontWeight: isSelected ? 400 : 200,
                 letterSpacing: '0.05em',
                 opacity,
-                transform: `scale(${isSelected ? 1 : 0.85})`,
+                background: isSelected ? 'rgba(235, 200, 98, 0.08)' : 'transparent',
+                borderLeft: isSelected ? '2px solid #EBC862' : '2px solid transparent',
                 fontVariantNumeric: 'tabular-nums'
               }}
             >
