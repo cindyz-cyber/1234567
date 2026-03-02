@@ -105,32 +105,7 @@ export default function EnergyPerson() {
     }
 
     setMyData({ birthDate, kinData, profile, midnightType });
-
-    // 自动生成并显示报告
-    setTimeout(async () => {
-      setIsGeneratingReport(true);
-      try {
-        const report = await generateNewEnergyReport(
-          kinData.kin,
-          resonancePersons
-            .filter(p => p.kinData)
-            .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
-        );
-
-        // 添加子时信息
-        report.midnightType = kinData.midnightType || null;
-        report.secondaryKin = kinData.secondaryKin;
-        report.toneName = kinData.toneName;
-        report.sealName = kinData.sealName;
-
-        setGeneratedReport(report);
-        setShowReport(true);
-      } catch (error) {
-        console.error('Failed to generate report:', error);
-      } finally {
-        setIsGeneratingReport(false);
-      }
-    }, 500);
+    // 不自动生成报告，等待用户手动点击"生成报告"按钮
   };
 
   const handleResonanceDateSelect = async (
@@ -343,7 +318,7 @@ export default function EnergyPerson() {
               <div className="flex justify-center mt-8">
                 <CalibrationButton
                   onClick={handleGenerateReport}
-                  label={isGeneratingReport ? "生成中..." : "生成能量画像"}
+                  label={isGeneratingReport ? "生成中..." : "生成完整报告"}
                 />
               </div>
             )}
