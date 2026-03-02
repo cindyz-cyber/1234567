@@ -75,52 +75,49 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         {/* 首屏：紧凑横向布局 */}
         <div className="flex-1 flex flex-col justify-center items-center px-6 py-12">
           <div className="w-full max-w-7xl">
-            {/* Kin 标识 + 标题 */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-3 mb-4">
-                <div className="relative">
-                  <svg width="48" height="48" viewBox="0 0 48 48" className="animate-breath">
-                    <circle cx="24" cy="24" r="22" stroke="rgba(235, 200, 98, 0.3)" strokeWidth="0.5" fill="none"/>
-                    <circle cx="24" cy="24" r="16" fill="url(#sealGrad)"/>
-                    <text x="24" y="30" textAnchor="middle" fill="rgba(10, 31, 28, 0.9)" fontSize="20">☀️</text>
-                    <defs>
-                      <radialGradient id="sealGrad">
-                        <stop offset="0%" stopColor="rgba(247, 231, 206, 0.95)" />
-                        <stop offset="100%" stopColor="rgba(235, 200, 98, 0.8)" />
-                      </radialGradient>
-                    </defs>
-                  </svg>
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-xs font-light" style={{
-                    background: 'rgba(0, 0, 0, 0.5)',
-                    color: '#EBC862',
-                    border: '1px solid rgba(235, 200, 98, 0.3)'
-                  }}>
-                    Kin {report.kin}
-                  </div>
-                </div>
-                <div>
-                  <h1 className="text-2xl font-light tracking-wider" style={{ color: '#F7E7CE' }}>能量画像</h1>
-                  <p className="text-xs font-light tracking-widest opacity-60" style={{ color: '#EBC862' }}>QUANTUM ENERGY PORTRAIT</p>
+            {/* 核心身份卡片 - Kin + 音调 + 图腾 */}
+            <div className="text-center mb-10">
+              {/* 大标题：Kin 200 宇宙黄太阳 */}
+              <div className="mb-6">
+                <h1 className="text-5xl font-light tracking-wide mb-2" style={{
+                  color: '#F7E7CE',
+                  textShadow: '0 0 40px rgba(247, 231, 206, 0.3)',
+                  letterSpacing: '0.15em'
+                }}>
+                  Kin {report.kin}
+                </h1>
+                <div className="text-2xl font-light tracking-widest" style={{
+                  color: '#EBC862',
+                  letterSpacing: '0.2em'
+                }}>
+                  {extractToneAndSeal(report.portrait.essence).toneName}{extractToneAndSeal(report.portrait.essence).sealName}
                 </div>
               </div>
 
-              {/* Kin 本质与波符摘要 - 毛玻璃卡片 */}
-              <div className="mb-8 px-6 py-4 rounded-xl text-center" style={{
-                background: 'rgba(0, 0, 0, 0.4)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(247, 231, 206, 0.2)'
+              {/* 能量背景卡片 */}
+              <div className="inline-block px-8 py-4 rounded-2xl mb-6" style={{
+                background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 100%)',
+                backdropFilter: 'blur(30px)',
+                border: '1px solid rgba(247, 231, 206, 0.25)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
               }}>
-                <div className="text-sm font-light mb-2" style={{
+                <div className="text-sm font-light leading-relaxed mb-3" style={{
                   color: '#F7E7CE',
-                  letterSpacing: '0.05em',
-                  lineHeight: '1.7'
+                  letterSpacing: '0.08em',
+                  lineHeight: '1.8',
+                  opacity: 0.95
                 }}>
-                  {report.portrait.essence}
+                  {extractEssenceDescription(report.portrait.essence)}
                 </div>
-                <div className="flex items-center justify-center gap-4 text-xs opacity-70" style={{ color: '#EBC862' }}>
-                  <span>{report.portrait.mode}</span>
-                  <span>·</span>
-                  <span>{report.wavespellInfluence}</span>
+                <div className="flex items-center justify-center gap-6 text-xs" style={{
+                  color: '#EBC862',
+                  opacity: 0.8
+                }}>
+                  <span className="tracking-wider">{report.portrait.mode}</span>
+                  <span>•</span>
+                  <span className="tracking-wider">{report.portrait.perspective}</span>
+                  <span>•</span>
+                  <span className="tracking-wider">{report.wavespellInfluence}</span>
                 </div>
               </div>
             </div>
@@ -336,6 +333,24 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
       `}</style>
     </div>
   );
+}
+
+function extractToneAndSeal(essence: string): { toneName: string; sealName: string } {
+  // essence 格式: "宇宙黄太阳。你是宇宙光明的化身..."
+  const match = essence.match(/^(.+?)。/);
+  if (match) {
+    return {
+      toneName: match[1].slice(0, -3), // 提取"宇宙"
+      sealName: match[1].slice(-3)      // 提取"黄太阳"
+    };
+  }
+  return { toneName: '', sealName: '' };
+}
+
+function extractEssenceDescription(essence: string): string {
+  // 提取句号之后的描述部分
+  const parts = essence.split('。');
+  return parts.slice(1).join('。');
 }
 
 function getDefaultTraits(centerName: string): string {
