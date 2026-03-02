@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Heart, MessageCircle, Eye, Zap, Calendar } from 'lucide-react';
 import type { KinEnergyReport } from '../types/kinReport';
-import { generateKinReport } from '../utils/kinReportEngine';
+import { generateKnowledgeBaseDrivenReport, validateKin66Report } from '../utils/knowledgeBaseDrivenReportEngine';
 import { ResonanceTypeDescriptions } from '../types/kinReport';
 
 interface UniversalKinReportProps {
@@ -15,13 +15,36 @@ export default function UniversalKinReport({ kin, familyData, onClose }: Univers
   const [showQuantumEffect, setShowQuantumEffect] = useState(false);
 
   useEffect(() => {
-    const generatedReport = generateKinReport(kin, familyData);
-    setReport(generatedReport);
+    let mounted = true;
 
-    // 如果有量子共振数据，显示金色涟漪特效
-    if (generatedReport.quantumResonances && generatedReport.quantumResonances.length > 0) {
-      setShowQuantumEffect(true);
+    async function loadReport() {
+      try {
+        const generatedReport = await generateKnowledgeBaseDrivenReport(kin);
+
+        // Kin 66 自我纠错断言
+        await validateKin66Report(generatedReport);
+
+        if (mounted) {
+          setReport(generatedReport);
+
+          // 如果有量子共振数据，显示金色涟漪特效
+          if (generatedReport.quantumResonances && generatedReport.quantumResonances.length > 0) {
+            setShowQuantumEffect(true);
+          }
+        }
+      } catch (error) {
+        console.error('报告生成失败:', error);
+        if (mounted) {
+          setReport(null);
+        }
+      }
     }
+
+    loadReport();
+
+    return () => {
+      mounted = false;
+    };
   }, [kin, familyData]);
 
   if (!report) {
