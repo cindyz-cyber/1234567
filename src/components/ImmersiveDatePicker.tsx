@@ -25,7 +25,7 @@ export default function ImmersiveDatePicker({
   const [selectedDay, setSelectedDay] = useState(value?.getDate() || 1);
   const [selectedMidnightType, setSelectedMidnightType] = useState<'early' | 'late' | null>(midnightType);
 
-  const years = Array.from({ length: new Date().getFullYear() - 1980 + 1 }, (_, i) => new Date().getFullYear() - i);
+  const years = Array.from({ length: new Date().getFullYear() - 1980 + 1 }, (_, i) => 1980 + i);
   const months = Array.from({ length: 12 }, (_, i) => i);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
@@ -49,9 +49,7 @@ export default function ImmersiveDatePicker({
   const scrollToCenter = (ref: React.RefObject<HTMLDivElement>, index: number) => {
     if (ref.current) {
       const itemHeight = 40;
-      const containerHeight = ref.current.clientHeight;
-      const centerOffset = (containerHeight - itemHeight) / 2;
-      ref.current.scrollTop = index * itemHeight - centerOffset;
+      ref.current.scrollTop = index * itemHeight;
     }
   };
 
@@ -410,7 +408,7 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
           }
         }}
       >
-        <div style={{ height: '50%' }} />
+        <div style={{ height: '80px' }} />
         {items.map((item, index) => {
           const isSelected = item === selectedValue;
           const distance = Math.abs(items.indexOf(selectedValue) - index);
@@ -423,9 +421,7 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
                 onChange(item);
                 if (ref && 'current' in ref && ref.current) {
                   const itemHeight = 40;
-                  const containerHeight = ref.current.clientHeight;
-                  const centerOffset = (containerHeight - itemHeight) / 2;
-                  ref.current.scrollTop = index * itemHeight - centerOffset;
+                  ref.current.scrollTop = index * itemHeight;
                 }
               }}
               className="transition-all duration-200 cursor-pointer flex items-center justify-center"
@@ -445,7 +441,7 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
             </div>
           );
         })}
-        <div style={{ height: '50%' }} />
+        <div style={{ height: '80px' }} />
       </div>
     </div>
   );
