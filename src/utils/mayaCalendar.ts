@@ -47,8 +47,13 @@ function isLeapYear(year: number): boolean {
 
 // 计算两个日期之间的天数差，完全剔除所有2月29日
 function calculateDaysExcludingLeapDays(date1: Date, date2: Date): number {
-  let startDate = new Date(date1);
-  let endDate = new Date(date2);
+  // 标准化到UTC午夜，避免时区问题
+  const normalizeDate = (d: Date): Date => {
+    return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  };
+
+  let startDate = normalizeDate(date1);
+  let endDate = normalizeDate(date2);
   let isNegative = false;
 
   // 确保 startDate <= endDate
@@ -61,16 +66,16 @@ function calculateDaysExcludingLeapDays(date1: Date, date2: Date): number {
   let currentDate = new Date(startDate);
 
   while (currentDate < endDate) {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const day = currentDate.getDate();
+    const year = currentDate.getUTCFullYear();
+    const month = currentDate.getUTCMonth();
+    const day = currentDate.getUTCDate();
 
     // 跳过2月29日
     if (!(month === 1 && day === 29 && isLeapYear(year))) {
       days++;
     }
 
-    currentDate.setDate(currentDate.getDate() + 1);
+    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
   }
 
   return isNegative ? -days : days;
