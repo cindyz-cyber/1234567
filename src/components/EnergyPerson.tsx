@@ -126,39 +126,7 @@ export default function EnergyPerson() {
       )
     );
 
-    // 如果主用户数据已存在，重新生成报告以包含量子共振关系（但不自动跳转）
-    if (myData.kinData) {
-      setTimeout(async () => {
-        setIsGeneratingReport(true);
-        try {
-          const updatedPersons = resonancePersons.map((person) =>
-            person.id === id
-              ? { ...person, birthDate, kinData, midnightType }
-              : person
-          );
-
-          const report = await generateNewEnergyReport(
-            myData.kinData!.kin,
-            updatedPersons
-              .filter(p => p.kinData)
-              .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
-          );
-
-          // 添加子时信息
-          report.midnightType = myData.kinData!.midnightType || null;
-          report.secondaryKin = myData.kinData!.secondaryKin;
-          report.toneName = myData.kinData!.toneName;
-          report.sealName = myData.kinData!.sealName;
-
-          setGeneratedReport(report);
-          // 不自动跳转到报告，让用户手动点击查看
-        } catch (error) {
-          console.error('Failed to generate report:', error);
-        } finally {
-          setIsGeneratingReport(false);
-        }
-      }, 500);
-    }
+    // 不自动生成报告，等待用户手动点击"生成完整报告"按钮
   };
 
   const handleGenerateReport = async () => {
