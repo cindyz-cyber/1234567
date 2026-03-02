@@ -25,7 +25,7 @@ export default function ImmersiveDatePicker({
   const [selectedDay, setSelectedDay] = useState(value?.getDate() || 1);
   const [selectedMidnightType, setSelectedMidnightType] = useState<'early' | 'late' | null>(midnightType);
 
-  const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
+  const years = Array.from({ length: new Date().getFullYear() - 1980 + 1 }, (_, i) => new Date().getFullYear() - i);
   const months = Array.from({ length: 12 }, (_, i) => i);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
@@ -49,7 +49,9 @@ export default function ImmersiveDatePicker({
   const scrollToCenter = (ref: React.RefObject<HTMLDivElement>, index: number) => {
     if (ref.current) {
       const itemHeight = 40;
-      ref.current.scrollTop = index * itemHeight - itemHeight * 2;
+      const containerHeight = ref.current.clientHeight;
+      const centerOffset = (containerHeight - itemHeight) / 2;
+      ref.current.scrollTop = index * itemHeight - centerOffset;
     }
   };
 
@@ -374,7 +376,7 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
         className="text-center mb-2"
         style={{
           color: '#F7E7CE',
-          opacity: 0.4,
+          opacity: 0.6,
           fontSize: '0.7rem',
           letterSpacing: '0.1em'
         }}
@@ -387,8 +389,8 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
-          background: 'rgba(255, 255, 255, 0.02)',
-          border: '1px solid rgba(247, 231, 206, 0.08)',
+          background: 'rgba(255, 255, 255, 0.05)',
+          border: '1px solid rgba(247, 231, 206, 0.2)',
           maskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)',
           WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)'
         }}
@@ -408,11 +410,11 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
           }
         }}
       >
-        <div style={{ height: '80px' }} />
+        <div style={{ height: '50%' }} />
         {items.map((item, index) => {
           const isSelected = item === selectedValue;
           const distance = Math.abs(items.indexOf(selectedValue) - index);
-          const opacity = Math.max(0.2, 1 - distance * 0.3);
+          const opacity = Math.max(0.4, 1 - distance * 0.2);
 
           return (
             <div
@@ -421,7 +423,9 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
                 onChange(item);
                 if (ref && 'current' in ref && ref.current) {
                   const itemHeight = 40;
-                  ref.current.scrollTop = index * itemHeight - itemHeight * 2;
+                  const containerHeight = ref.current.clientHeight;
+                  const centerOffset = (containerHeight - itemHeight) / 2;
+                  ref.current.scrollTop = index * itemHeight - centerOffset;
                 }
               }}
               className="transition-all duration-200 cursor-pointer flex items-center justify-center"
@@ -432,7 +436,7 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
                 fontWeight: isSelected ? 400 : 200,
                 letterSpacing: '0.05em',
                 opacity,
-                background: isSelected ? 'rgba(235, 200, 98, 0.08)' : 'transparent',
+                background: isSelected ? 'rgba(235, 200, 98, 0.12)' : 'transparent',
                 borderLeft: isSelected ? '2px solid #EBC862' : '2px solid transparent',
                 fontVariantNumeric: 'tabular-nums'
               }}
@@ -441,7 +445,7 @@ const ScrollWheel = ({ items, selectedValue, onChange, formatter, label }: Scrol
             </div>
           );
         })}
-        <div style={{ height: '80px' }} />
+        <div style={{ height: '50%' }} />
       </div>
     </div>
   );
