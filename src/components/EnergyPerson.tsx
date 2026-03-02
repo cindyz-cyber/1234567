@@ -151,7 +151,7 @@ export default function EnergyPerson() {
       )
     );
 
-    // 如果主用户数据已存在，重新生成报告以包含量子共振关系
+    // 如果主用户数据已存在，重新生成报告以包含量子共振关系（但不自动跳转）
     if (myData.kinData) {
       setTimeout(async () => {
         setIsGeneratingReport(true);
@@ -176,7 +176,7 @@ export default function EnergyPerson() {
           report.sealName = myData.kinData!.sealName;
 
           setGeneratedReport(report);
-          setShowReport(true);
+          // 不自动跳转到报告，让用户手动点击查看
         } catch (error) {
           console.error('Failed to generate report:', error);
         } finally {
