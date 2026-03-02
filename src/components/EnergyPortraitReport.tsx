@@ -91,17 +91,11 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           </div>
         </div>
 
-        <div className={`radar-section ${hasQuantumResonance ? 'resonance-active' : ''}`}>
+        <div className="radar-section-wrapper">
           {hasQuantumResonance && (
-            <>
-              <div className="quantum-glow-layer">
-                <div className="glow-orb glow-orb-1"></div>
-                <div className="glow-orb glow-orb-2"></div>
-              </div>
-              <div className="resonance-badge">
-                <span>家族共振激活</span>
-              </div>
-            </>
+            <div className="resonance-badge-floating">
+              <span>家族共振激活</span>
+            </div>
           )}
 
           <div className="section-header">
@@ -564,60 +558,15 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           text-transform: uppercase;
         }
 
-        .radar-section {
+        .radar-section-wrapper {
           position: relative;
-          background: rgba(255, 255, 255, 0.02);
-          backdrop-filter: blur(60px);
-          border: 0.5px solid rgba(247, 231, 206, 0.12);
-          border-radius: 4px;
-          padding: 6rem 4rem;
-          margin: 8rem 0;
-          overflow: hidden;
-          transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+          margin: 12rem 0;
         }
 
-        .radar-section.resonance-active {
-          border-color: rgba(235, 200, 98, 0.25);
-          box-shadow: 0 8px 60px rgba(235, 200, 98, 0.15), 0 0 120px rgba(235, 200, 98, 0.08);
-        }
-
-        .quantum-glow-layer {
+        .resonance-badge-floating {
           position: absolute;
-          inset: 0;
-          pointer-events: none;
-          overflow: hidden;
-        }
-
-        .glow-orb {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-        }
-
-        .glow-orb-1 {
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 400px;
-          height: 400px;
-          background: rgba(235, 200, 98, 0.08);
-          animation: pulse-slow 4s ease-in-out infinite;
-        }
-
-        .glow-orb-2 {
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 600px;
-          height: 600px;
-          background: rgba(247, 231, 206, 0.04);
-          animation: pulse-slow-delayed 4s ease-in-out infinite;
-        }
-
-        .resonance-badge {
-          position: absolute;
-          top: 3rem;
-          right: 3rem;
+          top: -2rem;
+          right: 0;
           z-index: 10;
           padding: 0.75rem 1.5rem;
           border-radius: 100px;
@@ -626,7 +575,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           backdrop-filter: blur(20px);
         }
 
-        .resonance-badge span {
+        .resonance-badge-floating span {
           font-size: 0.75rem;
           font-weight: 300;
           letter-spacing: 0.2em;
@@ -646,7 +595,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           display: flex;
           flex-direction: column;
           gap: 3rem;
-          max-width: 1000px;
+          max-width: 100%;
           margin: 0 auto;
           position: relative;
           z-index: 10;
@@ -657,7 +606,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           backdrop-filter: blur(40px);
           border: 0.5px solid rgba(247, 231, 206, 0.08);
           border-radius: 4px;
-          padding: 3rem;
+          padding: 3rem 4rem;
           transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
         }
@@ -724,6 +673,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           letter-spacing: 0.05em;
           color: rgba(247, 231, 206, 0.8);
           margin: 0;
+          max-width: 100%;
         }
 
         .quantum-section {
