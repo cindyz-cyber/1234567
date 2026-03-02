@@ -539,7 +539,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
 
         .section-header {
           text-align: center;
-          margin-bottom: 6rem;
+          margin-bottom: 3rem;
         }
 
         .section-title {
@@ -560,7 +560,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
 
         .radar-section-wrapper {
           position: relative;
-          margin: 12rem 0;
+          margin: 6rem 0;
         }
 
         .resonance-badge-floating {
@@ -587,14 +587,14 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           width: 100%;
           aspect-ratio: 1;
           max-width: 600px;
-          margin: 0 auto 8rem;
+          margin: 0 auto 4rem;
           z-index: 10;
         }
 
         .energy-centers-list {
           display: flex;
           flex-direction: column;
-          gap: 3rem;
+          gap: 1.5rem;
           max-width: 100%;
           margin: 0 auto;
           position: relative;
@@ -602,11 +602,11 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         }
 
         .center-card {
-          background: rgba(247, 231, 206, 0.02);
+          background: rgba(247, 231, 206, 0.12);
           backdrop-filter: blur(40px);
-          border: 0.5px solid rgba(247, 231, 206, 0.08);
+          border: 0.5px solid rgba(247, 231, 206, 0.18);
           border-radius: 4px;
-          padding: 3rem 4rem;
+          padding: 2rem 3rem;
           transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
         }
@@ -623,7 +623,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          margin-bottom: 2rem;
+          margin-bottom: 1rem;
           gap: 2rem;
         }
 
@@ -634,7 +634,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         }
 
         .center-icon {
-          font-size: 2.5rem;
+          font-size: 2rem;
           opacity: 0.85;
         }
 
@@ -645,7 +645,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         }
 
         .center-name {
-          font-size: 1.75rem;
+          font-size: 1.5rem;
           font-weight: 300;
           letter-spacing: 0.12em;
           color: rgba(247, 231, 206, 0.95);
@@ -660,7 +660,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         }
 
         .center-percentage {
-          font-size: 3rem;
+          font-size: 2.5rem;
           font-weight: 300;
           letter-spacing: 0.08em;
           color: rgba(235, 200, 98, 0.9);
