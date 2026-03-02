@@ -40,7 +40,7 @@ export default function UnifiedPlayer({ type, audioUrl, title, description, onBa
     <div
       className="fixed inset-0 flex items-center justify-center cursor-pointer"
       style={{
-        background: 'linear-gradient(135deg, #020a09 0%, #0a0f0e 50%, #051511 100%)',
+        background: 'transparent',
       }}
       onClick={handleInteraction}
     >

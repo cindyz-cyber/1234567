@@ -5,8 +5,8 @@
 @tailwind utilities;
 
 :root {
-  --bg-gradient-top: #0A1F1C;
-  --bg-gradient-bottom: #041412;
+  --bg-gradient-top: transparent;
+  --bg-gradient-bottom: transparent;
   --color-amber-gold: #EBC862;
   --color-champagne-gold: #F7E7CE;
   --color-soft-white: #E0E0D0;
@@ -21,7 +21,7 @@
 }
 
 body {
-  background: transparent;
+  background: transparent !important;
   min-height: 100vh;
   color: var(--color-soft-white);
   font-family: 'Playfair Display', 'Noto Serif SC', serif;
@@ -30,6 +30,11 @@ body {
   transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow-x: hidden;
+}
+
+#root {
+  background: transparent !important;
+  min-height: 100vh;
 }
 
 .ethereal-transition {

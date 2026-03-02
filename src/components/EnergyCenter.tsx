@@ -91,7 +91,7 @@ export default function EnergyCenter({ isPremium = false, onPremiumRequired }: E
 
   if (view === 'today-recommendation' && todayAudio) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: '#020A09' }}>
+      <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: 'transparent' }}>
         <UnifiedPlayer
           audioUrl={getAudioUrl(todayAudio.file_path)}
           title="今日推荐"

@@ -26,7 +26,7 @@ export default function ZenVoiceResults({ result, reportData, onBack }: ZenVoice
         top: 0,
         left: 0,
         right: 0,
-        background: 'linear-gradient(135deg, #000 0%, #1a1a1a 100%)',
+        background: 'transparent',
         color: '#00FF00',
         padding: '40px',
         fontFamily: 'monospace',
