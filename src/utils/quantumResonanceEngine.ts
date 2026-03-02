@@ -1,12 +1,16 @@
 /**
- * 量子共振关系引擎
- * Quantum Resonance Relationship Engine
+ * 量子共振关系引擎（知识库驱动版本）
+ * Quantum Resonance Relationship Engine (Knowledge Base Driven)
  *
  * 核心算法：
- * 1. 母体灌溉型（推动位）: (Kin_A + Kin_B) % 260 === 1
- * 2. 生命磨刀石（对冲位）: |Kin_A - Kin_B| === 130
- * 3. 指引导航位: Kin_B 为 Kin_A 的指引 Kin 位
+ * 1. 从数据库读取 oracle_guide, oracle_challenge, oracle_support, oracle_hidden
+ * 2. 母体灌溉型（推动位）: (Kin_A + Kin_B) % 260 === 1
+ * 3. 生命磨刀石（对冲位）: 从数据库的 oracle_challenge 读取
+ * 4. 指引导航位: 从数据库的 oracle_guide 读取
+ * 5. 隐藏力量位: 从数据库的 oracle_hidden 读取
  */
+
+import { knowledgeBase } from './knowledgeBase';
 
 export interface QuantumResonanceRelation {
   type: 'push' | 'challenge' | 'guide' | 'support' | 'hidden' | null;
@@ -20,51 +24,12 @@ export interface QuantumResonanceRelation {
 }
 
 /**
- * 计算指引Kin（Guide Kin）
- * 公式：Guide = Kin + (13 - tone) * 20
- * 如果超过260，则减260
+ * 分析两个Kin之间的量子共振关系（使用知识库）
  */
-function calculateGuideKin(kin: number): number {
-  const tone = ((kin - 1) % 13) + 1;
-  let guide = kin + ((13 - tone) % 13) * 20;
-  if (guide > 260) guide -= 260;
-  return guide;
-}
-
-/**
- * 计算支持Kin（Support/Antipode Kin）
- * 公式：Support = Kin + 130
- * 如果超过260，则减260
- */
-function calculateSupportKin(kin: number): number {
-  let support = kin + 130;
-  if (support > 260) support -= 260;
-  return support;
-}
-
-/**
- * 计算挑战Kin（Challenge/Antipode Kin）
- * 公式：Challenge = Kin + 130（或 Kin - 130）
- */
-function calculateChallengeKin(kin: number): number {
-  return calculateSupportKin(kin);
-}
-
-/**
- * 计算隐藏Kin（Hidden Power Kin）
- * 公式：Hidden = 261 - Kin
- */
-function calculateHiddenKin(kin: number): number {
-  return 261 - kin;
-}
-
-/**
- * 分析两个Kin之间的量子共振关系
- */
-export function analyzeQuantumResonance(
+export async function analyzeQuantumResonance(
   userKin: number,
   relativeKin: number
-): QuantumResonanceRelation {
+): Promise<QuantumResonanceRelation> {
   const kinSum = userKin + relativeKin;
   const kinDiff = Math.abs(userKin - relativeKin);
 
@@ -81,49 +46,64 @@ export function analyzeQuantumResonance(
     };
   }
 
-  // 2. 生命磨刀石（对冲位）：|Kin_A - Kin_B| === 130
-  if (kinDiff === 130) {
-    return {
-      type: 'challenge',
-      label: '生命磨刀石（对冲位）',
-      description: 'Ta 是你生命中的"极性对冲镜"。通过碰撞，Ta 让你看见自己未被开发的另一面。',
-      energyBoost: {
-        pineal: 10,
-        throat: 5
-      }
-    };
+  // 从知识库获取用户 Kin 的定义（包含校准后的 oracle 关系）
+  const kinDef = await knowledgeBase.getKinDefinition(userKin);
+
+  if (kinDef) {
+    // 2. 生命磨刀石（对冲位）：从数据库的 oracle_challenge 读取
+    if (kinDef.oracle_challenge === relativeKin) {
+      return {
+        type: 'challenge',
+        label: '生命磨刀石（对冲位）',
+        description: 'Ta 是你生命中的"极性对冲镜"。通过碰撞，Ta 让你看见自己未被开发的另一面。',
+        energyBoost: {
+          pineal: 10,
+          throat: 5
+        }
+      };
+    }
+
+    // 3. 指引导航位：从数据库的 oracle_guide 读取
+    if (kinDef.oracle_guide === relativeKin) {
+      return {
+        type: 'guide',
+        label: '指引导航位',
+        description: 'Ta 是你的高维灯塔。在你的逻辑风暴中，Ta 是唯一能带你找到上帝视角的锚点。',
+        energyBoost: {
+          pineal: 12,
+          heart: 5
+        }
+      };
+    }
+
+    // 4. 隐藏力量位：从数据库的 oracle_hidden 读取
+    if (kinDef.oracle_hidden === relativeKin) {
+      return {
+        type: 'hidden',
+        label: '隐藏力量位',
+        description: 'Ta 是你的隐藏推动力。在你看不见的维度里，Ta 为你提供源源不断的支持。',
+        energyBoost: {
+          heart: 8,
+          throat: 8
+        }
+      };
+    }
+
+    // 5. 支持位：从数据库的 oracle_support 读取
+    if (kinDef.oracle_support === relativeKin) {
+      return {
+        type: 'support',
+        label: '支持共振位',
+        description: 'Ta 与你同频共振，能够深度理解你的表达方式，是天然的盟友。',
+        energyBoost: {
+          throat: 10,
+          heart: 5
+        }
+      };
+    }
   }
 
-  // 3. 指引导航位：Kin_B 为 Kin_A 的指引 Kin 位
-  const guideKin = calculateGuideKin(userKin);
-  if (relativeKin === guideKin) {
-    return {
-      type: 'guide',
-      label: '指引导航位',
-      description: 'Ta 是你的高维灯塔。在你的逻辑风暴中，Ta 是唯一能带你找到上帝视角的锚点。',
-      energyBoost: {
-        pineal: 12,
-        heart: 5
-      }
-    };
-  }
-
-  // 4. 隐藏力量位：Kin_B 为 Kin_A 的隐藏力量
-  const hiddenKin = calculateHiddenKin(userKin);
-  if (relativeKin === hiddenKin) {
-    return {
-      type: 'hidden',
-      label: '隐藏力量位',
-      description: 'Ta 是你的隐藏推动力。在你看不见的维度里，Ta 为你提供源源不断的支持。',
-      energyBoost: {
-        heart: 8,
-        throat: 8
-      }
-    };
-  }
-
-  // 5. 支持位（同色系或特定关系）
-  const supportKin = calculateSupportKin(userKin);
+  // 6. 同色系检测（备选逻辑）
   const totemA = ((userKin - 1) % 20) + 1;
   const totemB = ((relativeKin - 1) % 20) + 1;
 
@@ -141,11 +121,11 @@ export function analyzeQuantumResonance(
   if (isSameColor) {
     return {
       type: 'support',
-      label: '支持共振位',
-      description: 'Ta 与你同频共振，能够深度理解你的表达方式，是天然的盟友。',
+      label: '同色系共振',
+      description: 'Ta 与你同属一个能量色系，能够深度理解你的表达方式，是天然的盟友。',
       energyBoost: {
-        throat: 10,
-        heart: 5
+        throat: 8,
+        heart: 4
       }
     };
   }

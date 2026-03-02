@@ -110,8 +110,8 @@ async function calculateQuantumResonance(
   familyName: string
 ): Promise<QuantumResonance | null> {
   try {
-    // 使用新的量子共振引擎分析关系
-    const resonanceRelation = analyzeQuantumResonance(userKin, familyKin);
+    // 使用新的量子共振引擎分析关系（知识库驱动）
+    const resonanceRelation = await analyzeQuantumResonance(userKin, familyKin);
 
     const userCenters = await fetchEnergyCentersFromDatabase(userKin);
     const familyCenters = await fetchEnergyCentersFromDatabase(familyKin);
