@@ -5,6 +5,7 @@ import {
   calculateEnergyProfile,
   calculateFamilyCollision,
   generateEnergyReport,
+  generateDeepPortrait,
   detectRelationshipSynergy,
   type KinData,
   type EnergyProfile,
@@ -250,34 +251,111 @@ export default function EnergyPerson() {
 
         {finalProfile && myData.kinData && (
           <>
-            <EnergyRadarChart profile={finalProfile} synergies={synergies} />
-
             {showReport && (
               <div
-                className="mt-8 p-8 rounded-2xl"
+                className="mb-8 p-8 rounded-2xl"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(247, 231, 206, 0.1)',
+                  background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.08) 0%, rgba(247, 231, 206, 0.03) 100%)',
+                  border: '1px solid rgba(247, 231, 206, 0.2)',
                   backdropFilter: 'blur(20px)'
                 }}
               >
-                <pre
-                  className="whitespace-pre-wrap font-sans"
+                <h2 className="text-2xl text-center mb-6" style={{ color: '#F7E7CE', letterSpacing: '0.1em' }}>
+                  核心计算维度
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                    <div className="text-sm opacity-60 mb-2" style={{ color: '#F7E7CE' }}>核心印记</div>
+                    <div className="text-xl font-light" style={{ color: '#EBC862' }}>
+                      {myData.kinData.toneName}的{myData.kinData.sealName}
+                    </div>
+                    <div className="text-sm mt-1 opacity-70" style={{ color: '#F7E7CE' }}>
+                      Kin {myData.kinData.kin}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                    <div className="text-sm opacity-60 mb-2" style={{ color: '#F7E7CE' }}>所属波符</div>
+                    <div className="text-xl font-light" style={{ color: '#EBC862' }}>
+                      {myData.kinData.wavespellName}波符
+                    </div>
+                    <div className="text-sm mt-1 opacity-70" style={{ color: '#F7E7CE' }}>
+                      第{myData.kinData.wavespell}波符
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                    <div className="text-sm opacity-60 mb-2" style={{ color: '#F7E7CE' }}>隐藏推动力</div>
+                    <div className="text-xl font-light" style={{ color: '#EBC862' }}>
+                      {myData.kinData.hiddenPowerName}
+                    </div>
+                    <div className="text-sm mt-1 opacity-70" style={{ color: '#F7E7CE' }}>
+                      Kin {myData.kinData.hiddenPower}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                    <div className="text-sm opacity-60 mb-2" style={{ color: '#F7E7CE' }}>调性特质</div>
+                    <div className="text-xl font-light" style={{ color: '#EBC862' }}>
+                      第{myData.kinData.tone}调性
+                    </div>
+                    <div className="text-sm mt-1 opacity-70" style={{ color: '#F7E7CE' }}>
+                      {myData.kinData.toneType}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <EnergyRadarChart profile={finalProfile} synergies={synergies} />
+
+            {showReport && (
+              <>
+                <div
+                  className="mt-8 p-8 rounded-2xl"
                   style={{
-                    color: '#F7E7CE',
-                    lineHeight: '1.8',
-                    fontSize: '0.95rem'
+                    background: 'linear-gradient(135deg, rgba(235, 200, 98, 0.08) 0%, rgba(235, 200, 98, 0.03) 100%)',
+                    border: '1px solid rgba(235, 200, 98, 0.2)',
+                    backdropFilter: 'blur(20px)'
                   }}
                 >
-                  {generateEnergyReport(
-                    myData.kinData,
-                    finalProfile,
-                    motherData.kinData || undefined,
-                    fatherData.kinData || undefined,
-                    synergies
-                  )}
-                </pre>
-              </div>
+                  <div
+                    className="whitespace-pre-wrap font-sans"
+                    style={{
+                      color: '#F7E7CE',
+                      lineHeight: '1.8',
+                      fontSize: '0.95rem'
+                    }}
+                    dangerouslySetInnerHTML={{ __html: generateDeepPortrait(myData.kinData, finalProfile).replace(/\n/g, '<br/>').replace(/###/g, '<h3 style="color: #EBC862; margin: 1.5rem 0 1rem 0; font-size: 1.3rem;">').replace(/<h3/g, '</h3><h3').slice(6) }}
+                  />
+                </div>
+
+                <div
+                  className="mt-8 p-8 rounded-2xl"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(247, 231, 206, 0.1)',
+                    backdropFilter: 'blur(20px)'
+                  }}
+                >
+                  <pre
+                    className="whitespace-pre-wrap font-sans"
+                    style={{
+                      color: '#F7E7CE',
+                      lineHeight: '1.8',
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {generateEnergyReport(
+                      myData.kinData,
+                      finalProfile,
+                      motherData.kinData || undefined,
+                      fatherData.kinData || undefined,
+                      synergies
+                    )}
+                  </pre>
+                </div>
+              </>
             )}
 
             <div className="flex gap-4 justify-center mt-8">
