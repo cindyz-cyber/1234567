@@ -25,6 +25,7 @@ export interface RelationshipSynergy {
   strength: number;
   isChallengeRelation?: boolean;
   tensionLevel?: number;
+  description?: string;
 }
 
 // 硬编码校准点（按用户要求的绝对基准）
@@ -271,22 +272,12 @@ export function calculateEnergyProfile(
   let heart = 0;
 
   // 特殊处理 Kin 200: 超频的黄太阳（黄战士波符）
+  // 强制锁定：心轮 95%（恒星模式）、喉轮 85%（指挥官模式）、松果体 70%（战略家模式）
   if (kin === 200) {
-    heart = 70;      // 基础心轮（黄太阳）
-    throat = 55;     // 基础喉轮（白风关联）
-    pineal = 45;     // 基础松果体（黄战士波符）
-
-    // 黄战士波符影响：注入"质疑与逻辑"底色
-    pineal += 25;    // 战略家模式：逻辑洞察力
-
-    // 超频调性（第5调性）：统领与获取力量
-    throat += 30;    // 指挥官模式：言语穿透力
-    heart += 25;     // 恒星模式：天生正义感与博爱
-
     return {
-      throat: Math.min(100, throat),  // 85%
-      pineal: Math.min(100, pineal),  // 70%
-      heart: Math.min(100, heart)     // 95%
+      throat: 85,  // 指挥官模式：权威指令型，说话旨在"定调"
+      pineal: 70,  // 战略家模式：底层代码是质疑与逻辑，极强逻辑洞察力
+      heart: 95    // 恒星模式：天生的正义感与慈悲心，需防"救世主情结"
     };
   }
   // 印记基础能量（基于20个图腾）
@@ -441,12 +432,39 @@ export function calculateEnergyProfile(
     }
   }
 
-  // 量子共振算法：母体灌溉
+  // 量子共振算法：母体灌溉与推动关系
   if (motherKin) {
-    if (motherKin === 200 && (kin === 243 || kin === 8)) {
-      // 母体灌溉：Kin 200母亲（超频黄太阳） + Kin 243或8子女
-      // 黄太阳的推动力提前催化，心轮动态上调至85%以上
-      heart = Math.max(heart, 85 + Math.floor(Math.random() * 4));
+    const kinSum = kin + motherKin;
+
+    // 推动关系：和为 261（母体灌溉）
+    if (kinSum === 261) {
+      // Kin 200 + Kin 61, 或 Kin 200 + Kin 243（例子中243应该是61的误写，但我们支持所有和为261的情况）
+      // 实际: Kin 200 母亲 + Kin 243 女儿 = 443 ≠ 261
+      // 但根据用户描述，243是推动因子，我们特殊处理
+      heart = Math.max(heart, 88);  // 心轮上调至88%
+    }
+
+    // 特殊处理：Kin 200 母亲的子女
+    if (motherKin === 200) {
+      if (kin === 243) {
+        // 女儿 Kin 243：推动因子（高频松果体撞击直觉边界）
+        heart = Math.max(heart, 88);  // 母体灌溉：心轮上调至88%
+        pineal = Math.max(pineal, 75); // 暗夜视角补全
+      } else if (kin === 8) {
+        // 儿子 Kin 8：支持关系（审美与秩序感软化硬核指令）
+        throat = Math.max(throat, 60); // 喉轮显化度提升至60%
+        heart = Math.max(heart, 65);   // 频率整合，输出更具美感
+      }
+    }
+  }
+
+  // 父亲的支持关系
+  if (fatherKin) {
+    const kinSum = kin + fatherKin;
+
+    // 推动关系：和为 261
+    if (kinSum === 261) {
+      throat = Math.max(throat, 65);
     }
   }
 
@@ -548,17 +566,30 @@ export function detectRelationshipSynergy(
   relation: 'father' | 'mother' | 'child'
 ): RelationshipSynergy {
   const kinDiff = Math.abs(userKin.kin - relativeKin.kin);
+  const kinSum = userKin.kin + relativeKin.kin;
   const sealDiff = Math.abs(userKin.seal - relativeKin.seal);
   const toneDiff = Math.abs(userKin.tone - relativeKin.tone);
 
-  // 首先检测「挑战关系」（反作用力）
+  // 首先检测「推动关系」：和为 261（最强共振）
+  if (kinSum === 261) {
+    return {
+      hasSynergy: true,
+      type: 'mutual-push',
+      strength: 1.0,
+      isChallengeRelation: false,
+      description: '推动关系 - 母体灌溉/父体支持，心轮能量催化上调'
+    };
+  }
+
+  // 检测「挑战关系/反作用力」：差为 130（磨刀石）
   if (kinDiff === 130) {
     return {
       hasSynergy: true,
       type: 'challenge',
       strength: 1.0,
       isChallengeRelation: true,
-      tensionLevel: 0.95
+      tensionLevel: 0.95,
+      description: '挑战关系 - 反作用力/磨刀石，独立性与张力强化'
     };
   }
 

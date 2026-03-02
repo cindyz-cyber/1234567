@@ -4,6 +4,8 @@ export interface EnergyCenter {
   mode: string;
   description: string;
   icon: string;
+  traits?: string;
+  weaknesses?: string;
 }
 
 export interface EnergyPortrait {
@@ -15,10 +17,17 @@ export interface EnergyPortrait {
 
 export interface QuantumResonance {
   relationName: string;
+  relation: string;
   kin: number;
   type: 'pusher' | 'integrator' | 'mirror' | 'anchor';
   typeLabel: string;
   description: string;
+  relationIcon: string;
+  synergy: {
+    type: string;
+    strength: number;
+    description?: string;
+  };
 }
 
 export interface YearGuidance {
@@ -35,4 +44,5 @@ export interface KinEnergyReport {
   yearGuidance: YearGuidance;
   weakestCenter: string;
   challengeAdvice: string;
+  wavespellInfluence: string;
 }

@@ -67,6 +67,40 @@ function calculateEnergyCenters(kin: number): EnergyCenter[] {
   const seal = ((kin - 1) % 20) + 1;
   const sealData = SEALS[seal - 1];
 
+  // 强制锁定 Kin 200 的特殊能量值
+  if (kin === 200) {
+    const wavespell = WAVESPELLS[15]; // 黄战士波符
+    return [
+      {
+        name: '心轮',
+        percentage: 95,
+        mode: '恒星模式',
+        description: '天生的正义感与慈悲心。受「黄战士波符」影响，你拥有强大的爱之力量。注意预防"救世主情结"导致的自我消耗。',
+        icon: '❤️',
+        traits: '天生拥有强烈的同理心和正义感，能够感受他人情绪，天然的博爱与慈悲心驱使你帮助他人',
+        weaknesses: '容易陷入"救世主情结"，过度承担他人情绪负担，需要学会边界感'
+      },
+      {
+        name: '喉轮',
+        percentage: 85,
+        mode: '指挥官模式',
+        description: '权威指令型。你的声音自带"定调"的重力感，说话旨在"定调"而非单纯沟通。受「黄战士波符」增强了表达力场。',
+        icon: '💎',
+        traits: '天生具备强大的表达力和说服力，言语精准且有穿透力，能够快速将想法转化为行动指令',
+        weaknesses: '过度使用指令型沟通可能让他人感到压迫，需要学会倾听与温柔表达'
+      },
+      {
+        name: '松果体',
+        percentage: 70,
+        mode: '战略家模式',
+        description: '受黄战士波符影响，底层代码是"质疑与逻辑"。直觉表现为极强的逻辑洞察力，而非纯粹的灵性感知。你会本能地质疑一切，包括自己的善意是否真的有用。',
+        icon: '👁️',
+        traits: '直觉敏锐，逻辑思维强大，能够快速洞察事物本质，质疑精神让你不断追求真理',
+        weaknesses: '过度质疑可能导致分析瘫痪，需要学会信任直觉并放下控制'
+      }
+    ];
+  }
+
   const baseScores: Record<string, number> = {
     heart: 50,
     throat: 50,
@@ -205,7 +239,8 @@ export function generateEnergyReport(
     quantumResonances,
     yearGuidance,
     weakestCenter: weakestCenter.name,
-    challengeAdvice
+    challengeAdvice,
+    wavespellInfluence: wavespell.name
   };
 }
 
@@ -220,34 +255,104 @@ function calculateQuantumResonance(
   const userWeakest = userCenters.reduce((min, c) => c.percentage < min.percentage ? c : min);
   const familyStrongest = familyCenters.reduce((max, c) => c.percentage > max.percentage ? c : max);
 
+  const kinSum = userKin + familyKin;
+  const kinDiff = Math.abs(userKin - familyKin);
+
   let type: 'pusher' | 'integrator' | 'mirror' | 'anchor' = 'mirror';
   let typeLabel = '镜像因子';
   let description = '';
+  let synergyType = 'harmonic-resonance';
+  let synergyStrength = 0.5;
+  let synergyDescription = '';
 
-  if (familyStrongest.name === userWeakest.name && familyStrongest.percentage > 75) {
+  // 特殊处理：Kin 200 的家人关系
+  if (userKin === 200) {
+    if (familyKin === 243) {
+      type = 'pusher';
+      typeLabel = '推动因子';
+      synergyType = 'mutual-push';
+      synergyStrength = 1.0;
+      description = `${familyName}（Kin 243）的高频松果体持续撞击你的直觉边界，补全了"暗夜视角"。她的深海冥想维度正在量子层面软化你的硬核逻辑。`;
+      synergyDescription = '推动关系 - 母体灌溉，女儿的松果体能量催化母亲的直觉觉醒';
+    } else if (familyKin === 8) {
+      type = 'integrator';
+      typeLabel = '频率整合';
+      synergyType = 'energy-amplify';
+      synergyStrength = 0.85;
+      description = `${familyName}（Kin 8）的审美与秩序感正在软化你的硬核指令，让你的输出更具美感。他的和谐共振帮助你学会温柔的力量。`;
+      synergyDescription = '支持关系 - 儿子的美学能量整合母亲的指令模式';
+    }
+  } else if (familyKin === 200) {
+    if (userKin === 243) {
+      type = 'pusher';
+      typeLabel = '推动因子';
+      synergyType = 'mutual-push';
+      synergyStrength = 1.0;
+      description = `母亲（Kin 200）的恒星模式心轮正在量子层面灌溉你的情感领域，心轮能量被催化上调至88%。`;
+      synergyDescription = '推动关系 - 母体灌溉，母亲的心轮能量催化子女的情感觉醒';
+    } else if (userKin === 8) {
+      type = 'integrator';
+      typeLabel = '频率整合';
+      synergyType = 'energy-amplify';
+      synergyStrength = 0.85;
+      description = `母亲（Kin 200）的指挥官模式正在被你的和谐能量软化，你教会她温柔表达的力量。`;
+      synergyDescription = '支持关系 - 子女的美学能量整合母亲的指令模式';
+    }
+  } else if (kinSum === 261) {
     type = 'pusher';
     typeLabel = '推动因子';
+    synergyType = 'mutual-push';
+    synergyStrength = 1.0;
+    description = `${familyName}与你形成了完美的推动关系（和为261），你们在量子层面互相催化，心轮能量被大幅提升。`;
+    synergyDescription = '推动关系 - 和为261的完美共振，互相催化能量觉醒';
+  } else if (kinDiff === 130) {
+    type = 'anchor';
+    typeLabel = '挑战/磨刀石';
+    synergyType = 'challenge';
+    synergyStrength = 1.0;
+    description = `${familyName}与你形成了挑战关系（差为130），这种张力正在强化你的独立性与自我意识，是成长的磨刀石。`;
+    synergyDescription = '挑战关系 - 反作用力/磨刀石，独立性与张力强化';
+  } else if (familyStrongest.name === userWeakest.name && familyStrongest.percentage > 75) {
+    type = 'pusher';
+    typeLabel = '推动因子';
+    synergyType = 'energy-amplify';
+    synergyStrength = 0.8;
     description = `${familyName}的高频${familyStrongest.name}正在量子层面撞击你的${userWeakest.name}边界，补全了你看不见的维度视角。`;
   } else if (Math.abs(familyStrongest.percentage - userWeakest.percentage) > 30) {
     type = 'integrator';
     typeLabel = '频率整合';
+    synergyType = 'harmonic-resonance';
+    synergyStrength = 0.75;
     description = `${familyName}的${familyStrongest.name}能量正在软化你${userWeakest.name}中的固有模式，让你的能量场更具流动性与美感。`;
   } else if (Math.abs(familyCenters[0].percentage - userCenters[0].percentage) < 10) {
     type = 'mirror';
     typeLabel = '共振镜像';
+    synergyType = 'harmonic-resonance';
+    synergyStrength = 0.9;
     description = `${familyName}与你的能量场高度共振，你们在量子层面形成了强大的能量放大器。`;
   } else {
     type = 'anchor';
     typeLabel = '锚定支撑';
+    synergyType = 'energy-amplify';
+    synergyStrength = 0.7;
     description = `${familyName}的稳定能量为你提供了坚实的根基，让你可以安心探索更高维度。`;
   }
 
+  const relationIcon = familyName.includes('母') ? '👩' : familyName.includes('父') ? '👨' : familyName.includes('女') ? '👧' : familyName.includes('儿') ? '👦' : '👤';
+
   return {
     relationName: familyName,
+    relation: familyName,
     kin: familyKin,
     type,
     typeLabel,
-    description
+    description,
+    relationIcon,
+    synergy: {
+      type: synergyType,
+      strength: synergyStrength,
+      description: synergyDescription
+    }
   };
 }
 
