@@ -36,198 +36,80 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
       <div className={`energy-content-wrapper ${isVisible ? 'visible' : ''}`}>
         <button
           onClick={onBack}
-          className="mb-12 px-6 py-3 rounded-full transition-all duration-300 hover:scale-105"
-          style={{
-            background: 'rgba(247, 231, 206, 0.05)',
-            border: '1px solid rgba(247, 231, 206, 0.2)',
-            color: '#F7E7CE',
-            backdropFilter: 'blur(20px)',
-            letterSpacing: '0.1em'
-          }}
+          className="back-portal-button"
         >
-          ← 返回
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ opacity: 0.9 }}>
+            <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
 
-        <div className="text-center mb-20" style={{ transform: `translateY(${scrollY * 0.1}px)` }}>
-          <div
-            className="inline-block px-8 py-3 rounded-full text-sm mb-6 animate-breath"
-            style={{
-              background: 'linear-gradient(135deg, rgba(235, 200, 98, 0.15) 0%, rgba(247, 231, 206, 0.15) 100%)',
-              border: '1px solid rgba(235, 200, 98, 0.3)',
-              color: '#EBC862',
-              letterSpacing: '0.2em'
-            }}
-          >
-            Kin {report.kin}
+        <div className="hero-section" style={{ transform: `translateY(${scrollY * 0.15}px)` }}>
+          <div className="seal-container animate-breath">
+            <div className="seal-icon">
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="30" stroke="rgba(235, 200, 98, 0.3)" strokeWidth="0.5" fill="none"/>
+                <circle cx="32" cy="32" r="24" stroke="rgba(235, 200, 98, 0.4)" strokeWidth="0.5" fill="none"/>
+                <circle cx="32" cy="32" r="18" fill="url(#sealGradient)"/>
+                <text x="32" y="38" textAnchor="middle" fill="rgba(10, 31, 28, 0.9)" fontSize="16" fontWeight="300">☀️</text>
+                <defs>
+                  <radialGradient id="sealGradient">
+                    <stop offset="0%" stopColor="rgba(247, 231, 206, 0.95)" />
+                    <stop offset="100%" stopColor="rgba(235, 200, 98, 0.8)" />
+                  </radialGradient>
+                </defs>
+              </svg>
+            </div>
+            <div className="kin-label">Kin {report.kin}</div>
           </div>
-          <h1
-            className="text-5xl font-light mb-4"
-            style={{
-              color: '#F7E7CE',
-              textShadow: '0 0 40px rgba(247, 231, 206, 0.2)',
-              letterSpacing: '0.15em'
-            }}
-          >
-            能量画像
-          </h1>
-          <p
-            className="text-lg"
-            style={{
-              color: '#F7E7CE',
-              opacity: 0.5,
-              letterSpacing: '0.3em'
-            }}
-          >
-            量子层面的灵魂解析
-          </p>
+
+          <h1 className="portal-title">能量画像</h1>
+          <p className="portal-subtitle">Quantum Energy Portrait</p>
         </div>
 
-        <div
-          className="mb-20 p-12 rounded-3xl transition-all duration-700 hover:scale-[1.01]"
-          style={{
-            background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.06) 0%, rgba(247, 231, 206, 0.02) 100%)',
-            border: '1px solid rgba(247, 231, 206, 0.15)',
-            backdropFilter: 'blur(30px)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}
-        >
-          <h2
-            className="text-3xl font-light text-center mb-12"
-            style={{
-              color: '#EBC862',
-              letterSpacing: '0.2em'
-            }}
-          >
-            能量画像
-          </h2>
+        <div className="scroll-card-wrapper">
+          <div className="scroll-card">
+            <div className="card-header-line"></div>
 
-          <div className="space-y-8 max-w-2xl mx-auto">
-            <div className="flex items-start gap-6 group">
-              <span
-                className="font-light min-w-32 transition-all duration-300 group-hover:text-amber-400"
-                style={{
-                  color: '#F7E7CE',
-                  opacity: 0.6,
-                  letterSpacing: '0.15em'
-                }}
-              >
-                模式
-              </span>
-              <span
-                className="font-light text-xl leading-relaxed"
-                style={{
-                  color: '#F7E7CE',
-                  letterSpacing: '0.05em'
-                }}
-              >
-                {report.portrait.mode}
-              </span>
+            <div className="portrait-grid">
+              <div className="portrait-item">
+                <span className="portrait-key">模式</span>
+                <span className="portrait-value">{report.portrait.mode}</span>
+              </div>
+
+              <div className="portrait-item">
+                <span className="portrait-key">视角</span>
+                <span className="portrait-value">{report.portrait.perspective}</span>
+              </div>
+
+              <div className="portrait-item essence-item">
+                <span className="portrait-key">本质</span>
+                <span className="portrait-value essence-text">{report.portrait.essence}</span>
+              </div>
             </div>
-            <div className="flex items-start gap-6 group">
-              <span
-                className="font-light min-w-32 transition-all duration-300 group-hover:text-amber-400"
-                style={{
-                  color: '#F7E7CE',
-                  opacity: 0.6,
-                  letterSpacing: '0.15em'
-                }}
-              >
-                视角
-              </span>
-              <span
-                className="font-light text-xl leading-relaxed"
-                style={{
-                  color: '#F7E7CE',
-                  letterSpacing: '0.05em'
-                }}
-              >
-                {report.portrait.perspective}
-              </span>
-            </div>
-            <div className="flex items-start gap-6 group">
-              <span
-                className="font-light min-w-32 transition-all duration-300 group-hover:text-amber-400"
-                style={{
-                  color: '#F7E7CE',
-                  opacity: 0.6,
-                  letterSpacing: '0.15em'
-                }}
-              >
-                本质
-              </span>
-              <span
-                className="font-light text-xl leading-relaxed"
-                style={{
-                  color: '#F7E7CE',
-                  letterSpacing: '0.05em',
-                  lineHeight: '2'
-                }}
-              >
-                {report.portrait.essence}
-              </span>
-            </div>
+
+            <div className="card-footer-line"></div>
           </div>
         </div>
 
-        <div
-          className="mb-20 p-12 rounded-3xl relative overflow-hidden transition-all duration-700"
-          style={{
-            background: hasQuantumResonance
-              ? 'linear-gradient(135deg, rgba(235, 200, 98, 0.08) 0%, rgba(247, 231, 206, 0.03) 100%)'
-              : 'linear-gradient(135deg, rgba(247, 231, 206, 0.04) 0%, rgba(247, 231, 206, 0.01) 100%)',
-            border: hasQuantumResonance
-              ? '1px solid rgba(235, 200, 98, 0.25)'
-              : '1px solid rgba(247, 231, 206, 0.12)',
-            backdropFilter: 'blur(30px)',
-            boxShadow: hasQuantumResonance
-              ? '0 8px 32px rgba(235, 200, 98, 0.15), 0 0 80px rgba(235, 200, 98, 0.05)'
-              : '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}
-        >
+        <div className={`radar-section ${hasQuantumResonance ? 'resonance-active' : ''}`}>
           {hasQuantumResonance && (
             <>
-              <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl animate-pulse-slow"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-400/3 rounded-full blur-3xl animate-pulse-slow-delayed"></div>
+              <div className="quantum-glow-layer">
+                <div className="glow-orb glow-orb-1"></div>
+                <div className="glow-orb glow-orb-2"></div>
               </div>
-              <div className="absolute top-6 right-6 z-10">
-                <div
-                  className="px-4 py-2 rounded-full text-xs animate-breath"
-                  style={{
-                    background: 'rgba(235, 200, 98, 0.15)',
-                    border: '1px solid rgba(235, 200, 98, 0.3)',
-                    color: '#EBC862',
-                    letterSpacing: '0.15em'
-                  }}
-                >
-                  家族共振激活
-                </div>
+              <div className="resonance-badge">
+                <span>家族共振激活</span>
               </div>
             </>
           )}
 
-          <h2
-            className="text-3xl font-light text-center mb-4 relative z-10"
-            style={{
-              color: '#EBC862',
-              letterSpacing: '0.2em'
-            }}
-          >
-            能量中心解析
-          </h2>
-          <p
-            className="text-center mb-12 relative z-10"
-            style={{
-              color: '#F7E7CE',
-              opacity: 0.5,
-              letterSpacing: '0.2em',
-              fontSize: '0.875rem'
-            }}
-          >
-            三维能量雷达图
-          </p>
+          <div className="section-header">
+            <h2 className="section-title">能量中心解析</h2>
+            <p className="section-subtitle">Three-Dimensional Energy Radar</p>
+          </div>
 
-          <div className="relative w-full aspect-square max-w-lg mx-auto mb-16 relative z-10">
+          <div className="radar-canvas-wrapper">
             <svg viewBox="0 0 400 400" className="w-full h-full">
               <defs>
                 <radialGradient id="glowGradient">
@@ -373,325 +255,105 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
             </svg>
           </div>
 
-          <div className="grid gap-6 relative z-10 max-w-3xl mx-auto">
+          <div className="energy-centers-list">
             {report.portrait.centers.map((center, i) => (
               <div
                 key={i}
-                className="rounded-3xl p-8 transition-all duration-500 hover:scale-[1.02] cursor-pointer"
-                style={{
-                  background: hoveredCenter === i
-                    ? 'linear-gradient(135deg, rgba(235, 200, 98, 0.1) 0%, rgba(247, 231, 206, 0.05) 100%)'
-                    : 'rgba(247, 231, 206, 0.03)',
-                  border: hoveredCenter === i
-                    ? '1px solid rgba(235, 200, 98, 0.3)'
-                    : '1px solid rgba(247, 231, 206, 0.1)',
-                  backdropFilter: 'blur(20px)'
-                }}
+                className={`center-card ${hoveredCenter === i ? 'hovered' : ''}`}
                 onMouseEnter={() => setHoveredCenter(i)}
                 onMouseLeave={() => setHoveredCenter(null)}
               >
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center gap-4">
-                    <span className="text-3xl opacity-80">{center.icon}</span>
-                    <div>
-                      <div
-                        className="text-2xl font-light mb-1"
-                        style={{
-                          color: '#F7E7CE',
-                          letterSpacing: '0.1em'
-                        }}
-                      >
-                        {center.name}
-                      </div>
-                      <div
-                        className="text-xs"
-                        style={{
-                          color: '#EBC862',
-                          opacity: 0.7,
-                          letterSpacing: '0.15em'
-                        }}
-                      >
-                        {center.mode}
-                      </div>
+                <div className="center-header">
+                  <div className="center-identity">
+                    <span className="center-icon">{center.icon}</span>
+                    <div className="center-info">
+                      <h3 className="center-name">{center.name}</h3>
+                      <span className="center-mode">{center.mode}</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div
-                      className="text-4xl font-light mb-1"
-                      style={{
-                        color: '#EBC862',
-                        letterSpacing: '0.05em'
-                      }}
-                    >
-                      {center.percentage}%
-                    </div>
-                  </div>
+                  <div className="center-percentage">{center.percentage}%</div>
                 </div>
-                <p
-                  className="leading-relaxed"
-                  style={{
-                    color: '#F7E7CE',
-                    opacity: 0.8,
-                    fontSize: '0.95rem',
-                    lineHeight: '1.9',
-                    letterSpacing: '0.03em'
-                  }}
-                >
-                  {center.description}
-                </p>
+                <p className="center-description">{center.description}</p>
               </div>
             ))}
           </div>
         </div>
 
         {hasQuantumResonance && (
-          <div
-            className="mb-20 p-12 rounded-3xl relative overflow-hidden transition-all duration-700"
-            style={{
-              background: 'linear-gradient(135deg, rgba(235, 200, 98, 0.1) 0%, rgba(247, 231, 206, 0.04) 100%)',
-              border: '1px solid rgba(235, 200, 98, 0.25)',
-              backdropFilter: 'blur(30px)',
-              boxShadow: '0 8px 32px rgba(235, 200, 98, 0.2)'
-            }}
-          >
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              <div className="absolute top-0 left-1/4 w-64 h-64 bg-amber-400/5 rounded-full blur-3xl animate-pulse-slow"></div>
-              <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-yellow-400/5 rounded-full blur-3xl animate-pulse-slow-delayed"></div>
+          <div className="quantum-section">
+            <div className="quantum-ambient-layer">
+              <div className="ambient-glow ambient-glow-left"></div>
+              <div className="ambient-glow ambient-glow-right"></div>
             </div>
 
-            <h2
-              className="text-3xl font-light text-center mb-4 relative z-10"
-              style={{
-                color: '#EBC862',
-                letterSpacing: '0.2em'
-              }}
-            >
-              量子信息共振
-            </h2>
-            <p
-              className="text-center mb-12 relative z-10"
-              style={{
-                color: '#F7E7CE',
-                opacity: 0.5,
-                letterSpacing: '0.2em',
-                fontSize: '0.875rem'
-              }}
-            >
-              家族能量场的量子纠缠
-            </p>
+            <div className="section-header">
+              <h2 className="section-title">量子信息共振</h2>
+              <p className="section-subtitle">Quantum Family Entanglement</p>
+            </div>
 
-            <div className="space-y-6 max-w-3xl mx-auto relative z-10">
+            <div className="resonance-list">
               {report.quantumResonances.map((resonance, i) => (
-                <div
-                  key={i}
-                  className="rounded-3xl p-8 transition-all duration-500 hover:scale-[1.01]"
-                  style={{
-                    background: 'rgba(247, 231, 206, 0.04)',
-                    border: '1px solid rgba(235, 200, 98, 0.2)',
-                    backdropFilter: 'blur(20px)'
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-light"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(235, 200, 98, 0.3) 0%, rgba(247, 231, 206, 0.2) 100%)',
-                          border: '1px solid rgba(235, 200, 98, 0.4)',
-                          color: '#EBC862',
-                          letterSpacing: '0.1em'
-                        }}
-                      >
+                <div key={i} className="resonance-card">
+                  <div className="resonance-header">
+                    <div className="resonance-identity">
+                      <div className="resonance-avatar">
                         {resonance.relationName.slice(0, 1)}
                       </div>
-                      <div>
-                        <div
-                          className="text-xl font-light mb-1"
-                          style={{
-                            color: '#F7E7CE',
-                            letterSpacing: '0.1em'
-                          }}
-                        >
-                          {resonance.relationName}
-                        </div>
-                        <div
-                          className="text-sm"
-                          style={{
-                            color: '#F7E7CE',
-                            opacity: 0.5,
-                            letterSpacing: '0.15em'
-                          }}
-                        >
-                          Kin {resonance.kin}
-                        </div>
+                      <div className="resonance-info">
+                        <h3 className="resonance-name">{resonance.relationName}</h3>
+                        <span className="resonance-kin">Kin {resonance.kin}</span>
                       </div>
                     </div>
-                    <div
-                      className="px-4 py-2 rounded-full text-xs"
-                      style={{
-                        background: 'rgba(235, 200, 98, 0.15)',
-                        border: '1px solid rgba(235, 200, 98, 0.3)',
-                        color: '#EBC862',
-                        letterSpacing: '0.15em'
-                      }}
-                    >
-                      {resonance.typeLabel}
-                    </div>
+                    <div className="resonance-type">{resonance.typeLabel}</div>
                   </div>
-                  <p
-                    className="leading-relaxed"
-                    style={{
-                      color: '#F7E7CE',
-                      opacity: 0.8,
-                      fontSize: '0.95rem',
-                      lineHeight: '1.9',
-                      letterSpacing: '0.03em'
-                    }}
-                  >
-                    {resonance.description}
-                  </p>
+                  <p className="resonance-description">{resonance.description}</p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        <div
-          className="mb-20 p-12 rounded-3xl transition-all duration-700"
-          style={{
-            background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.06) 0%, rgba(247, 231, 206, 0.02) 100%)',
-            border: '1px solid rgba(247, 231, 206, 0.15)',
-            backdropFilter: 'blur(30px)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}
-        >
-          <h2
-            className="text-3xl font-light text-center mb-4"
-            style={{
-              color: '#EBC862',
-              letterSpacing: '0.2em'
-            }}
-          >
-            2026 白风年显化建议
-          </h2>
-          <p
-            className="text-center mb-12"
-            style={{
-              color: '#F7E7CE',
-              opacity: 0.5,
-              letterSpacing: '0.2em',
-              fontSize: '0.875rem'
-            }}
-          >
-            宇宙周期的实修指引
-          </p>
+        <div className="scroll-card-wrapper">
+          <div className="scroll-card">
+            <div className="card-header-line"></div>
 
-          <div className="space-y-8 max-w-2xl mx-auto">
-            <div className="flex items-start gap-6">
-              <span
-                className="font-light min-w-32"
-                style={{
-                  color: '#F7E7CE',
-                  opacity: 0.6,
-                  letterSpacing: '0.15em'
-                }}
-              >
-                年度主题
-              </span>
-              <span
-                className="font-light text-xl leading-relaxed"
-                style={{
-                  color: '#F7E7CE',
-                  letterSpacing: '0.05em'
-                }}
-              >
-                {report.yearGuidance.theme} - {report.yearGuidance.mainEnergy}
-              </span>
+            <div className="section-header">
+              <h2 className="section-title">2026 白风年显化建议</h2>
+              <p className="section-subtitle">Universal Cycle Guidance</p>
             </div>
-            <div className="flex items-start gap-6">
-              <span
-                className="font-light min-w-32"
-                style={{
-                  color: '#F7E7CE',
-                  opacity: 0.6,
-                  letterSpacing: '0.15em'
-                }}
-              >
-                实修建议
-              </span>
-              <span
-                className="font-light text-lg leading-relaxed"
-                style={{
-                  color: '#F7E7CE',
-                  letterSpacing: '0.03em',
-                  lineHeight: '2'
-                }}
-              >
-                {report.yearGuidance.advice}
-              </span>
+
+            <div className="guidance-grid">
+              <div className="guidance-item">
+                <span className="guidance-key">年度主题</span>
+                <span className="guidance-value">{report.yearGuidance.theme} - {report.yearGuidance.mainEnergy}</span>
+              </div>
+
+              <div className="guidance-item guidance-advice">
+                <span className="guidance-key">实修建议</span>
+                <span className="guidance-value advice-text">{report.yearGuidance.advice}</span>
+              </div>
             </div>
+
+            <div className="card-footer-line"></div>
           </div>
         </div>
 
-        <div
-          className="mb-12 p-12 rounded-3xl transition-all duration-700"
-          style={{
-            background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.05) 0%, rgba(235, 200, 98, 0.02) 100%)',
-            border: '1px solid rgba(247, 231, 206, 0.12)',
-            backdropFilter: 'blur(30px)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}
-        >
-          <h2
-            className="text-3xl font-light text-center mb-12"
-            style={{
-              color: '#EBC862',
-              letterSpacing: '0.2em'
-            }}
-          >
-            核心卡点与突破路径
-          </h2>
+        <div className="scroll-card-wrapper final-section">
+          <div className="scroll-card">
+            <div className="card-header-line"></div>
 
-          <div
-            className="rounded-3xl p-8 max-w-2xl mx-auto"
-            style={{
-              background: 'rgba(247, 231, 206, 0.03)',
-              border: '1px solid rgba(247, 231, 206, 0.15)'
-            }}
-          >
-            <div className="mb-6">
-              <span
-                className="text-lg font-light"
-                style={{
-                  color: '#F7E7CE',
-                  opacity: 0.6,
-                  letterSpacing: '0.15em'
-                }}
-              >
-                当前卡点
-              </span>
-              <div
-                className="text-2xl font-light mt-2"
-                style={{
-                  color: '#EBC862',
-                  letterSpacing: '0.1em'
-                }}
-              >
-                {report.weakestCenter}
-              </div>
+            <div className="section-header">
+              <h2 className="section-title">核心卡点与突破路径</h2>
+              <p className="section-subtitle">Breakthrough Path</p>
             </div>
-            <p
-              className="leading-relaxed"
-              style={{
-                color: '#F7E7CE',
-                opacity: 0.8,
-                fontSize: '0.95rem',
-                lineHeight: '2',
-                letterSpacing: '0.03em'
-              }}
-            >
-              {report.challengeAdvice}
-            </p>
+
+            <div className="challenge-container">
+              <div className="challenge-label">当前卡点</div>
+              <div className="challenge-center">{report.weakestCenter}</div>
+              <p className="challenge-advice">{report.challengeAdvice}</p>
+            </div>
+
+            <div className="card-footer-line"></div>
           </div>
         </div>
       </div>
@@ -720,17 +382,599 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         .energy-content-wrapper {
           position: relative;
           z-index: 10;
-          max-width: 1536px;
+          max-width: 1400px;
           margin: 0 auto;
-          padding: 2rem 1.5rem 8rem;
+          padding: 0 2rem 12rem;
           opacity: 0;
-          transform: translateY(2rem);
-          transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+          transform: translateY(3rem);
+          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .energy-content-wrapper.visible {
           opacity: 1;
           transform: translateY(0);
+        }
+
+        .back-portal-button {
+          position: fixed;
+          top: 3rem;
+          left: 3rem;
+          z-index: 100;
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(40px);
+          border: 0.5px solid rgba(200, 220, 255, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: rgba(247, 231, 206, 0.95);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
+        }
+
+        .back-portal-button:hover {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(200, 220, 255, 0.3);
+          transform: scale(1.1);
+        }
+
+        .hero-section {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          min-height: 100vh;
+          justify-content: center;
+          gap: 4rem;
+          padding: 8rem 0;
+          transition: transform 0.3s ease-out;
+        }
+
+        .seal-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2rem;
+        }
+
+        .seal-icon {
+          position: relative;
+        }
+
+        .kin-label {
+          font-size: 1rem;
+          font-weight: 300;
+          letter-spacing: 0.3em;
+          color: rgba(235, 200, 98, 0.9);
+          text-shadow: 0 0 20px rgba(235, 200, 98, 0.3);
+        }
+
+        .portal-title {
+          font-size: 5rem;
+          font-weight: 300;
+          letter-spacing: 0.3em;
+          color: rgba(247, 231, 206, 0.95);
+          text-shadow: 0 0 60px rgba(247, 231, 206, 0.25);
+          margin: 0;
+        }
+
+        .portal-subtitle {
+          font-size: 1rem;
+          font-weight: 300;
+          letter-spacing: 0.4em;
+          color: rgba(247, 231, 206, 0.4);
+          text-transform: uppercase;
+          margin: 0;
+        }
+
+        .scroll-card-wrapper {
+          margin: 8rem 0;
+        }
+
+        .scroll-card {
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(60px);
+          border: 0.5px solid rgba(247, 231, 206, 0.12);
+          border-radius: 4px;
+          padding: 6rem 8rem;
+          transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 8px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .scroll-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 16px 80px rgba(0, 0, 0, 0.5);
+          border-color: rgba(247, 231, 206, 0.18);
+        }
+
+        .card-header-line,
+        .card-footer-line {
+          width: 100%;
+          height: 1px;
+          background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(235, 200, 98, 0.3) 50%,
+            transparent 100%);
+          margin: 3rem 0;
+        }
+
+        .portrait-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 4rem;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+
+        .portrait-item {
+          display: flex;
+          align-items: center;
+          gap: 4rem;
+          padding: 2rem 0;
+        }
+
+        .portrait-item.essence-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 2rem;
+        }
+
+        .portrait-key {
+          font-size: 1.125rem;
+          font-weight: 300;
+          letter-spacing: 0.2em;
+          color: rgba(247, 231, 206, 0.5);
+          min-width: 160px;
+        }
+
+        .portrait-value {
+          font-size: 1.5rem;
+          font-weight: 300;
+          letter-spacing: 0.08em;
+          color: rgba(247, 231, 206, 0.95);
+          line-height: 1.8;
+          flex: 1;
+        }
+
+        .portrait-value.essence-text {
+          font-size: 1.25rem;
+          line-height: 2.2;
+          letter-spacing: 0.05em;
+        }
+
+        .section-header {
+          text-align: center;
+          margin-bottom: 6rem;
+        }
+
+        .section-title {
+          font-size: 2.5rem;
+          font-weight: 300;
+          letter-spacing: 0.25em;
+          color: rgba(235, 200, 98, 0.9);
+          margin-bottom: 1.5rem;
+        }
+
+        .section-subtitle {
+          font-size: 0.875rem;
+          font-weight: 300;
+          letter-spacing: 0.3em;
+          color: rgba(247, 231, 206, 0.4);
+          text-transform: uppercase;
+        }
+
+        .radar-section {
+          position: relative;
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(60px);
+          border: 0.5px solid rgba(247, 231, 206, 0.12);
+          border-radius: 4px;
+          padding: 6rem 4rem;
+          margin: 8rem 0;
+          overflow: hidden;
+          transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .radar-section.resonance-active {
+          border-color: rgba(235, 200, 98, 0.25);
+          box-shadow: 0 8px 60px rgba(235, 200, 98, 0.15), 0 0 120px rgba(235, 200, 98, 0.08);
+        }
+
+        .quantum-glow-layer {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          overflow: hidden;
+        }
+
+        .glow-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(80px);
+        }
+
+        .glow-orb-1 {
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 400px;
+          height: 400px;
+          background: rgba(235, 200, 98, 0.08);
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+
+        .glow-orb-2 {
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 600px;
+          height: 600px;
+          background: rgba(247, 231, 206, 0.04);
+          animation: pulse-slow-delayed 4s ease-in-out infinite;
+        }
+
+        .resonance-badge {
+          position: absolute;
+          top: 3rem;
+          right: 3rem;
+          z-index: 10;
+          padding: 0.75rem 1.5rem;
+          border-radius: 100px;
+          background: rgba(235, 200, 98, 0.12);
+          border: 0.5px solid rgba(235, 200, 98, 0.3);
+          backdrop-filter: blur(20px);
+        }
+
+        .resonance-badge span {
+          font-size: 0.75rem;
+          font-weight: 300;
+          letter-spacing: 0.2em;
+          color: rgba(235, 200, 98, 0.95);
+        }
+
+        .radar-canvas-wrapper {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 1;
+          max-width: 600px;
+          margin: 0 auto 8rem;
+          z-index: 10;
+        }
+
+        .energy-centers-list {
+          display: flex;
+          flex-direction: column;
+          gap: 3rem;
+          max-width: 1000px;
+          margin: 0 auto;
+          position: relative;
+          z-index: 10;
+        }
+
+        .center-card {
+          background: rgba(247, 231, 206, 0.02);
+          backdrop-filter: blur(40px);
+          border: 0.5px solid rgba(247, 231, 206, 0.08);
+          border-radius: 4px;
+          padding: 3rem;
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
+        }
+
+        .center-card:hover,
+        .center-card.hovered {
+          background: rgba(235, 200, 98, 0.06);
+          border-color: rgba(235, 200, 98, 0.25);
+          transform: translateX(12px);
+          box-shadow: 0 8px 40px rgba(235, 200, 98, 0.12);
+        }
+
+        .center-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          margin-bottom: 2rem;
+          gap: 2rem;
+        }
+
+        .center-identity {
+          display: flex;
+          align-items: center;
+          gap: 2rem;
+        }
+
+        .center-icon {
+          font-size: 2.5rem;
+          opacity: 0.85;
+        }
+
+        .center-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .center-name {
+          font-size: 1.75rem;
+          font-weight: 300;
+          letter-spacing: 0.12em;
+          color: rgba(247, 231, 206, 0.95);
+          margin: 0;
+        }
+
+        .center-mode {
+          font-size: 0.75rem;
+          font-weight: 300;
+          letter-spacing: 0.18em;
+          color: rgba(235, 200, 98, 0.7);
+        }
+
+        .center-percentage {
+          font-size: 3rem;
+          font-weight: 300;
+          letter-spacing: 0.08em;
+          color: rgba(235, 200, 98, 0.9);
+        }
+
+        .center-description {
+          font-size: 1rem;
+          font-weight: 300;
+          line-height: 2;
+          letter-spacing: 0.05em;
+          color: rgba(247, 231, 206, 0.8);
+          margin: 0;
+        }
+
+        .quantum-section {
+          position: relative;
+          background: rgba(235, 200, 98, 0.04);
+          backdrop-filter: blur(60px);
+          border: 0.5px solid rgba(235, 200, 98, 0.2);
+          border-radius: 4px;
+          padding: 6rem 4rem;
+          margin: 8rem 0;
+          overflow: hidden;
+          box-shadow: 0 8px 60px rgba(235, 200, 98, 0.2);
+        }
+
+        .quantum-ambient-layer {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          overflow: hidden;
+        }
+
+        .ambient-glow {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(100px);
+        }
+
+        .ambient-glow-left {
+          top: 0;
+          left: 25%;
+          width: 320px;
+          height: 320px;
+          background: rgba(235, 200, 98, 0.06);
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+
+        .ambient-glow-right {
+          bottom: 0;
+          right: 25%;
+          width: 400px;
+          height: 400px;
+          background: rgba(247, 231, 206, 0.04);
+          animation: pulse-slow-delayed 4s ease-in-out infinite;
+        }
+
+        .resonance-list {
+          display: flex;
+          flex-direction: column;
+          gap: 2.5rem;
+          max-width: 1000px;
+          margin: 0 auto;
+          position: relative;
+          z-index: 10;
+        }
+
+        .resonance-card {
+          background: rgba(247, 231, 206, 0.03);
+          backdrop-filter: blur(40px);
+          border: 0.5px solid rgba(235, 200, 98, 0.18);
+          border-radius: 4px;
+          padding: 3rem;
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .resonance-card:hover {
+          transform: scale(1.01);
+          box-shadow: 0 8px 40px rgba(235, 200, 98, 0.15);
+        }
+
+        .resonance-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 2rem;
+          gap: 2rem;
+        }
+
+        .resonance-identity {
+          display: flex;
+          align-items: center;
+          gap: 2rem;
+        }
+
+        .resonance-avatar {
+          width: 64px;
+          height: 64px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, rgba(235, 200, 98, 0.25) 0%, rgba(247, 231, 206, 0.15) 100%);
+          border: 0.5px solid rgba(235, 200, 98, 0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.25rem;
+          font-weight: 300;
+          letter-spacing: 0.12em;
+          color: rgba(235, 200, 98, 0.95);
+        }
+
+        .resonance-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .resonance-name {
+          font-size: 1.5rem;
+          font-weight: 300;
+          letter-spacing: 0.12em;
+          color: rgba(247, 231, 206, 0.95);
+          margin: 0;
+        }
+
+        .resonance-kin {
+          font-size: 0.875rem;
+          font-weight: 300;
+          letter-spacing: 0.18em;
+          color: rgba(247, 231, 206, 0.5);
+        }
+
+        .resonance-type {
+          padding: 0.75rem 1.5rem;
+          border-radius: 100px;
+          background: rgba(235, 200, 98, 0.12);
+          border: 0.5px solid rgba(235, 200, 98, 0.3);
+          font-size: 0.75rem;
+          font-weight: 300;
+          letter-spacing: 0.2em;
+          color: rgba(235, 200, 98, 0.95);
+          white-space: nowrap;
+        }
+
+        .resonance-description {
+          font-size: 1rem;
+          font-weight: 300;
+          line-height: 2;
+          letter-spacing: 0.05em;
+          color: rgba(247, 231, 206, 0.8);
+          margin: 0;
+        }
+
+        .guidance-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 4rem;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+
+        .guidance-item {
+          display: flex;
+          align-items: center;
+          gap: 4rem;
+          padding: 2rem 0;
+        }
+
+        .guidance-item.guidance-advice {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 2rem;
+        }
+
+        .guidance-key {
+          font-size: 1.125rem;
+          font-weight: 300;
+          letter-spacing: 0.2em;
+          color: rgba(247, 231, 206, 0.5);
+          min-width: 160px;
+        }
+
+        .guidance-value {
+          font-size: 1.5rem;
+          font-weight: 300;
+          letter-spacing: 0.08em;
+          color: rgba(247, 231, 206, 0.95);
+          line-height: 1.8;
+          flex: 1;
+        }
+
+        .guidance-value.advice-text {
+          font-size: 1.125rem;
+          line-height: 2.2;
+          letter-spacing: 0.05em;
+        }
+
+        .final-section {
+          margin-bottom: 4rem;
+        }
+
+        .challenge-container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 3rem;
+          background: rgba(247, 231, 206, 0.02);
+          border: 0.5px solid rgba(247, 231, 206, 0.12);
+          border-radius: 4px;
+        }
+
+        .challenge-label {
+          font-size: 1.125rem;
+          font-weight: 300;
+          letter-spacing: 0.2em;
+          color: rgba(247, 231, 206, 0.5);
+          margin-bottom: 1.5rem;
+        }
+
+        .challenge-center {
+          font-size: 2rem;
+          font-weight: 300;
+          letter-spacing: 0.12em;
+          color: rgba(235, 200, 98, 0.9);
+          margin-bottom: 2.5rem;
+        }
+
+        .challenge-advice {
+          font-size: 1rem;
+          font-weight: 300;
+          line-height: 2.2;
+          letter-spacing: 0.05em;
+          color: rgba(247, 231, 206, 0.8);
+          margin: 0;
+        }
+
+        @media (max-width: 768px) {
+          .portal-title {
+            font-size: 3rem;
+            letter-spacing: 0.2em;
+          }
+
+          .scroll-card {
+            padding: 4rem 2rem;
+          }
+
+          .portrait-item,
+          .guidance-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1.5rem;
+          }
+
+          .portrait-key,
+          .guidance-key {
+            min-width: auto;
+          }
+
+          .center-header {
+            flex-direction: column;
+          }
+
+          .center-percentage {
+            font-size: 2.5rem;
+          }
         }
       `}</style>
     </div>
