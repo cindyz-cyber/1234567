@@ -104,54 +104,80 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                 </div>
               </div>
 
-              {/* Kin 本质描述（一行） */}
-              <div className="inline-block px-6 py-2 rounded-full text-sm font-light" style={{
+              {/* Kin 本质与波符摘要 - 毛玻璃卡片 */}
+              <div className="mb-8 px-6 py-4 rounded-xl text-center" style={{
                 background: 'rgba(0, 0, 0, 0.4)',
                 backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(247, 231, 206, 0.2)',
-                color: '#F7E7CE'
+                border: '1px solid rgba(247, 231, 206, 0.2)'
               }}>
-                {report.portrait.essence}
-              </div>
-            </div>
-
-            {/* 核心画像（横向三栏） */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="frosted-card p-4 text-center">
-                <div className="text-xs font-light tracking-wider opacity-60 mb-1" style={{ color: '#EBC862' }}>模式</div>
-                <div className="text-lg font-light" style={{ color: '#F7E7CE' }}>{report.portrait.mode}</div>
-              </div>
-              <div className="frosted-card p-4 text-center">
-                <div className="text-xs font-light tracking-wider opacity-60 mb-1" style={{ color: '#EBC862' }}>视角</div>
-                <div className="text-lg font-light" style={{ color: '#F7E7CE' }}>{report.portrait.perspective}</div>
-              </div>
-              <div className="frosted-card p-4 text-center">
-                <div className="text-xs font-light tracking-wider opacity-60 mb-1" style={{ color: '#EBC862' }}>波符</div>
-                <div className="text-lg font-light" style={{ color: '#F7E7CE' }}>{report.wavespellInfluence}</div>
+                <div className="text-sm font-light mb-2" style={{
+                  color: '#F7E7CE',
+                  letterSpacing: '0.05em',
+                  lineHeight: '1.7'
+                }}>
+                  {report.portrait.essence}
+                </div>
+                <div className="flex items-center justify-center gap-4 text-xs opacity-70" style={{ color: '#EBC862' }}>
+                  <span>{report.portrait.mode}</span>
+                  <span>·</span>
+                  <span>{report.wavespellInfluence}</span>
+                </div>
               </div>
             </div>
 
             {/* 三大能量指标（横向卡片） */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {report.portrait.centers.map((center, i) => (
                 <div
                   key={i}
-                  className={`frosted-card p-5 cursor-pointer transition-all duration-300 ${expandedCenter === i ? 'ring-2 ring-yellow-500/30' : ''}`}
+                  className={`frosted-card p-6 cursor-pointer transition-all duration-300 hover:scale-105 ${expandedCenter === i ? 'ring-2 ring-yellow-500/30' : ''}`}
                   onMouseEnter={() => setHoveredCenter(i)}
                   onMouseLeave={() => setHoveredCenter(null)}
                   onClick={() => setExpandedCenter(expandedCenter === i ? null : i)}
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{center.icon}</span>
-                      <div>
-                        <h3 className="text-sm font-light" style={{ color: '#F7E7CE' }}>{center.name}</h3>
-                        <span className="text-xs opacity-70" style={{ color: '#EBC862' }}>{center.mode}</span>
-                      </div>
+                      <span className="text-xl">{center.icon}</span>
+                      <span className="text-sm font-light tracking-wider" style={{
+                        color: '#F7E7CE',
+                        letterSpacing: '0.1em'
+                      }}>
+                        {center.name}
+                      </span>
                     </div>
-                    <div className="text-2xl font-light" style={{ color: '#EBC862' }}>{center.percentage}%</div>
+                    <span className="text-2xl font-light" style={{
+                      color: '#EBC862',
+                      fontWeight: 300
+                    }}>
+                      {center.percentage}%
+                    </span>
                   </div>
-                  <p className="text-xs font-light leading-relaxed opacity-80" style={{ color: '#F7E7CE' }}>
+
+                  <div className="text-xs mb-3 tracking-wider" style={{
+                    color: '#EBC862',
+                    opacity: 0.8,
+                    letterSpacing: '0.1em'
+                  }}>
+                    {center.mode}
+                  </div>
+
+                  <div className="w-full h-2 rounded-full overflow-hidden mb-4" style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}>
+                    <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{
+                      width: `${center.percentage}%`,
+                      background: 'linear-gradient(90deg, rgba(235, 200, 98, 0.4) 0%, rgba(235, 200, 98, 0.8) 100%)',
+                      boxShadow: '0 0 20px rgba(235, 200, 98, 0.4)'
+                    }} />
+                  </div>
+
+                  <p className="text-xs font-light leading-relaxed" style={{
+                    color: '#F7E7CE',
+                    opacity: 0.7,
+                    lineHeight: '1.7',
+                    letterSpacing: '0.05em'
+                  }}>
                     {center.description}
                   </p>
 
