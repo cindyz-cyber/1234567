@@ -56,14 +56,20 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
     }
   };
 
+  const handleUserInteraction = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ backgroundColor: 'transparent !important' }}>
       <div className="home-background-layer">
         <video
-          autoPlay
-          loop
-          muted
-          playsInline
+          autoPlay={true}
+          loop={true}
+          muted={true}
+          playsInline={true}
           preload="auto"
           crossOrigin="anonymous"
           className="home-background-video"
@@ -80,10 +86,10 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
       <div className="portal-video-container">
         <video
           ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
+          autoPlay={true}
+          loop={true}
+          muted={true}
+          playsInline={true}
           preload="auto"
           crossOrigin="anonymous"
           className="portal-video"
@@ -125,6 +131,8 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
               ref={textareaRef}
               value={response}
               onChange={(e) => setResponse(e.target.value)}
+              onTouchStart={handleUserInteraction}
+              onClick={handleUserInteraction}
               className="dialogue-textarea-input"
               placeholder="倾听内在的声音..."
               autoFocus
@@ -164,9 +172,10 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           height: 100%;
           z-index: -1;
           overflow: hidden;
-          background-color: rgba(2, 13, 10, 0.8);
+          background-color: transparent !important;
           -webkit-transform: translate3d(0,0,0);
           transform: translate3d(0,0,0);
+          -webkit-overflow-scrolling: touch;
         }
 
         .home-background-video {
@@ -203,9 +212,10 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
           height: 33.333vh;
           overflow: hidden;
           z-index: 1;
-          background-color: rgba(5, 10, 20, 0.5);
+          background-color: transparent !important;
           -webkit-transform: translate3d(0,0,0);
           transform: translate3d(0,0,0);
+          -webkit-overflow-scrolling: touch;
         }
 
         .portal-video {
@@ -302,7 +312,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
         .zen-dialogue-box {
           position: relative;
-          background: rgba(255, 255, 255, 0.015);
+          background: rgba(255, 255, 255, 0.015) !important;
           backdrop-filter: blur(60px) saturate(120%);
           -webkit-backdrop-filter: blur(60px) saturate(120%);
           border: 0.5px solid rgba(200, 220, 255, 0.08);

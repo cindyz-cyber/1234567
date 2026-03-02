@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import GoldButton from './GoldButton';
 
 interface NamingRitualProps {
@@ -24,36 +24,47 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
     }
   };
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleUserInteraction = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 breathing-fade relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center px-6 breathing-fade relative overflow-hidden" style={{ backgroundColor: 'transparent !important' }}>
       <div
         className="fixed inset-0 w-full h-full"
         style={{
           zIndex: -1,
-          backgroundColor: 'rgba(2, 13, 10, 0.8)',
+          backgroundColor: 'transparent',
           WebkitTransform: 'translate3d(0,0,0)',
-          transform: 'translate3d(0,0,0)'
+          transform: 'translate3d(0,0,0)',
+          WebkitOverflowScrolling: 'touch'
         }}
       >
         <video
-          autoPlay
-          loop
-          muted
-          playsInline
+          ref={videoRef}
+          autoPlay={true}
+          loop={true}
+          muted={true}
+          playsInline={true}
           preload="auto"
           crossOrigin="anonymous"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
             WebkitTransform: 'translate3d(0,0,0)',
-            transform: 'translate3d(0,0,0)'
+            transform: 'translate3d(0,0,0)',
+            backgroundColor: 'rgba(2, 13, 10, 0.8)'
           }}
         >
           <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
         </video>
         <div
           className="absolute inset-0 w-full h-full"
-          style={{ backgroundColor: 'rgba(2, 13, 10, 0.25)' }}
+          style={{ backgroundColor: 'rgba(2, 13, 10, 0.25)', pointerEvents: 'none' }}
         />
       </div>
 
@@ -131,6 +142,8 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
                 type="text"
                 value={higherSelfName}
                 onChange={(e) => setHigherSelfName(e.target.value)}
+                onTouchStart={handleUserInteraction}
+                onClick={handleUserInteraction}
                 className="ritual-input"
                 autoFocus
               />
@@ -156,6 +169,8 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
                 type="text"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
+                onTouchStart={handleUserInteraction}
+                onClick={handleUserInteraction}
                 className="ritual-input"
                 autoFocus
               />

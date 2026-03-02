@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
 
@@ -61,6 +61,13 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [poppedBubbles, setPoppedBubbles] = useState<Set<string>>(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [backgroundDarkness, setBackgroundDarkness] = useState(0.25);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleUserInteraction = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  };
 
   const emotionPositions = useMemo(() =>
     EMOTIONS.map((emotion, index) => ({
@@ -241,9 +248,26 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const titleText = selectedBodyStates.length > 0 ? '身体的反馈是？' : '此刻，你的情绪是？';
 
   return (
-    <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative">
-      <div className="forest-background-layer" />
-      <div className="background-overlay" style={{ opacity: backgroundDarkness }} />
+    <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative" style={{ backgroundColor: 'transparent !important' }}>
+      <div className="forest-background-layer">
+        <video
+          ref={videoRef}
+          autoPlay={true}
+          loop={true}
+          muted={true}
+          playsInline={true}
+          preload="auto"
+          crossOrigin="anonymous"
+          className="forest-background-video"
+          style={{
+            WebkitTransform: 'translate3d(0,0,0)',
+            transform: 'translate3d(0,0,0)'
+          }}
+        >
+          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div className="background-overlay" style={{ opacity: backgroundDarkness, backgroundColor: 'transparent' }} />
 
       {particles.map(particle => (
         <div
@@ -291,6 +315,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               <button
                 key={emotion.label}
                 onClick={(e) => toggleEmotion(emotion.label, emotion.hue, e)}
+                onTouchStart={handleUserInteraction}
                 className={`glass-bubble emotion-bubble mandala-bubble ${emotion.label === '其他' ? 'other-bubble' : ''} ${poppedBubbles.has(emotion.label) ? 'popping' : ''} ${selectedEmotions.includes(emotion.label) ? 'selected' : ''}`}
                 style={{
                   position: 'absolute',
@@ -298,6 +323,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
                   top: `${emotion.position.y}%`,
                   transform: 'translate(-50%, -50%)',
                   animationDelay: `${index * 0.1}s`,
+                  backgroundColor: 'transparent'
                 }}
               >
                 {[...Array(6)].map((_, i) => (
@@ -546,12 +572,24 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           left: 0;
           width: 100%;
           height: 100vh;
-          background-image: url('/src/assets/blade_grass_field_top-down_ground_texture_map_stylized_hand-pai_276b4e68-d309-4f57-93db-69dfdc5d39d1.png');
-          background-size: cover;
-          background-position: center;
-          background-attachment: fixed;
+          background-color: transparent !important;
           z-index: 1;
           pointer-events: none;
+          -webkit-overflow-scrolling: touch;
+          -webkit-transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
+        }
+
+        .forest-background-video {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          filter: contrast(1.2) brightness(1.1) saturate(1.1);
+          -webkit-transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
           animation: cameraBreath 20s ease-in-out infinite;
           will-change: transform;
         }
@@ -562,7 +600,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           left: 0;
           width: 100%;
           height: 100vh;
-          background: rgba(0, 0, 0, 0.25);
+          background: rgba(0, 0, 0, 0);
           z-index: 2;
           pointer-events: none;
           transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
@@ -597,8 +635,9 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               rgba(250, 210, 100, 0.2) 55%,
               rgba(240, 195, 80, 0.1) 75%,
               transparent 100%
-            );
+            ) !important;
           backdrop-filter: blur(0.5px);
+          background-color: rgba(0,0,0,0) !important;
           border: 2px solid rgba(255, 230, 120, 0.6);
           animation: crystalBreathe 4s ease-in-out infinite, energyPulse 2s ease-in-out infinite;
           position: absolute;
