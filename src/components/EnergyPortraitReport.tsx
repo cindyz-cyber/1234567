@@ -378,7 +378,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           z-index: 10;
           max-width: 1400px;
           margin: 0 auto;
-          padding: 0 2rem 12rem;
+          padding: 0 2rem 6rem;
           opacity: 0;
           transform: translateY(3rem);
           transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -418,10 +418,10 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           display: flex;
           flex-direction: column;
           align-items: center;
-          min-height: 100vh;
+          min-height: 60vh;
           justify-content: center;
-          gap: 4rem;
-          padding: 8rem 0;
+          gap: 2rem;
+          padding: 4rem 0;
           transition: transform 0.3s ease-out;
         }
 
@@ -429,7 +429,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 2rem;
+          gap: 1rem;
         }
 
         .seal-icon {
@@ -445,7 +445,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         }
 
         .portal-title {
-          font-size: 5rem;
+          font-size: 3.5rem;
           font-weight: 300;
           letter-spacing: 0.3em;
           color: rgba(247, 231, 206, 0.95);
@@ -463,15 +463,15 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         }
 
         .scroll-card-wrapper {
-          margin: 8rem 0;
+          margin: 4rem 0;
         }
 
         .scroll-card {
-          background: rgba(255, 255, 255, 0.02);
+          background: rgba(255, 255, 255, 0.12);
           backdrop-filter: blur(60px);
-          border: 0.5px solid rgba(247, 231, 206, 0.12);
+          border: 0.5px solid rgba(247, 231, 206, 0.22);
           border-radius: 4px;
-          padding: 6rem 8rem;
+          padding: 3rem 4rem;
           transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
           box-shadow: 0 8px 60px rgba(0, 0, 0, 0.4);
         }
@@ -490,13 +490,13 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
             transparent 0%,
             rgba(235, 200, 98, 0.3) 50%,
             transparent 100%);
-          margin: 3rem 0;
+          margin: 1.5rem 0;
         }
 
         .portrait-grid {
           display: flex;
           flex-direction: column;
-          gap: 4rem;
+          gap: 2rem;
           max-width: 900px;
           margin: 0 auto;
         }
@@ -504,14 +504,14 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         .portrait-item {
           display: flex;
           align-items: center;
-          gap: 4rem;
-          padding: 2rem 0;
+          gap: 3rem;
+          padding: 1rem 0;
         }
 
         .portrait-item.essence-item {
           flex-direction: column;
           align-items: flex-start;
-          gap: 2rem;
+          gap: 1rem;
         }
 
         .portrait-key {
@@ -539,15 +539,15 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
 
         .section-header {
           text-align: center;
-          margin-bottom: 3rem;
+          margin-bottom: 2rem;
         }
 
         .section-title {
-          font-size: 2.5rem;
+          font-size: 2rem;
           font-weight: 300;
           letter-spacing: 0.25em;
           color: rgba(235, 200, 98, 0.9);
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem;
         }
 
         .section-subtitle {
@@ -560,7 +560,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
 
         .radar-section-wrapper {
           position: relative;
-          margin: 6rem 0;
+          margin: 4rem 0;
         }
 
         .resonance-badge-floating {
@@ -586,8 +586,8 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           position: relative;
           width: 100%;
           aspect-ratio: 1;
-          max-width: 600px;
-          margin: 0 auto 4rem;
+          max-width: 500px;
+          margin: 0 auto 2rem;
           z-index: 10;
         }
 
@@ -678,12 +678,12 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
 
         .quantum-section {
           position: relative;
-          background: rgba(235, 200, 98, 0.04);
+          background: rgba(235, 200, 98, 0.14);
           backdrop-filter: blur(60px);
-          border: 0.5px solid rgba(235, 200, 98, 0.2);
+          border: 0.5px solid rgba(235, 200, 98, 0.3);
           border-radius: 4px;
-          padding: 6rem 4rem;
-          margin: 8rem 0;
+          padding: 3rem 3rem;
+          margin: 4rem 0;
           overflow: hidden;
           box-shadow: 0 8px 60px rgba(235, 200, 98, 0.2);
         }
@@ -722,7 +722,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         .resonance-list {
           display: flex;
           flex-direction: column;
-          gap: 2.5rem;
+          gap: 1.5rem;
           max-width: 1000px;
           margin: 0 auto;
           position: relative;
@@ -730,11 +730,11 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         }
 
         .resonance-card {
-          background: rgba(247, 231, 206, 0.03);
+          background: rgba(247, 231, 206, 0.13);
           backdrop-filter: blur(40px);
-          border: 0.5px solid rgba(235, 200, 98, 0.18);
+          border: 0.5px solid rgba(235, 200, 98, 0.28);
           border-radius: 4px;
-          padding: 3rem;
+          padding: 2rem;
           transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -747,7 +747,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 2rem;
+          margin-bottom: 1rem;
           gap: 2rem;
         }
 
@@ -817,7 +817,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         .guidance-grid {
           display: flex;
           flex-direction: column;
-          gap: 4rem;
+          gap: 2rem;
           max-width: 900px;
           margin: 0 auto;
         }
@@ -825,14 +825,14 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         .guidance-item {
           display: flex;
           align-items: center;
-          gap: 4rem;
-          padding: 2rem 0;
+          gap: 3rem;
+          padding: 1rem 0;
         }
 
         .guidance-item.guidance-advice {
           flex-direction: column;
           align-items: flex-start;
-          gap: 2rem;
+          gap: 1rem;
         }
 
         .guidance-key {
@@ -865,9 +865,9 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         .challenge-container {
           max-width: 800px;
           margin: 0 auto;
-          padding: 3rem;
-          background: rgba(247, 231, 206, 0.02);
-          border: 0.5px solid rgba(247, 231, 206, 0.12);
+          padding: 2rem;
+          background: rgba(247, 231, 206, 0.12);
+          border: 0.5px solid rgba(247, 231, 206, 0.22);
           border-radius: 4px;
         }
 
@@ -876,15 +876,15 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
           font-weight: 300;
           letter-spacing: 0.2em;
           color: rgba(247, 231, 206, 0.5);
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem;
         }
 
         .challenge-center {
-          font-size: 2rem;
+          font-size: 1.75rem;
           font-weight: 300;
           letter-spacing: 0.12em;
           color: rgba(235, 200, 98, 0.9);
-          margin-bottom: 2.5rem;
+          margin-bottom: 1.5rem;
         }
 
         .challenge-advice {
