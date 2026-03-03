@@ -55,26 +55,6 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         <div className="maya-compass-bg" />
       </div>
 
-      {/* 置顶工具栏 */}
-      <div className="fixed top-0 left-0 right-0 z-50 px-6 py-4" style={{
-        background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%)',
-        backdropFilter: 'blur(20px)'
-      }}>
-        <button
-          onClick={onBack}
-          className="flex items-center justify-center w-11 h-11 rounded-full transition-all hover:scale-110 hover:bg-white/10"
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(247, 231, 206, 0.15)'
-          }}
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M12 4L6 10L12 16" stroke="rgba(247, 231, 206, 0.9)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </div>
-
       {/* 内容层 */}
       <div className={`relative min-h-screen flex flex-col ${isVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`} style={{ zIndex: 10 }}>
         {/* 首屏：紧凑横向布局 */}
