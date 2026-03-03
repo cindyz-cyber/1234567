@@ -137,15 +137,17 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
           playsInline
           preload="auto"
           crossOrigin="anonymous"
+          poster="/assets/videos/golden-flow-poster.jpg"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
-            WebkitTransform: 'translate3d(0,0,0)',
-            transform: 'translate3d(0,0,0)',
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            willChange: 'transform',
             backgroundColor: 'rgba(2, 13, 10, 0.5)'
           }}
         >
-          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
+          <source src="/assets/videos/golden-flow.mp4" type="video/mp4" />
         </video>
         <div
           className="absolute inset-0 w-full h-full"

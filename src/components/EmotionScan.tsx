@@ -267,11 +267,12 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           className="forest-background-video"
           style={{
             WebkitTransform: 'translateZ(0)',
-            transform: 'translateZ(0)'
+            transform: 'translateZ(0)',
+            willChange: 'transform'
           }}
-          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23020d0a'/%3E%3C/svg%3E"
+          poster="/assets/videos/golden-flow-poster.jpg"
         >
-          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
+          <source src="/assets/videos/golden-flow.mp4" type="video/mp4" />
         </video>
       </div>
       <div

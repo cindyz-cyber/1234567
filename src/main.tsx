@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
+import { initializeVideoPreload } from './utils/videoPreloader';
 
 // Kin 计算引擎自检：启动时必须通过三个断言测试
 function validateKinEngine() {
@@ -51,7 +52,26 @@ function validateKinEngine() {
   }
 }
 
+// 启动时初始化
 validateKinEngine();
+
+// 在后台静默预加载视频（非阻塞）
+initializeVideoPreload().catch(err => {
+  console.warn('视频预加载失败（非致命）:', err);
+});
+
+// 注册 Service Worker 用于视频离线缓存
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('✅ Service Worker 注册成功:', registration.scope);
+      })
+      .catch(err => {
+        console.warn('⚠️  Service Worker 注册失败（非致命）:', err);
+      });
+  });
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -74,9 +74,9 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
             willChange: 'transform',
             opacity: 1
           }}
-          poster="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1920&q=80"
+          poster="/assets/videos/golden-flow-poster.jpg"
         >
-          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
+          <source src="/assets/videos/golden-flow.mp4" type="video/mp4" />
         </video>
         <div
           className="absolute inset-0 w-full h-full"
