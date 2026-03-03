@@ -228,22 +228,29 @@ export async function generateEnergyReport(
     let userSnapshot: EnergySnapshot | null = null;
     if (userBirthDate) {
       userSnapshot = await calculateCompositeKin(userBirthDate, userHour);
+      console.log('✅ 用户快照已生成:', { kin: userSnapshot.kin, date: userBirthDate });
+    } else {
+      console.warn('⚠️ 缺少用户日期，将降级到旧算法');
     }
 
     for (const family of familyKins) {
       try {
         // 优先使用三层架构（如果有日期信息）
         if (userSnapshot && family.birthDate) {
+          console.log(`🚀 使用三层架构计算与 ${family.name} 的共振 (Kin ${family.kin})`);
           const familySnapshot = await calculateCompositeKin(family.birthDate, family.hour);
           const resonance = await calculateQuantumResonanceWithBurst(
             userSnapshot,
             familySnapshot,
             family.name
           );
+          console.log(`📊 三层架构结果:`, resonance);
           if (resonance) quantumResonances.push(resonance);
         } else {
           // 降级为旧算法（仅使用 Kin 数字）
+          console.warn(`⬇️ 降级到旧算法计算与 ${family.name} 的共振 (原因: ${!userSnapshot ? '缺少用户快照' : '缺少家人日期'})`);
           const resonance = await calculateQuantumResonance(kin, family.kin, family.name);
+          console.log(`📊 旧算法结果:`, resonance);
           if (resonance) quantumResonances.push(resonance);
         }
       } catch (error) {

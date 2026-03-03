@@ -147,6 +147,19 @@ export default function EnergyPerson() {
       // 计算用户的小时（根据子时类型）
       const userHour = myData.midnightType === 'early' ? 0 : myData.midnightType === 'late' ? 23 : undefined;
 
+      console.log('🔍 前端调用数据检查：', {
+        userKin: myData.kinData.kin,
+        userBirthDate: myData.birthDate,
+        userHour,
+        familyCount: familyData.length,
+        familyData: familyData.map(f => ({
+          name: f.name,
+          kin: f.kin,
+          hasDate: !!f.birthDate,
+          hour: f.hour
+        }))
+      });
+
       // 使用三层架构生成报告
       const report = await generateNewEnergyReport(
         myData.kinData.kin,

@@ -31,6 +31,8 @@ export interface QuantumBurst {
  * 输出：爆发类型和增强后的能量状态
  */
 export function analyzeBurst(userA: EnergySnapshot, userB: EnergySnapshot): QuantumBurst {
+  console.log(`🔮 量子爆发分析: Kin ${userA.kin} <-> Kin ${userB.kin}`);
+
   const kinSum = userA.kin + userB.kin;
   const kinDiff = Math.abs(userA.kin - userB.kin);
 
@@ -92,13 +94,14 @@ export function analyzeBurst(userA: EnergySnapshot, userB: EnergySnapshot): Quan
     (yellowTotems.includes(totemA) && yellowTotems.includes(totemB));
 
   if (isSameColor) {
+    console.log('✨ 检测到同色系共振！');
     const throatBoost = 8;
     const heartBoost = 4;
     resultThroat = Math.min(100, resultThroat + throatBoost);
     resultHeart = Math.min(100, resultHeart + heartBoost);
 
-    return {
-      type: 'color_sync',
+    const burstResult = {
+      type: 'color_sync' as const,
       title: '同色系共振',
       score: Math.round((resultHeart + resultThroat) / 2),
       description: 'Ta 与你同属一个能量色系，能够深度理解你的表达方式，沟通流畅自然。',
@@ -106,6 +109,8 @@ export function analyzeBurst(userA: EnergySnapshot, userB: EnergySnapshot): Quan
       energyBoost: { throat: throatBoost, heart: heartBoost },
       resultSnapshot: { pineal: resultPineal, throat: resultThroat, heart: resultHeart }
     };
+    console.log('📊 同色系共振结果:', burstResult);
+    return burstResult;
   }
 
   // 默认：常规共振
