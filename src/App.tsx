@@ -17,6 +17,7 @@ import GoldenDust from './components/GoldenDust';
 import VideoBackground from './components/VideoBackground';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
+import { preloadCoreBackgrounds } from './utils/backgroundAssets';
 
 type FlowStep = 'home' | 'emotion' | 'energy' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
 type TabType = 'breath' | 'person' | 'profile' | 'admin' | 'samples';
@@ -52,6 +53,11 @@ function App() {
       console.warn('Loading timeout - forcing app to render');
       setLoading(false);
     }, 5000);
+
+    // 立即启动背景资源预加载（并行不阻塞）
+    preloadCoreBackgrounds().catch(err => {
+      console.warn('Background preload failed (non-critical):', err);
+    });
 
     loadProfile();
 

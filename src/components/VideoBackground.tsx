@@ -1,13 +1,45 @@
+import { useEffect, useRef, useState } from 'react';
+import { BACKGROUND_ASSETS, getPreloadedVideo, BRAND_COLORS } from '../utils/backgroundAssets';
+
+/**
+ * 优化后的视频背景组件
+ * 使用三级兜底策略 + 本地化资源 + Mobile Safari 优化
+ */
 export default function VideoBackground() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const asset = BACKGROUND_ASSETS.golden_flow;
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    const preloadedVideo = getPreloadedVideo('golden_flow');
+    if (preloadedVideo) {
+      setIsVideoReady(true);
+      videoElement.play().catch(err => {
+        console.warn('Auto-play blocked:', err.message);
+      });
+    } else {
+      const handleCanPlay = () => {
+        setIsVideoReady(true);
+        videoElement.play().catch(() => {});
+      };
+      videoElement.addEventListener('canplaythrough', handleCanPlay, { once: true });
+      return () => videoElement.removeEventListener('canplaythrough', handleCanPlay);
+    }
+  }, []);
+
   return (
     <>
       <video
+        ref={videoRef}
         autoPlay
         loop
         muted
         playsInline
         preload="auto"
-        crossOrigin="anonymous"
+        poster={asset.posterUrl}
         className="fixed w-full object-cover"
         style={{
           top: '66vh',
@@ -17,10 +49,14 @@ export default function VideoBackground() {
           filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
           WebkitTransform: 'translate3d(0,0,0)',
           transform: 'translate3d(0,0,0)',
-          backgroundColor: 'rgba(2, 13, 10, 0.5)'
+          backgroundColor: BRAND_COLORS.primary,
+          opacity: isVideoReady ? 1 : 0,
+          transition: 'opacity 0.5s ease-in-out',
+          willChange: 'opacity, transform',
+          visibility: 'visible'
         }}
       >
-        <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
+        <source src={asset.videoUrl} type="video/mp4" />
       </video>
 
       <div
