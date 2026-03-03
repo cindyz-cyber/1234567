@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { analyzeQuantumResonance, calculateSynthesizedField } from './quantumResonanceEngine';
 import { calculateCompositeKin, EnergySnapshot } from './compositeKinCalculator';
 import { analyzeBurst, QuantumBurst } from './quantumBurstAnalyzer';
+import { analyzeQuantumResonanceDriven } from './quantumResonanceDrivenEngine';
 import { renderChakraResonance } from './chakraResonanceRenderer';
 import { renderComprehensiveChakraNarrative } from './narrativeEngine';
 import { generate2026Advice } from './yearlyAdvice2026';
@@ -129,7 +130,7 @@ async function fetchKinBasicInfo(kin: number) {
 }
 
 /**
- * 第三层：渲染层隔离 - 使用三层架构计算量子共振
+ * 第三层：渲染层隔离 - 使用数据库驱动的量子共振引擎
  * 严格禁止在 UI 渲染循环中调用此函数！
  */
 async function calculateQuantumResonanceWithBurst(
@@ -138,30 +139,43 @@ async function calculateQuantumResonanceWithBurst(
   familyName: string
 ): Promise<QuantumResonance | null> {
   try {
-    // 使用第二层：量子干涉算法
-    const burst = analyzeBurst(userSnapshot, familySnapshot);
+    // 使用数据库驱动的量子共振引擎
+    const resonanceResult = await analyzeQuantumResonanceDriven(
+      userSnapshot.kin,
+      familySnapshot.kin,
+      {
+        throat: userSnapshot.throat,
+        heart: userSnapshot.heart,
+        pineal: userSnapshot.pineal
+      },
+      {
+        throat: familySnapshot.throat,
+        heart: familySnapshot.heart,
+        pineal: familySnapshot.pineal
+      }
+    );
 
-    // 计算共振强度（基于爆发类型）
+    // 计算共振强度（基于效果类型）
     const strengthMap: Record<string, number> = {
-      'push': 1.0,
-      'mirror': 0.95,
-      'guide': 0.9,
-      'hidden': 0.85,
-      'support': 0.8,
-      'color_sync': 0.7,
+      'matrix_irrigation': 1.0,
+      'life_whetstone': 1.0,
+      'synergy_ally': 0.85,
+      'collaboration': 0.7,
       'normal': 0.5
     };
 
-    const synergyStrength = strengthMap[burst.type] || 0.5;
+    const synergyStrength = strengthMap[resonanceResult.effectType] || 0.5;
+
+    console.log(`✅ 数据库驱动量子共振: ${familyName} (Kin ${familySnapshot.kin}) - ${resonanceResult.relationshipLabel}, 强度=${Math.round(synergyStrength * 100)}%`);
 
     return {
       familyMember: familyName,
-      type: burst.type === 'color_sync' ? 'support' : (burst.type || 'mirror'),
-      typeLabel: burst.title,
-      description: burst.description,
-      synergyType: burst.synergyType,
+      type: resonanceResult.effectType,
+      typeLabel: resonanceResult.relationshipLabel,
+      description: resonanceResult.description,
+      synergyType: resonanceResult.synergyType,
       synergyStrength,
-      synergyDescription: `${burst.title}：能量共振强度 ${Math.round(synergyStrength * 100)}%`
+      synergyDescription: `${resonanceResult.relationshipLabel}：能量共振强度 ${Math.round(synergyStrength * 100)}%`
     };
   } catch (error) {
     console.error('Failed to calculate quantum resonance with burst:', error);
@@ -171,7 +185,7 @@ async function calculateQuantumResonanceWithBurst(
 
 /**
  * 向后兼容：旧版本的量子共振计算（仅使用 Kin 数字）
- * 注意：已升级为使用数据库驱动的爆发短句，清除所有硬编码
+ * 已升级为数据库驱动引擎
  */
 async function calculateQuantumResonance(
   userKin: number,
@@ -179,38 +193,51 @@ async function calculateQuantumResonance(
   familyName: string
 ): Promise<QuantumResonance | null> {
   try {
-    // 从知识库获取关系定义（包含数据库驱动的爆发短句）
-    const resonanceRelation = await analyzeQuantumResonance(userKin, familyKin);
-
+    // 获取用户和家人的能量中心数据
     const userCenters = await fetchEnergyCentersFromDatabase(userKin);
     const familyCenters = await fetchEnergyCentersFromDatabase(familyKin);
 
-    const userWeakest = userCenters.reduce((min, c) => c.percentage < min.percentage ? c : min);
-    const familyStrongest = familyCenters.reduce((max, c) => c.percentage > max.percentage ? c : max);
-
-    // 强度映射：根据关系类型计算共振强度
-    const strengthMap: Record<string, number> = {
-      'push': 1.0,        // 母体灌溉型
-      'challenge': 0.95,  // 生命磨刀石
-      'guide': 0.9,       // 指引导航位
-      'hidden': 0.85,     // 隐藏力量位
-      'support': 0.8      // 支持共振位
+    const userScores = {
+      throat: userCenters.find(c => c.name === '喉轮')?.percentage || 50,
+      heart: userCenters.find(c => c.name === '心轮')?.percentage || 50,
+      pineal: userCenters.find(c => c.name === '松果体')?.percentage || 50
     };
 
-    const synergyStrength = strengthMap[resonanceRelation.type || 'mirror'] || 0.5;
+    const familyScores = {
+      throat: familyCenters.find(c => c.name === '喉轮')?.percentage || 50,
+      heart: familyCenters.find(c => c.name === '心轮')?.percentage || 50,
+      pineal: familyCenters.find(c => c.name === '松果体')?.percentage || 50
+    };
 
-    // 使用从数据库获取的标签和描述（已包含多维语感爆发短句）
-    const typeLabel = resonanceRelation.label;
-    const description = resonanceRelation.description;
+    // 使用数据库驱动的量子共振引擎
+    const resonanceResult = await analyzeQuantumResonanceDriven(
+      userKin,
+      familyKin,
+      userScores,
+      familyScores
+    );
+
+    // 强度映射：根据效果类型计算共振强度
+    const strengthMap: Record<string, number> = {
+      'matrix_irrigation': 1.0,
+      'life_whetstone': 1.0,
+      'synergy_ally': 0.85,
+      'collaboration': 0.7,
+      'normal': 0.5
+    };
+
+    const synergyStrength = strengthMap[resonanceResult.effectType] || 0.5;
+
+    console.log(`✅ 降级算法-数据库驱动: ${familyName} (Kin ${familyKin}) - ${resonanceResult.relationshipLabel}, 强度=${Math.round(synergyStrength * 100)}%`);
 
     return {
       familyMember: familyName,
-      type: resonanceRelation.type || 'mirror',
-      typeLabel,
-      description,
-      synergyType: 'harmonic-resonance',
+      type: resonanceResult.effectType,
+      typeLabel: resonanceResult.relationshipLabel,
+      description: resonanceResult.description,
+      synergyType: resonanceResult.synergyType,
       synergyStrength,
-      synergyDescription: `${typeLabel}：能量共振强度 ${Math.round(synergyStrength * 100)}%`
+      synergyDescription: `${resonanceResult.relationshipLabel}：能量共振强度 ${Math.round(synergyStrength * 100)}%`
     };
   } catch (error) {
     console.error('Failed to calculate quantum resonance:', error);
@@ -322,12 +349,4 @@ function extractToneAndSeal(essence: string): { toneName: string; sealName: stri
     toneName: '',
     sealName: ''
   };
-}
-
-function generate2026Advice(weakestCenter: string, centers: EnergyCenter[]): string {
-  return `2026白风年建议：专注${weakestCenter}能量场的觉醒与平衡`;
-}
-
-function generateChallengeAdvice(weakestCenter: EnergyCenter, wavespell: { name: string }): string {
-  return `在${wavespell.name}的引导下，提升${weakestCenter.name}能量`;
 }
