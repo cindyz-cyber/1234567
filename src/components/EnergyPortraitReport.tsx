@@ -55,12 +55,14 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         <div className="maya-compass-bg" />
       </div>
 
-      {/* 内容层 */}
-      <div className={`relative min-h-screen flex flex-col ${isVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`} style={{ zIndex: 10 }}>
-        {/* 返回按钮 */}
+      {/* 置顶工具栏 */}
+      <div className="fixed top-0 left-0 right-0 z-50 px-6 py-4" style={{
+        background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%)',
+        backdropFilter: 'blur(20px)'
+      }}>
         <button
           onClick={onBack}
-          className="absolute top-6 left-6 z-50 flex items-center justify-center w-11 h-11 rounded-full transition-all hover:scale-110 hover:bg-white/10"
+          className="flex items-center justify-center w-11 h-11 rounded-full transition-all hover:scale-110 hover:bg-white/10"
           style={{
             background: 'rgba(255, 255, 255, 0.05)',
             backdropFilter: 'blur(10px)',
@@ -71,9 +73,12 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
             <path d="M12 4L6 10L12 16" stroke="rgba(247, 231, 206, 0.9)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
+      </div>
 
+      {/* 内容层 */}
+      <div className={`relative min-h-screen flex flex-col ${isVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`} style={{ zIndex: 10 }}>
         {/* 首屏：紧凑横向布局 */}
-        <div className="flex-1 flex flex-col justify-center items-center px-6 py-12">
+        <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 pt-20">
           <div className="w-full max-w-7xl">
             {/* 核心身份卡片 - Kin + 音调 + 图腾 + 波符 */}
             <div className="text-center mb-10">
@@ -154,23 +159,19 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                 border: '1px solid rgba(247, 231, 206, 0.25)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
               }}>
-                <div className="text-sm font-light leading-relaxed mb-2" style={{
-                  color: '#F7E7CE',
-                  letterSpacing: '0.08em',
-                  lineHeight: '1.8',
+                <div className="text-base font-light leading-relaxed mb-3" style={{
+                  color: '#FFFFFF',
+                  letterSpacing: '0.1em',
+                  lineHeight: '1.9',
                   opacity: 0.95
                 }}>
-                  {extractEssenceDescription(report.portrait.essence)}
+                  {report.portrait.mode} • {report.portrait.perspective}
                 </div>
                 <div className="flex items-center justify-center gap-3 text-xs flex-wrap" style={{
                   color: '#EBC862',
                   opacity: 0.85,
                   letterSpacing: '0.05em'
                 }}>
-                  <span className="tracking-wider">{report.portrait.mode}</span>
-                  <span className="opacity-60">•</span>
-                  <span className="tracking-wider">{report.portrait.perspective}</span>
-                  <span className="opacity-60">•</span>
                   <span className="tracking-wider">{extractToneAndSeal(report.portrait.essence).sealName}</span>
                 </div>
               </div>
@@ -181,10 +182,9 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
               {report.portrait.centers.map((center, i) => (
                 <div
                   key={i}
-                  className={`frosted-card p-6 cursor-pointer transition-all duration-300 hover:scale-105 ${expandedCenter === i ? 'ring-2 ring-yellow-500/30' : ''}`}
+                  className={`frosted-card p-6 transition-all duration-300 ${expandedCenter === i ? 'ring-2 ring-yellow-500/30' : ''}`}
                   onMouseEnter={() => setHoveredCenter(i)}
                   onMouseLeave={() => setHoveredCenter(null)}
-                  onClick={() => setExpandedCenter(expandedCenter === i ? null : i)}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -231,6 +231,23 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                   }}>
                     {center.description}
                   </p>
+
+                  {/* 详情按钮 */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedCenter(expandedCenter === i ? null : i);
+                    }}
+                    className="w-full mt-4 py-2 rounded-lg text-xs font-light tracking-wider transition-all duration-300 hover:scale-105"
+                    style={{
+                      background: 'rgba(235, 200, 98, 0.1)',
+                      border: '1px solid rgba(235, 200, 98, 0.3)',
+                      color: '#EBC862',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                  >
+                    {expandedCenter === i ? '收起' : '详情'}
+                  </button>
 
                   {/* 灵性礼物与阴影 */}
                   {expandedCenter === i && center.name === '喉轮' && (
