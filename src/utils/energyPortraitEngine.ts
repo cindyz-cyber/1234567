@@ -162,18 +162,11 @@ async function calculateQuantumResonanceWithBurst(
       }
     );
 
-    // 计算共振强度（基于效果类型）
-    const strengthMap: Record<string, number> = {
-      'matrix_irrigation': 1.0,
-      'life_whetstone': 1.0,
-      'synergy_ally': 0.85,
-      'collaboration': 0.7,
-      'normal': 0.5
-    };
+    // 直接使用数据库驱动引擎返回的动态分数（已经是百分比 0-100）
+    // 转换为 0-1 的浮点数供 UI 使用
+    const synergyStrength = resonanceResult.synergyScore / 100;
 
-    const synergyStrength = strengthMap[resonanceResult.effectType] || 0.5;
-
-    console.log(`✅ 数据库驱动量子共振: ${familyName} (Kin ${familySnapshot.kin}) - ${resonanceResult.relationshipLabel}, 强度=${Math.round(synergyStrength * 100)}%`);
+    console.log(`✅ 数据库驱动量子共振: ${familyName} (Kin ${familySnapshot.kin}) - ${resonanceResult.relationshipLabel}, 强度=${resonanceResult.synergyScore}%`);
 
     return {
       familyMember: familyName,
