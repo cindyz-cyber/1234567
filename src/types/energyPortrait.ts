@@ -44,4 +44,7 @@ export interface KinEnergyReport {
   weakestCenter: string;
   challengeAdvice: string;
   wavespellInfluence: string;
+  soulGift?: string;
+  soulShadow?: string;
+  archetypeImagery?: string;
 }

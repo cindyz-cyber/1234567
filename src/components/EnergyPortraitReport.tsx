@@ -201,8 +201,32 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                     {center.description}
                   </p>
 
-                  {/* 浮窗解释 */}
-                  {expandedCenter === i && (
+                  {/* 灵性礼物与阴影 */}
+                  {expandedCenter === i && center.name === '喉轮' && (
+                    <div className="mt-4 pt-4 border-t border-white/10 space-y-4 animate-fade-in">
+                      {report.soulGift && (
+                        <div>
+                          <div className="text-xs font-light opacity-60 mb-2 tracking-wider" style={{ color: '#EBC862' }}>
+                            灵性礼物 (Soul Gift)
+                          </div>
+                          <p className="text-xs font-light leading-relaxed" style={{ color: '#F7E7CE', lineHeight: '1.8' }}>
+                            {report.soulGift}
+                          </p>
+                        </div>
+                      )}
+                      {report.soulShadow && (
+                        <div>
+                          <div className="text-xs font-light opacity-60 mb-2 tracking-wider" style={{ color: '#EBC862' }}>
+                            灵性阴影 (Soul Shadow)
+                          </div>
+                          <p className="text-xs font-light leading-relaxed" style={{ color: '#F7E7CE', lineHeight: '1.8' }}>
+                            {report.soulShadow}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {expandedCenter === i && center.name !== '喉轮' && (
                     <div className="mt-4 pt-4 border-t border-white/10 space-y-2 animate-fade-in">
                       <div>
                         <div className="text-xs font-light opacity-60 mb-1" style={{ color: '#EBC862' }}>初始特质</div>

@@ -6,6 +6,7 @@ import { analyzeBurst, QuantumBurst } from './quantumBurstAnalyzer';
 import { renderChakraResonance } from './chakraResonanceRenderer';
 import { renderComprehensiveChakraNarrative } from './narrativeEngine';
 import { generate2026Advice } from './yearlyAdvice2026';
+import { generateSoulGiftsAndShadow } from './soulGiftsShadowEngine';
 
 function getDefaultIcon(centerName: string): string {
   const iconMap: Record<string, string> = {
@@ -278,12 +279,15 @@ export async function generateEnergyReport(
   const sortedCenters = [...centers].sort((a, b) => a.percentage - b.percentage);
   const weakestCenter = sortedCenters[0];
 
-  // 获取喉轮分值用于生成2026年度建议
+  // 获取喉轮分值用于生成2026年度建议和灵性礼物/阴影
   const throatCenter = centers.find(c => c.name === '喉轮');
   const throatPercentage = throatCenter?.percentage || 50;
 
-  // 生成动态的2026白风年建议
-  const yearlyAdvice = await generate2026Advice(kin, throatPercentage);
+  // 并行生成动态的2026白风年建议和灵性礼物/阴影
+  const [yearlyAdvice, soulGiftsAndShadow] = await Promise.all([
+    generate2026Advice(kin, throatPercentage),
+    generateSoulGiftsAndShadow(kin, throatPercentage)
+  ]);
 
   return {
     kin,
@@ -297,7 +301,10 @@ export async function generateEnergyReport(
     },
     weakestCenter: weakestCenter.name,
     challengeAdvice: `专注提升${weakestCenter.name}（当前${weakestCenter.percentage}%）`,
-    wavespellInfluence: basicInfo.wavespellName
+    wavespellInfluence: basicInfo.wavespellName,
+    soulGift: soulGiftsAndShadow.soulGift,
+    soulShadow: soulGiftsAndShadow.soulShadow,
+    archetypeImagery: soulGiftsAndShadow.archetypeImagery
   };
 }
 
