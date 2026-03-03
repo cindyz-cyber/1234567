@@ -19,7 +19,13 @@ export default function UniversalKinReport({ kin, familyData, onClose }: Univers
 
     async function loadReport() {
       try {
-        const generatedReport = await generateKnowledgeBaseDrivenReport(kin);
+        // 传递家人数据给报告生成器
+        const generatedReport = await generateKnowledgeBaseDrivenReport(
+          kin,
+          undefined,
+          undefined,
+          familyData
+        );
 
         // Kin 66 自我纠错断言
         await validateKin66Report(generatedReport);

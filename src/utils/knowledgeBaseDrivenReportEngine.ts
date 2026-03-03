@@ -14,7 +14,8 @@
  */
 
 import { supabase } from '../lib/supabase';
-import type { KinEnergyReport, EnergyCenterScore } from '../types/kinReport';
+import type { KinEnergyReport, EnergyCenterScore, QuantumResonance } from '../types/kinReport';
+import { analyzeQuantumResonanceDriven } from './quantumResonanceDrivenEngine';
 
 // 版本标识 - 用于强制缓存失效
 export const ENGINE_VERSION = '2.1.0-gemini-calibrated-20260302-2217';
@@ -301,14 +302,64 @@ function generateWavespellInfo(wavespell: WavespellData) {
 }
 
 /**
- * 生成 2026 白风年建议（基于资料库）
+ * 生成 2026 白风年建议（基于数据库资料库）
  */
-function generate2026Advice(totem: TotemData, tone: ToneData) {
-  return {
-    coreWeakness: tone.challenge,
-    whiteWindEnergy: '2026 白风年强调灵性传播与呼吸节奏，所有能量都将被要求更透明、更流动',
-    practicalAdvice: `作为${totem.operation_mode}的你，在白风年需要：${tone.life_strategy}。记住你的核心关键词：${totem.core_keyword}。${tone.gift}将是你的最大优势。`
-  };
+async function generate2026Advice(totem: TotemData, tone: ToneData, throatScore: number) {
+  try {
+    // 1. 从数据库获取图腾层面的核心挑战
+    const { data: totemAdvice, error: totemError } = await supabase
+      .from('yearly_advice_2026_totems')
+      .select('*')
+      .eq('totem_id', totem.id)
+      .maybeSingle();
+
+    if (totemError) {
+      console.warn('读取2026图腾建议失败:', totemError);
+    }
+
+    // 2. 从数据库获取喉轮分段模板（根据喉轮分数）
+    const { data: throatTemplate, error: throatError } = await supabase
+      .from('yearly_advice_2026_throat_templates')
+      .select('*')
+      .lte('min_percentage', throatScore)
+      .gte('max_percentage', throatScore)
+      .maybeSingle();
+
+    if (throatError) {
+      console.warn('读取2026喉轮模板失败:', throatError);
+    }
+
+    // 3. 从数据库获取调性修正语
+    const { data: toneModifier, error: toneError } = await supabase
+      .from('yearly_advice_2026_tone_modifiers')
+      .select('*')
+      .eq('tone_id', tone.id)
+      .maybeSingle();
+
+    if (toneError) {
+      console.warn('读取2026调性修正失败:', toneError);
+    }
+
+    // 组合建议文本
+    const coreWeakness = totemAdvice?.core_challenge || tone.challenge || '数据同步中';
+    const whiteWindEnergy = throatTemplate?.advice_template || '2026 白风年强调灵性传播与呼吸节奏';
+    const practicalAdvice = totemAdvice && throatTemplate
+      ? `${throatTemplate.prefix_modifier || ''}${totemAdvice.manifestation_path}。${throatTemplate.action_template}${totemAdvice.action_verb}。${toneModifier?.yearly_lesson || ''}`
+      : `作为${totem.operation_mode}的你，在白风年需要：${tone.life_strategy}。记住核心关键词：${totem.core_keyword}`;
+
+    return {
+      coreWeakness,
+      whiteWindEnergy,
+      practicalAdvice
+    };
+  } catch (error) {
+    console.error('生成2026建议时出错:', error);
+    return {
+      coreWeakness: tone.challenge || '数据同步中',
+      whiteWindEnergy: '2026 白风年强调灵性传播与呼吸节奏',
+      practicalAdvice: '建议数据正在同步，请稍后刷新'
+    };
+  }
 }
 
 /**
@@ -317,7 +368,8 @@ function generate2026Advice(totem: TotemData, tone: ToneData) {
 export async function generateKnowledgeBaseDrivenReport(
   kin: number,
   userName?: string,
-  higherSelfName?: string
+  higherSelfName?: string,
+  familyData?: Array<{ kin: number; name: string }>
 ): Promise<KinEnergyReport> {
   // 从资料库获取所有数据
   const { totem, tone, wavespell, kinDef } = await fetchKinKnowledge(kin);
@@ -348,6 +400,72 @@ export async function generateKnowledgeBaseDrivenReport(
   // 第三层：波符底色
   const wavespellInfo = generateWavespellInfo(wavespell);
 
+  // 获取喉轮分数用于2026建议
+  const throatCenter = energyCenters.find(c => c.center === 'throat');
+  const throatScore = throatCenter?.score || totem.throat_chakra;
+
+  // 第四层：2026白风年建议（从数据库读取）
+  const year2026Advice = await generate2026Advice(totem, tone, throatScore);
+
+  // 第五层：量子共振分析（仅在有家人数据时计算）
+  let quantumResonances: QuantumResonance[] | undefined = undefined;
+
+  if (familyData && familyData.length > 0) {
+    quantumResonances = [];
+
+    for (const family of familyData) {
+      try {
+        // 获取家人的能量中心数据
+        const familyKinKnowledge = await fetchKinKnowledge(family.kin);
+        const familyEnergyCenters = generateEnergyCentersFromKB(familyKinKnowledge.totem, familyKinKnowledge.tone);
+
+        const userScores = {
+          throat: energyCenters.find(c => c.center === 'throat')?.score || throatScore,
+          heart: energyCenters.find(c => c.center === 'heart')?.score || totem.heart_chakra,
+          pineal: energyCenters.find(c => c.center === 'pineal')?.score || totem.pineal_gland
+        };
+
+        const familyScores = {
+          throat: familyEnergyCenters.find(c => c.center === 'throat')?.score || familyKinKnowledge.totem.throat_chakra,
+          heart: familyEnergyCenters.find(c => c.center === 'heart')?.score || familyKinKnowledge.totem.heart_chakra,
+          pineal: familyEnergyCenters.find(c => c.center === 'pineal')?.score || familyKinKnowledge.totem.pineal_gland
+        };
+
+        // 使用量子共振引擎动态计算
+        const resonanceResult = await analyzeQuantumResonanceDriven(
+          kin,
+          family.kin,
+          userScores,
+          familyScores
+        );
+
+        // 转换为报告格式
+        const resonanceTypeMap: Record<string, QuantumResonance['resonanceType']> = {
+          'matrix_irrigation': 'push',
+          'life_whetstone': 'challenge',
+          'synergy_ally': 'integrate',
+          'collaboration': 'support',
+          'normal': 'complement'
+        };
+
+        quantumResonances.push({
+          relationKin: family.kin,
+          relationName: family.name,
+          resonanceType: resonanceTypeMap[resonanceResult.effectType] || 'complement',
+          impact: resonanceResult.description,
+          modifier: Object.entries(resonanceResult.energyBoost).map(([center, delta]) => ({
+            center: center as 'heart' | 'throat' | 'pineal',
+            delta: delta as number
+          }))
+        });
+
+        console.log(`✅ 量子共振计算完成: ${family.name} (Kin ${family.kin}) - ${resonanceResult.relationshipLabel}`);
+      } catch (error) {
+        console.error(`量子共振计算失败 (Kin ${family.kin}):`, error);
+      }
+    }
+  }
+
   // 组装完整报告
   return {
     kin,
@@ -366,7 +484,8 @@ export async function generateKnowledgeBaseDrivenReport(
     lifePurpose: kinDef?.life_purpose || `${totem.core_keyword}的${tone.name_cn}使命`,
     shadowWork: kinDef?.shadow_work || tone.challenge,
     integrationPath: kinDef?.integration_path || tone.life_strategy,
-    year2026Advice: generate2026Advice(totem, tone),
+    quantumResonances,
+    year2026Advice,
     wavespellName: wavespellInfo.wavespellName,
     wavespellInfluence: wavespellInfo.wavespellInfluence,
     generatedAt: new Date(),
