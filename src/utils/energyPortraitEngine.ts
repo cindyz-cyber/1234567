@@ -8,6 +8,7 @@ import { renderChakraResonance } from './chakraResonanceRenderer';
 import { renderComprehensiveChakraNarrative } from './narrativeEngine';
 import { generate2026Advice } from './yearlyAdvice2026';
 import { generateSoulGiftsAndShadow } from './soulGiftsShadowEngine';
+import { generateChakraTrait, generateChakraWeakness } from './chakraTraitsEngine';
 
 function getDefaultIcon(centerName: string): string {
   const iconMap: Record<string, string> = {
@@ -41,7 +42,7 @@ export async function fetchEnergyCentersFromDatabase(kin: number): Promise<Energ
     // 获取调性（用于多维语感渲染）
     const tone = ((kin - 1) % 13) + 1;
 
-    // 使用多维语感叙事引擎增强描述
+    // 使用多维语感叙事引擎 + 动态特质弱点引擎
     const centersWithNarrative = await Promise.all(
       data.map(async (center) => {
         // 使用综合渲染：脉轮 + 调性 + 环境音
@@ -52,14 +53,20 @@ export async function fetchEnergyCentersFromDatabase(kin: number): Promise<Energ
           true // 包含白风年环境音
         );
 
+        // 动态生成特质和弱点（基于分数范围）
+        const [dynamicTraits, dynamicWeaknesses] = await Promise.all([
+          generateChakraTrait(center.center_name, center.percentage),
+          generateChakraWeakness(center.center_name, center.percentage)
+        ]);
+
         return {
           name: center.center_name,
           percentage: center.percentage,
           mode: center.mode,
           description: comprehensiveNarrative.narrative, // 使用多维语感叙事
           icon: center.icon || getDefaultIcon(center.center_name),
-          traits: center.traits,
-          weaknesses: center.weaknesses
+          traits: dynamicTraits, // 使用动态生成的特质
+          weaknesses: dynamicWeaknesses // 使用动态生成的弱点
         };
       })
     );
