@@ -203,7 +203,14 @@ async function calculateQuantumResonance(
 
 export async function generateEnergyReport(
   kin: number,
-  familyKins?: Array<{ name: string; kin: number }>
+  familyKins?: Array<{
+    name: string;
+    kin: number;
+    birthDate?: Date;
+    hour?: number;
+  }>,
+  userBirthDate?: Date,
+  userHour?: number
 ): Promise<KinEnergyReport> {
   const basicInfo = await fetchKinBasicInfo(kin);
   const centers = await fetchEnergyCentersFromDatabase(kin);
@@ -217,10 +224,28 @@ export async function generateEnergyReport(
 
   const quantumResonances: QuantumResonance[] = [];
   if (familyKins && familyKins.length > 0) {
+    // 如果有用户日期，使用三层架构
+    let userSnapshot: EnergySnapshot | null = null;
+    if (userBirthDate) {
+      userSnapshot = await calculateCompositeKin(userBirthDate, userHour);
+    }
+
     for (const family of familyKins) {
       try {
-        const resonance = await calculateQuantumResonance(kin, family.kin, family.name);
-        if (resonance) quantumResonances.push(resonance);
+        // 优先使用三层架构（如果有日期信息）
+        if (userSnapshot && family.birthDate) {
+          const familySnapshot = await calculateCompositeKin(family.birthDate, family.hour);
+          const resonance = await calculateQuantumResonanceWithBurst(
+            userSnapshot,
+            familySnapshot,
+            family.name
+          );
+          if (resonance) quantumResonances.push(resonance);
+        } else {
+          // 降级为旧算法（仅使用 Kin 数字）
+          const resonance = await calculateQuantumResonance(kin, family.kin, family.name);
+          if (resonance) quantumResonances.push(resonance);
+        }
       } catch (error) {
         console.error(`Failed to calculate resonance with ${family.name}:`, error);
       }

@@ -130,15 +130,29 @@ export default function EnergyPerson() {
   };
 
   const handleGenerateReport = async () => {
-    if (!myData.kinData) return;
+    if (!myData.kinData || !myData.birthDate) return;
 
     setIsGeneratingReport(true);
     try {
+      // 准备家人信息（包含完整日期数据）
+      const familyData = resonancePersons
+        .filter(p => p.kinData && p.birthDate)
+        .map(p => ({
+          name: p.name || '家人',
+          kin: p.kinData!.kin,
+          birthDate: p.birthDate!,
+          hour: p.midnightType === 'early' ? 0 : p.midnightType === 'late' ? 23 : undefined
+        }));
+
+      // 计算用户的小时（根据子时类型）
+      const userHour = myData.midnightType === 'early' ? 0 : myData.midnightType === 'late' ? 23 : undefined;
+
+      // 使用三层架构生成报告
       const report = await generateNewEnergyReport(
         myData.kinData.kin,
-        resonancePersons
-          .filter(p => p.kinData)
-          .map(p => ({ name: p.name || '家人', kin: p.kinData!.kin }))
+        familyData,
+        myData.birthDate,
+        userHour
       );
 
       // 添加子时信息
