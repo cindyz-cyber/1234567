@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import GoldButton from './GoldButton';
 
 interface NamingRitualProps {
@@ -26,11 +26,18 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handleUserInteraction = () => {
+  useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(() => {
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.play().catch(() => {});
+          }
+        }, 100);
+      });
     }
-  };
+  }, []);
 
   return (
     <div
@@ -53,10 +60,10 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
       >
         <video
           ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
+          autoPlay={true}
+          loop={true}
+          muted={true}
+          playsInline={true}
           preload="auto"
           crossOrigin="anonymous"
           className="absolute inset-0 w-full h-full object-cover"
@@ -64,9 +71,10 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
             filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
             WebkitTransform: 'translateZ(0)',
             transform: 'translateZ(0)',
+            willChange: 'transform',
             opacity: 1
           }}
-          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23020d0a'/%3E%3C/svg%3E"
+          poster="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1920&q=80"
         >
           <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
         </video>
@@ -153,8 +161,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
                 type="text"
                 value={higherSelfName}
                 onChange={(e) => setHigherSelfName(e.target.value)}
-                onTouchStart={handleUserInteraction}
-                onClick={handleUserInteraction}
                 className="ritual-input"
                 autoFocus
               />
@@ -180,8 +186,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
                 type="text"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                onTouchStart={handleUserInteraction}
-                onClick={handleUserInteraction}
                 className="ritual-input"
                 autoFocus
               />
