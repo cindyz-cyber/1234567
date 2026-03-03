@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { KinEnergyReport } from '../types/energyPortrait';
 
 interface Props {
@@ -57,6 +58,21 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
 
       {/* 内容层 */}
       <div className={`relative min-h-screen flex flex-col ${isVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`} style={{ zIndex: 10 }}>
+        {/* 返回按钮 */}
+        <button
+          onClick={onBack}
+          className="fixed top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-lg backdrop-blur-md transition-all duration-300 hover:scale-105 group"
+          style={{
+            background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.1), rgba(235, 200, 98, 0.1))',
+            border: '1px solid rgba(247, 231, 206, 0.3)',
+            color: '#F7E7CE',
+            zIndex: 50
+          }}
+        >
+          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" />
+          <span className="text-sm tracking-wider">返回</span>
+        </button>
+
         {/* 首屏：紧凑横向布局 */}
         <div className="flex-1 flex flex-col justify-center items-center px-6 py-12">
           <div className="w-full max-w-7xl">
