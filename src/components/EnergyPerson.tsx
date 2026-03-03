@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Share2 } from 'lucide-react';
 import {
   calculateKin,
@@ -40,6 +40,7 @@ export default function EnergyPerson() {
   const [useNewReport, setUseNewReport] = useState(true);
   const [generatedReport, setGeneratedReport] = useState<any | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const previousResonancePersonsRef = useRef<ResonancePerson[]>([]);
 
   useEffect(() => {
     if (!myData.kinData) return;
@@ -75,6 +76,57 @@ export default function EnergyPerson() {
     setFinalProfile(profile);
     setSynergies(detectedSynergies);
   }, [myData.kinData, resonancePersons]);
+
+  // 当 resonancePersons 发生变化且已经显示报告时，自动重新生成报告
+  useEffect(() => {
+    const hasChanged = JSON.stringify(resonancePersons) !== JSON.stringify(previousResonancePersonsRef.current);
+
+    if (hasChanged && showReport && generatedReport && myData.kinData && myData.birthDate && !isGeneratingReport) {
+      const familyData = resonancePersons
+        .filter(p => p.kinData && p.birthDate)
+        .map(p => ({
+          name: p.name || '家人',
+          kin: p.kinData!.kin,
+          birthDate: p.birthDate!,
+          hour: p.midnightType === 'early' ? 0 : p.midnightType === 'late' ? 23 : undefined
+        }));
+
+      const userHour = myData.midnightType === 'early' ? 0 : myData.midnightType === 'late' ? 23 : undefined;
+
+      console.log('🔄 检测到家人数据变化，自动重新生成报告');
+
+      setIsGeneratingReport(true);
+      generateNewEnergyReport(
+        myData.kinData.kin,
+        familyData,
+        myData.birthDate,
+        userHour
+      ).then(report => {
+        report.midnightType = myData.kinData!.midnightType || null;
+        report.secondaryKin = myData.kinData!.secondaryKin;
+        report.toneName = myData.kinData!.toneName;
+        report.sealName = myData.kinData!.sealName;
+
+        console.log('✅ 自动重新生成报告完成，包含量子共振数据:', {
+          kin: report.kin,
+          resonanceCount: report.quantumResonances?.length || 0,
+          resonances: report.quantumResonances?.map(r => ({
+            member: r.familyMember,
+            type: r.typeLabel,
+            strength: r.synergyStrength
+          }))
+        });
+
+        setGeneratedReport(report);
+      }).catch(error => {
+        console.error('Failed to auto-regenerate report:', error);
+      }).finally(() => {
+        setIsGeneratingReport(false);
+      });
+    }
+
+    previousResonancePersonsRef.current = resonancePersons;
+  }, [resonancePersons, showReport, generatedReport, myData, isGeneratingReport]);
 
   const handleMyDateSelect = async (dateString: string, midnightType: 'early' | 'late' | null) => {
     if (!dateString) return;

@@ -159,11 +159,14 @@ export async function analyzeQuantumResonance(
     };
   }
 
-  // 无特殊关系 - 使用协作共振
+  // 无特殊关系 - 使用自然共振（动态分数算法）
+  const dynamicOffset = (userKin + relativeKin) % 29;
+  const dynamicScore = 65 + dynamicOffset;
+
   return {
     type: null,
-    label: '协作共振',
-    description: '你们之间存在协作的能量场域，适合在共同目标下展开合作与互助。',
+    label: '自然共振',
+    description: `你们之间形成了独特的能量角度（共振强度 ${dynamicScore}%），创造出专属的共振模式。这种连接既非极致对冲也非完全融合，而是一种能量互动，适合在特定情境下的协作与支持。`,
     energyBoost: {}
   };
 }
