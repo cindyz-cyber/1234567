@@ -169,7 +169,7 @@ async function calculateQuantumResonanceWithBurst(
 
 /**
  * 向后兼容：旧版本的量子共振计算（仅使用 Kin 数字）
- * 注意：这不会触发"爆发检测"，仅用于简单的知识库查询
+ * 注意：已升级为使用数据库驱动的爆发短句，清除所有硬编码
  */
 async function calculateQuantumResonance(
   userKin: number,
@@ -177,6 +177,7 @@ async function calculateQuantumResonance(
   familyName: string
 ): Promise<QuantumResonance | null> {
   try {
+    // 从知识库获取关系定义（包含数据库驱动的爆发短句）
     const resonanceRelation = await analyzeQuantumResonance(userKin, familyKin);
 
     const userCenters = await fetchEnergyCentersFromDatabase(userKin);
@@ -185,26 +186,20 @@ async function calculateQuantumResonance(
     const userWeakest = userCenters.reduce((min, c) => c.percentage < min.percentage ? c : min);
     const familyStrongest = familyCenters.reduce((max, c) => c.percentage > max.percentage ? c : max);
 
-    let typeLabel = resonanceRelation.label;
-    let synergyStrength = 0.5;
-    let description = resonanceRelation.description;
+    // 强度映射：根据关系类型计算共振强度
+    const strengthMap: Record<string, number> = {
+      'push': 1.0,        // 母体灌溉型
+      'challenge': 0.95,  // 生命磨刀石
+      'guide': 0.9,       // 指引导航位
+      'hidden': 0.85,     // 隐藏力量位
+      'support': 0.8      // 支持共振位
+    };
 
-    if (resonanceRelation.type === 'push') {
-      typeLabel = '母体灌溉型';
-      synergyStrength = 1.0;
-    } else if (resonanceRelation.type === 'challenge') {
-      typeLabel = '生命磨刀石';
-      synergyStrength = 0.95;
-    } else if (resonanceRelation.type === 'guide') {
-      typeLabel = '指引导航位';
-      synergyStrength = 0.9;
-    } else if (resonanceRelation.type === 'hidden') {
-      typeLabel = '隐藏力量位';
-      synergyStrength = 0.85;
-    } else if (resonanceRelation.type === 'support') {
-      typeLabel = resonanceRelation.label;
-      synergyStrength = resonanceRelation.label === '同色系共振' ? 0.7 : 0.8;
-    }
+    const synergyStrength = strengthMap[resonanceRelation.type || 'mirror'] || 0.5;
+
+    // 使用从数据库获取的标签和描述（已包含多维语感爆发短句）
+    const typeLabel = resonanceRelation.label;
+    const description = resonanceRelation.description;
 
     return {
       familyMember: familyName,
