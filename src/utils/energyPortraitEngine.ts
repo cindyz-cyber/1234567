@@ -318,6 +318,8 @@ export async function generateEnergyReport(
 
   return {
     kin,
+    toneName: basicInfo.toneName,
+    sealName: basicInfo.sealName,
     portrait,
     quantumResonances,
     yearGuidance: {

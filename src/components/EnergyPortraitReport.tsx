@@ -98,10 +98,10 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                   opacity: 0.9,
                   letterSpacing: '0.15em'
                 }}>
-                  {(() => {
-                    const { toneName, sealName } = extractToneAndSeal(report.portrait.essence);
-                    return toneName && sealName ? `${toneName}的${sealName}` : `${toneName}${sealName}`;
-                  })()}
+                  {report.toneName && report.sealName
+                    ? `${report.toneName}的${report.sealName}`
+                    : extractToneAndSeal(report.portrait.essence).toneName + '的' + extractToneAndSeal(report.portrait.essence).sealName
+                  }
                 </div>
 
                 {/* 横向排版：波符标识 */}
