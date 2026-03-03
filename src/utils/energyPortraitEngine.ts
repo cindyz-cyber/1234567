@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { analyzeQuantumResonance, calculateSynthesizedField } from './quantumResonanceEngine';
 import { calculateCompositeKin, EnergySnapshot } from './compositeKinCalculator';
 import { analyzeBurst, QuantumBurst } from './quantumBurstAnalyzer';
+import { renderChakraResonance } from './chakraResonanceRenderer';
 
 function getDefaultIcon(centerName: string): string {
   const iconMap: Record<string, string> = {
@@ -33,15 +34,28 @@ export async function fetchEnergyCentersFromDatabase(kin: number): Promise<Energ
       throw new Error(`No energy centers found for Kin ${kin}`);
     }
 
-    return data.map(center => ({
-      name: center.center_name,
-      percentage: center.percentage,
-      mode: center.mode,
-      description: center.description,
-      icon: center.icon || getDefaultIcon(center.center_name),
-      traits: center.traits,
-      weaknesses: center.weaknesses
-    }));
+    // 使用新的感应渲染系统增强描述
+    const centersWithResonance = await Promise.all(
+      data.map(async (center) => {
+        const resonanceDescription = await renderChakraResonance(
+          kin,
+          center.percentage,
+          center.center_name
+        );
+
+        return {
+          name: center.center_name,
+          percentage: center.percentage,
+          mode: center.mode,
+          description: resonanceDescription, // 使用感应描述替代原始描述
+          icon: center.icon || getDefaultIcon(center.center_name),
+          traits: center.traits,
+          weaknesses: center.weaknesses
+        };
+      })
+    );
+
+    return centersWithResonance;
   } catch (error) {
     console.error(`Failed to fetch energy centers for Kin ${kin}:`, error);
     throw error;
