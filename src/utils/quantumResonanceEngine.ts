@@ -13,6 +13,7 @@
 import { knowledgeBase } from './knowledgeBase';
 import { EnergySnapshot, calculateCompositeKin } from './compositeKinCalculator';
 import { QuantumBurst, analyzeBurst } from './quantumBurstAnalyzer';
+import { renderQuantumSynergyBurst } from './narrativeEngine';
 
 export interface QuantumResonanceRelation {
   type: 'push' | 'challenge' | 'guide' | 'support' | 'hidden' | null;
@@ -59,10 +60,11 @@ export async function analyzeQuantumResonance(
 
   // 1. 母体灌溉型（推动位）：(Kin_A + Kin_B) % 260 === 1
   if (kinSum % 260 === 1 || kinSum === 261) {
+    const burstDescription = await renderQuantumSynergyBurst(261);
     return {
       type: 'push',
       label: '母体灌溉型（推动位）',
-      description: '你们是"灵魂充电桩"，Ta 能为你提供源源不断的母体养分，让你的心轮瞬间扩容。',
+      description: burstDescription || '你们是"灵魂充电桩"，Ta 能为你提供源源不断的母体养分，让你的心轮瞬间扩容。',
       energyBoost: {
         heart: 15,
         pineal: 8
@@ -76,10 +78,11 @@ export async function analyzeQuantumResonance(
   if (kinDef) {
     // 2. 生命磨刀石（对冲位）：从数据库的 oracle_challenge 读取
     if (kinDef.oracle_challenge === relativeKin) {
+      const burstDescription = await renderQuantumSynergyBurst(130);
       return {
         type: 'challenge',
         label: '生命磨刀石（对冲位）',
-        description: 'Ta 是你生命中的"极性对冲镜"。通过碰撞，Ta 让你看见自己未被开发的另一面。',
+        description: burstDescription || 'Ta 是你生命中的"极性对冲镜"。通过碰撞，Ta 让你看见自己未被开发的另一面。',
         energyBoost: {
           pineal: 10,
           throat: 5
@@ -89,10 +92,11 @@ export async function analyzeQuantumResonance(
 
     // 3. 指引导航位：从数据库的 oracle_guide 读取
     if (kinDef.oracle_guide === relativeKin) {
+      const burstDescription = await renderQuantumSynergyBurst(777);
       return {
         type: 'guide',
         label: '指引导航位',
-        description: 'Ta 是你的高维灯塔。在你的逻辑风暴中，Ta 是唯一能带你找到上帝视角的锚点。',
+        description: burstDescription || 'Ta 是你的高维灯塔。在你的逻辑风暴中，Ta 是唯一能带你找到上帝视角的锚点。',
         energyBoost: {
           pineal: 12,
           heart: 5
@@ -115,10 +119,11 @@ export async function analyzeQuantumResonance(
 
     // 5. 支持位：从数据库的 oracle_support 读取
     if (kinDef.oracle_support === relativeKin) {
+      const burstDescription = await renderQuantumSynergyBurst(888);
       return {
         type: 'support',
         label: '支持共振位',
-        description: 'Ta 与你同频共振，能够深度理解你的表达方式，是天然的盟友。',
+        description: burstDescription || 'Ta 与你同频共振，能够深度理解你的表达方式，是天然的盟友。',
         energyBoost: {
           throat: 10,
           heart: 5

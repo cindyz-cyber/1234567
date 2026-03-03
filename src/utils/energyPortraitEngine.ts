@@ -4,6 +4,7 @@ import { analyzeQuantumResonance, calculateSynthesizedField } from './quantumRes
 import { calculateCompositeKin, EnergySnapshot } from './compositeKinCalculator';
 import { analyzeBurst, QuantumBurst } from './quantumBurstAnalyzer';
 import { renderChakraResonance } from './chakraResonanceRenderer';
+import { renderComprehensiveChakraNarrative } from './narrativeEngine';
 
 function getDefaultIcon(centerName: string): string {
   const iconMap: Record<string, string> = {
@@ -34,20 +35,25 @@ export async function fetchEnergyCentersFromDatabase(kin: number): Promise<Energ
       throw new Error(`No energy centers found for Kin ${kin}`);
     }
 
-    // 使用新的感应渲染系统增强描述
-    const centersWithResonance = await Promise.all(
+    // 获取调性（用于多维语感渲染）
+    const tone = ((kin - 1) % 13) + 1;
+
+    // 使用多维语感叙事引擎增强描述
+    const centersWithNarrative = await Promise.all(
       data.map(async (center) => {
-        const resonanceDescription = await renderChakraResonance(
-          kin,
+        // 使用综合渲染：脉轮 + 调性 + 环境音
+        const comprehensiveNarrative = await renderComprehensiveChakraNarrative(
+          center.center_name,
           center.percentage,
-          center.center_name
+          tone,
+          true // 包含白风年环境音
         );
 
         return {
           name: center.center_name,
           percentage: center.percentage,
           mode: center.mode,
-          description: resonanceDescription, // 使用感应描述替代原始描述
+          description: comprehensiveNarrative.narrative, // 使用多维语感叙事
           icon: center.icon || getDefaultIcon(center.center_name),
           traits: center.traits,
           weaknesses: center.weaknesses
@@ -55,7 +61,7 @@ export async function fetchEnergyCentersFromDatabase(kin: number): Promise<Energ
       })
     );
 
-    return centersWithResonance;
+    return centersWithNarrative;
   } catch (error) {
     console.error(`Failed to fetch energy centers for Kin ${kin}:`, error);
     throw error;
