@@ -146,10 +146,21 @@ export async function analyzeQuantumResonanceDriven(
       // 使用动态分数算法 (65% ~ 93%)
       const dynamicOffset = (kinA + kinB) % 29;
       synergyScore = 65 + dynamicOffset;
-      description = `你们之间形成了独特的能量角度，创造出专属的共振模式。这种连接既非极致对冲也非完全融合，而是一种能量互动，适合在特定情境下的协作与支持。`;
+
+      // 动态描述：根据分数区间生成不同文案
+      let dynamicDesc = "";
+      if (synergyScore >= 85) {
+        dynamicDesc = "高频协同场域：你们的频率高度交叠，这意味着在沟通与协作中，阻力极小。这是一种天然的赋能关系，适合共同开创复杂的逻辑模型。";
+      } else if (synergyScore >= 75) {
+        dynamicDesc = "温和共振矩阵：你们之间形成了一个平衡的能量夹角。虽然不是极端的推动，但在日常互动中能够提供稳定、持续的逻辑支撑。";
+      } else {
+        dynamicDesc = "差异化互补连接：你们的能量模式存在可见的差异。这种连结需要更多的「倾听与留白」来磨合，学会在不同的逻辑频道中寻找共识的锚点。";
+      }
+
+      description = dynamicDesc;
       energyBoost = {};
 
-      console.log(`🔢 动态分数算法: Kin ${kinA} + Kin ${kinB} = 共振强度 ${synergyScore}%`);
+      console.log(`🔢 动态分数算法: Kin ${kinA} + Kin ${kinB} = 共振强度 ${synergyScore}% | 描述: ${dynamicDesc.substring(0, 20)}...`);
     }
   }
 

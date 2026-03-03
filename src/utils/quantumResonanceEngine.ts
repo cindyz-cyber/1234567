@@ -163,10 +163,20 @@ export async function analyzeQuantumResonance(
   const dynamicOffset = (userKin + relativeKin) % 29;
   const dynamicScore = 65 + dynamicOffset;
 
+  // 动态描述：根据分数区间生成不同文案
+  let dynamicDesc = "";
+  if (dynamicScore >= 85) {
+    dynamicDesc = `高频协同场域（共振强度 ${dynamicScore}%）：你们的频率高度交叠，这意味着在沟通与协作中，阻力极小。这是一种天然的赋能关系，适合共同开创复杂的逻辑模型。`;
+  } else if (dynamicScore >= 75) {
+    dynamicDesc = `温和共振矩阵（共振强度 ${dynamicScore}%）：你们之间形成了一个平衡的能量夹角。虽然不是极端的推动，但在日常互动中能够提供稳定、持续的逻辑支撑。`;
+  } else {
+    dynamicDesc = `差异化互补连接（共振强度 ${dynamicScore}%）：你们的能量模式存在可见的差异。这种连结需要更多的「倾听与留白」来磨合，学会在不同的逻辑频道中寻找共识的锚点。`;
+  }
+
   return {
     type: null,
     label: '自然共振',
-    description: `你们之间形成了独特的能量角度（共振强度 ${dynamicScore}%），创造出专属的共振模式。这种连接既非极致对冲也非完全融合，而是一种能量互动，适合在特定情境下的协作与支持。`,
+    description: dynamicDesc,
     energyBoost: {}
   };
 }
