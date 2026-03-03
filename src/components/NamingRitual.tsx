@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import GoldButton from './GoldButton';
 
 interface NamingRitualProps {
@@ -24,20 +24,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
     }
   };
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = true;
-      videoRef.current.play().catch(() => {
-        setTimeout(() => {
-          if (videoRef.current) {
-            videoRef.current.play().catch(() => {});
-          }
-        }, 100);
-      });
-    }
-  }, []);
 
   return (
     <div
@@ -58,30 +44,23 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
           WebkitOverflowScrolling: 'touch'
         }}
       >
-        <video
-          ref={videoRef}
-          autoPlay={true}
-          loop={true}
-          muted={true}
-          playsInline={true}
-          preload="auto"
-          crossOrigin="anonymous"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{
-            filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
-            WebkitTransform: 'translateZ(0)',
-            transform: 'translateZ(0)',
-            willChange: 'transform',
-            opacity: 1
-          }}
-          poster="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1920&q=80"
-        >
-          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
-        </video>
         <div
           className="absolute inset-0 w-full h-full"
           style={{
-            backgroundColor: 'rgba(2, 13, 10, 0.25)',
+            backgroundImage: 'url(/src/assets/nocturnaltshirts_far_off_in_outer_space_stars_and_cosmic_energy_059d251e-14d0-42ad-a954-a9498876328a.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: 'brightness(0.85) contrast(1.1)',
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            willChange: 'transform'
+          }}
+        />
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(2, 13, 10, 0) 0%, rgba(2, 13, 10, 0) 33%, rgba(2, 13, 10, 0.3) 66%, rgba(2, 13, 10, 0.5) 100%)',
             pointerEvents: 'none'
           }}
         />
