@@ -1,6 +1,8 @@
 import { KinEnergyReport, EnergyCenter, QuantumResonance } from '../types/energyPortrait';
 import { supabase } from '../lib/supabase';
 import { analyzeQuantumResonance, calculateSynthesizedField } from './quantumResonanceEngine';
+import { calculateCompositeKin, EnergySnapshot } from './compositeKinCalculator';
+import { analyzeBurst, QuantumBurst } from './quantumBurstAnalyzer';
 
 function getDefaultIcon(centerName: string): string {
   const iconMap: Record<string, string> = {
@@ -15,7 +17,7 @@ function getDefaultIcon(centerName: string): string {
   return iconMap[centerName] || '⭐';
 }
 
-async function fetchEnergyCentersFromDatabase(kin: number): Promise<EnergyCenter[]> {
+export async function fetchEnergyCentersFromDatabase(kin: number): Promise<EnergyCenter[]> {
   try {
     const { data, error } = await supabase
       .from('kin_energy_centers')
@@ -104,13 +106,57 @@ async function fetchKinBasicInfo(kin: number) {
   }
 }
 
+/**
+ * 第三层：渲染层隔离 - 使用三层架构计算量子共振
+ * 严格禁止在 UI 渲染循环中调用此函数！
+ */
+async function calculateQuantumResonanceWithBurst(
+  userSnapshot: EnergySnapshot,
+  familySnapshot: EnergySnapshot,
+  familyName: string
+): Promise<QuantumResonance | null> {
+  try {
+    // 使用第二层：量子干涉算法
+    const burst = analyzeBurst(userSnapshot, familySnapshot);
+
+    // 计算共振强度（基于爆发类型）
+    const strengthMap: Record<string, number> = {
+      'push': 1.0,
+      'mirror': 0.95,
+      'guide': 0.9,
+      'hidden': 0.85,
+      'support': 0.8,
+      'color_sync': 0.7,
+      'normal': 0.5
+    };
+
+    const synergyStrength = strengthMap[burst.type] || 0.5;
+
+    return {
+      familyMember: familyName,
+      type: burst.type === 'color_sync' ? 'support' : (burst.type || 'mirror'),
+      typeLabel: burst.title,
+      description: burst.description,
+      synergyType: burst.synergyType,
+      synergyStrength,
+      synergyDescription: `${burst.title}：能量共振强度 ${Math.round(synergyStrength * 100)}%`
+    };
+  } catch (error) {
+    console.error('Failed to calculate quantum resonance with burst:', error);
+    return null;
+  }
+}
+
+/**
+ * 向后兼容：旧版本的量子共振计算（仅使用 Kin 数字）
+ * 注意：这不会触发"爆发检测"，仅用于简单的知识库查询
+ */
 async function calculateQuantumResonance(
   userKin: number,
   familyKin: number,
   familyName: string
 ): Promise<QuantumResonance | null> {
   try {
-    // 使用新的量子共振引擎分析关系（知识库驱动）
     const resonanceRelation = await analyzeQuantumResonance(userKin, familyKin);
 
     const userCenters = await fetchEnergyCentersFromDatabase(userKin);
@@ -119,8 +165,7 @@ async function calculateQuantumResonance(
     const userWeakest = userCenters.reduce((min, c) => c.percentage < min.percentage ? c : min);
     const familyStrongest = familyCenters.reduce((max, c) => c.percentage > max.percentage ? c : max);
 
-    // 根据关系类型确定共振强度和类型标签
-    let typeLabel = '普通共振';
+    let typeLabel = resonanceRelation.label;
     let synergyStrength = 0.5;
     let description = resonanceRelation.description;
 
@@ -137,8 +182,8 @@ async function calculateQuantumResonance(
       typeLabel = '隐藏力量位';
       synergyStrength = 0.85;
     } else if (resonanceRelation.type === 'support') {
-      typeLabel = '支持共振位';
-      synergyStrength = 0.8;
+      typeLabel = resonanceRelation.label;
+      synergyStrength = resonanceRelation.label === '同色系共振' ? 0.7 : 0.8;
     }
 
     return {

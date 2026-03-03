@@ -1,16 +1,18 @@
 /**
- * 量子共振关系引擎（知识库驱动版本）
- * Quantum Resonance Relationship Engine (Knowledge Base Driven)
+ * 量子共振关系引擎（三层架构重构版）
+ * Quantum Resonance Relationship Engine (3-Tier Architecture)
  *
- * 核心算法：
- * 1. 从数据库读取 oracle_guide, oracle_challenge, oracle_support, oracle_hidden
- * 2. 母体灌溉型（推动位）: (Kin_A + Kin_B) % 260 === 1
- * 3. 生命磨刀石（对冲位）: 从数据库的 oracle_challenge 读取
- * 4. 指引导航位: 从数据库的 oracle_guide 读取
- * 5. 隐藏力量位: 从数据库的 oracle_hidden 读取
+ * 第一层：个体能量实例化 → compositeKinCalculator.ts
+ * 第二层：量子干涉算法 → quantumBurstAnalyzer.ts
+ * 第三层：渲染层隔离 → 本文件作为协调层
+ *
+ * 重要：此引擎仅用于知识库驱动的 Oracle 关系查询
+ * 推动位和对冲位的"爆发检测"已移至 quantumBurstAnalyzer
  */
 
 import { knowledgeBase } from './knowledgeBase';
+import { EnergySnapshot, calculateCompositeKin } from './compositeKinCalculator';
+import { QuantumBurst, analyzeBurst } from './quantumBurstAnalyzer';
 
 export interface QuantumResonanceRelation {
   type: 'push' | 'challenge' | 'guide' | 'support' | 'hidden' | null;
@@ -24,7 +26,29 @@ export interface QuantumResonanceRelation {
 }
 
 /**
- * 分析两个Kin之间的量子共振关系（使用知识库）
+ * 三层架构协调函数：完整的量子共振分析
+ * 输入：两个日期和小时（可选）
+ * 输出：完整的爆发分析结果
+ */
+export async function analyzeQuantumResonanceFull(
+  userDate: Date,
+  userHour: number | undefined,
+  relativeDate: Date,
+  relativeHour: number | undefined
+): Promise<QuantumBurst> {
+  // 第一层：个体能量实例化
+  const userSnapshot = await calculateCompositeKin(userDate, userHour);
+  const relativeSnapshot = await calculateCompositeKin(relativeDate, relativeHour);
+
+  // 第二层：量子干涉算法
+  const burst = analyzeBurst(userSnapshot, relativeSnapshot);
+
+  return burst;
+}
+
+/**
+ * 向后兼容：使用 Kin 数字分析关系（仅用于知识库查询）
+ * 注意：这不包含"爆发检测"，仅返回 Oracle 关系
  */
 export async function analyzeQuantumResonance(
   userKin: number,
