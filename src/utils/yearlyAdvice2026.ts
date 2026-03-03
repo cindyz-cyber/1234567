@@ -185,25 +185,39 @@ function synthesizeGuidance(
   toneModifier: ToneModifier,
   throatPercentage: number
 ): string {
+  console.log('🔍 合成2026建议 - 输入数据:', {
+    throat: throatTemplate?.archetype,
+    totem: totemAdvice?.totem_name_cn,
+    tone: toneModifier?.tone_name_cn
+  });
+
   let guidance = '';
 
   // 1. 喉轮前缀修饰
-  guidance += `${throatTemplate.prefix_modifier}。`;
+  if (throatTemplate?.prefix_modifier) {
+    guidance += `${throatTemplate.prefix_modifier}。`;
+  }
 
   // 2. 图腾核心挑战
-  guidance += `作为${totemAdvice.totem_name_cn}，${totemAdvice.core_challenge}。`;
+  if (totemAdvice?.totem_name_cn && totemAdvice?.core_challenge) {
+    guidance += `作为${totemAdvice.totem_name_cn}，${totemAdvice.core_challenge}。`;
+  }
 
   // 3. 调性修正逻辑
-  if (toneModifier.tone_type === '收敛型') {
-    guidance += `你的${toneModifier.tone_name_cn}调性提醒你：${toneModifier.yearly_lesson}。`;
-  } else if (toneModifier.tone_type === '放射型') {
-    guidance += `你的${toneModifier.tone_name_cn}调性赋予你任务：${toneModifier.yearly_lesson}。`;
-  } else {
-    guidance += `你的${toneModifier.tone_name_cn}调性引导你：${toneModifier.yearly_lesson}。`;
+  if (toneModifier?.tone_name_cn && toneModifier?.yearly_lesson) {
+    if (toneModifier.tone_type === '收敛型') {
+      guidance += `你的${toneModifier.tone_name_cn}调性提醒你：${toneModifier.yearly_lesson}。`;
+    } else if (toneModifier.tone_type === '放射型') {
+      guidance += `你的${toneModifier.tone_name_cn}调性赋予你任务：${toneModifier.yearly_lesson}。`;
+    } else {
+      guidance += `你的${toneModifier.tone_name_cn}调性引导你：${toneModifier.yearly_lesson}。`;
+    }
   }
 
   // 4. 行动动词强化
-  guidance += `2026 年，请记住这个动词："${totemAdvice.action_verb}"。`;
+  if (totemAdvice?.action_verb) {
+    guidance += `2026 年，请记住这个动词："${totemAdvice.action_verb}"。`;
+  }
 
   // 5. 喉轮分值特定提醒
   if (throatPercentage > 80) {
@@ -212,6 +226,14 @@ function synthesizeGuidance(
     guidance += '你的低喉轮正在等待白风的唤醒，勇敢地让声音成为你的翅膀。';
   } else {
     guidance += '你的喉轮处于黄金平衡点，这一年是你精准表达的最佳时机。';
+  }
+
+  console.log('✅ 合成结果长度:', guidance.length, '字符');
+
+  // 最终回退保护
+  if (!guidance || guidance.trim().length === 0) {
+    console.warn('⚠️ 合成结果为空，使用回退建议');
+    return '2026 年白风年，让呼吸成为你的语言，让沉默成为你的力量。专注于将内在的真实通过声音传递出来。';
   }
 
   return guidance;

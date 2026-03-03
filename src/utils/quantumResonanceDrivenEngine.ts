@@ -79,7 +79,9 @@ export async function analyzeQuantumResonanceDriven(
 
   // Step 2: 初始化变量
   let effectType: QuantumResonanceResult['effectType'] = 'normal';
-  let synergyScore = Math.round((scoreA.throat + scoreA.heart + scoreA.pineal + scoreB.throat + scoreB.heart + scoreB.pineal) / 6);
+  // 动态分数算法：基于两个 Kin 序号生成独特的能量交叠值 (65% ~ 93%)
+  const dynamicOffset = (kinA + kinB) % 29;
+  let synergyScore = 65 + dynamicOffset;
   let relationshipType = 'collaboration';
   let relationshipLabel = '能量协同';
   let description = '';
@@ -117,27 +119,37 @@ export async function analyzeQuantumResonanceDriven(
       description = relationData.description;
       energyBoost = relationData.energyBoost || {};
 
-      // 根据关系类型设置效果类型和分数
+      // 根据关系类型设置效果类型和分数（使用动态算法）
       if (relationshipType === 'support' || relationshipType === 'guide') {
         effectType = 'synergy_ally';
-        synergyScore = Math.round((scoreA.throat + scoreB.throat + scoreA.heart + scoreB.heart) / 4) + 10;
+        // 支持/引导类型：使用动态基础分数 + 额外加成
+        const dynamicBase = 65 + ((kinA + kinB) % 29);
+        synergyScore = Math.min(95, dynamicBase + 10);
       } else if (relationshipType === 'challenge') {
         effectType = 'collaboration';
-        synergyScore = Math.round((scoreA.pineal + scoreB.pineal) / 2) + 5;
+        // 挑战类型：使用动态分数但稍低
+        const dynamicBase = 65 + ((kinA + kinB) % 29);
+        synergyScore = Math.min(85, dynamicBase);
       } else {
         effectType = 'collaboration';
+        // 保持已初始化的动态分数
       }
 
       console.log(`📊 数据库返回关系: ${relationshipLabel} (类型=${relationshipType})`);
     } else {
-      // 如果数据库没有该关系，使用智能降级逻辑
+      // 如果数据库没有该关系，使用智能降级逻辑（动态分数算法）
       console.warn(`⚠️ 数据库未找到 Kin差值=${kinDelta} 的关系定义，使用智能降级`);
 
       effectType = 'normal';
       relationshipType = 'natural_resonance';
       relationshipLabel = '自然共振';
-      description = `你们之间形成${kinDelta}度的能量角度，创造出独特的共振模式。这种连接既非对冲也非融合，而是一种自然的能量互动，适合在特定情境下的协作与支持。`;
+      // 使用动态分数算法 (65% ~ 93%)
+      const dynamicOffset = (kinA + kinB) % 29;
+      synergyScore = 65 + dynamicOffset;
+      description = `你们之间形成了独特的能量角度，创造出专属的共振模式。这种连接既非极致对冲也非完全融合，而是一种能量互动，适合在特定情境下的协作与支持。`;
       energyBoost = {};
+
+      console.log(`🔢 动态分数算法: Kin ${kinA} + Kin ${kinB} = 共振强度 ${synergyScore}%`);
     }
   }
 

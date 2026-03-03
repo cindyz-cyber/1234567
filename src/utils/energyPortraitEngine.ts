@@ -224,18 +224,11 @@ async function calculateQuantumResonance(
       familyScores
     );
 
-    // 强度映射：根据效果类型计算共振强度
-    const strengthMap: Record<string, number> = {
-      'matrix_irrigation': 1.0,
-      'life_whetstone': 1.0,
-      'synergy_ally': 0.85,
-      'collaboration': 0.7,
-      'normal': 0.5
-    };
+    // 使用数据库驱动引擎返回的动态分数（已经是百分比 0-100）
+    // 转换为 0-1 的浮点数供 UI 使用
+    const synergyStrength = resonanceResult.synergyScore / 100;
 
-    const synergyStrength = strengthMap[resonanceResult.effectType] || 0.5;
-
-    console.log(`✅ 降级算法-数据库驱动: ${familyName} (Kin ${familyKin}) - ${resonanceResult.relationshipLabel}, 强度=${Math.round(synergyStrength * 100)}%`);
+    console.log(`✅ 降级算法-数据库驱动: ${familyName} (Kin ${familyKin}) - ${resonanceResult.relationshipLabel}, 强度=${resonanceResult.synergyScore}%`);
 
     return {
       familyMember: familyName,
@@ -244,7 +237,7 @@ async function calculateQuantumResonance(
       description: resonanceResult.description,
       synergyType: resonanceResult.synergyType,
       synergyStrength,
-      synergyDescription: `${resonanceResult.relationshipLabel}：能量共振强度 ${Math.round(synergyStrength * 100)}%`
+      synergyDescription: `${resonanceResult.relationshipLabel}：能量共振强度 ${resonanceResult.synergyScore}%`
     };
   } catch (error) {
     console.error('Failed to calculate quantum resonance:', error);

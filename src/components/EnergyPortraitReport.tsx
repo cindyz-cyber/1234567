@@ -405,10 +405,10 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                 </span>
               </div>
               <h3 className="text-lg font-light mb-4" style={{ color: '#F7E7CE' }}>
-                {report.yearGuidance.mainEnergy}
+                {report.yearGuidance.mainEnergy || '频率对齐'}
               </h3>
               <p className="text-sm font-light leading-relaxed opacity-90" style={{ color: '#F7E7CE', lineHeight: '1.8' }}>
-                {report.yearGuidance.advice}
+                {report.yearGuidance.advice || '能量正在读取中，请确保图腾与喉轮数据已完整生成...'}
               </p>
             </div>
           </div>
