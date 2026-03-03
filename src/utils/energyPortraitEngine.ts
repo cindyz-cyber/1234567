@@ -5,6 +5,7 @@ import { calculateCompositeKin, EnergySnapshot } from './compositeKinCalculator'
 import { analyzeBurst, QuantumBurst } from './quantumBurstAnalyzer';
 import { renderChakraResonance } from './chakraResonanceRenderer';
 import { renderComprehensiveChakraNarrative } from './narrativeEngine';
+import { generate2026Advice } from './yearlyAdvice2026';
 
 function getDefaultIcon(centerName: string): string {
   const iconMap: Record<string, string> = {
@@ -277,15 +278,22 @@ export async function generateEnergyReport(
   const sortedCenters = [...centers].sort((a, b) => a.percentage - b.percentage);
   const weakestCenter = sortedCenters[0];
 
+  // 获取喉轮分值用于生成2026年度建议
+  const throatCenter = centers.find(c => c.name === '喉轮');
+  const throatPercentage = throatCenter?.percentage || 50;
+
+  // 生成动态的2026白风年建议
+  const yearlyAdvice = await generate2026Advice(kin, throatPercentage);
+
   return {
     kin,
     portrait,
     quantumResonances,
     yearGuidance: {
-      year: 2026,
-      theme: '白风年',
-      mainEnergy: '喉轮觉醒',
-      advice: `建议强化${weakestCenter.name}能量场`
+      year: yearlyAdvice.year,
+      theme: yearlyAdvice.theme,
+      mainEnergy: yearlyAdvice.archetype,
+      advice: yearlyAdvice.synthesizedGuidance
     },
     weakestCenter: weakestCenter.name,
     challengeAdvice: `专注提升${weakestCenter.name}（当前${weakestCenter.percentage}%）`,
