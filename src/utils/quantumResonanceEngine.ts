@@ -159,11 +159,11 @@ export async function analyzeQuantumResonance(
     };
   }
 
-  // 无特殊关系
+  // 无特殊关系 - 使用协作共振
   return {
     type: null,
-    label: '普通关系',
-    description: 'Ta 与你之间存在自然的能量互动，虽无特殊共振，但仍有成长空间。',
+    label: '协作共振',
+    description: '你们之间存在协作的能量场域，适合在共同目标下展开合作与互助。',
     energyBoost: {}
   };
 }

@@ -174,6 +174,16 @@ export default function EnergyPerson() {
       report.toneName = myData.kinData.toneName;
       report.sealName = myData.kinData.sealName;
 
+      console.log('✅ 报告生成完成，包含量子共振数据:', {
+        kin: report.kin,
+        resonanceCount: report.quantumResonances?.length || 0,
+        resonances: report.quantumResonances?.map(r => ({
+          member: r.familyMember,
+          type: r.typeLabel,
+          strength: r.synergyStrength
+        }))
+      });
+
       setGeneratedReport(report);
       setShowReport(true);
     } catch (error) {

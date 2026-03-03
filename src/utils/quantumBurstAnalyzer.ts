@@ -113,13 +113,13 @@ export function analyzeBurst(userA: EnergySnapshot, userB: EnergySnapshot): Quan
     return burstResult;
   }
 
-  // 默认：常规共振
+  // 默认：协作共振
   return {
     type: 'normal',
-    title: '常规共振',
+    title: '协作共振',
     score: Math.round((resultPineal + resultThroat + resultHeart) / 3),
-    description: 'Ta 与你之间存在自然的能量互动，虽无特殊共振，但仍有成长空间。',
-    synergyType: '普通共振',
+    description: '你们之间存在协作的能量场域，适合在共同目标下展开合作与互助。',
+    synergyType: '协作共振',
     energyBoost: {},
     resultSnapshot: { pineal: resultPineal, throat: resultThroat, heart: resultHeart }
   };

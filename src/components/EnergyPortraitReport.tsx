@@ -258,37 +258,101 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {report.quantumResonances.map((resonance, i) => (
-                  <div key={i} className="frosted-card p-6">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl" style={{
-                        background: 'rgba(235, 200, 98, 0.2)',
-                        border: '1px solid rgba(235, 200, 98, 0.3)'
-                      }}>
-                        ⚡
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-light" style={{ color: '#F7E7CE' }}>
-                          {resonance.familyMember}
+                {report.quantumResonances.map((resonance, i) => {
+                  const isMatrixIrrigation = resonance.synergyStrength >= 0.99;
+                  const isLifeWhetstone = resonance.typeLabel === '生命磨刀石';
+                  const isHighSynergy = resonance.synergyStrength >= 0.8;
+
+                  return (
+                    <div
+                      key={i}
+                      className={`frosted-card p-6 ${isMatrixIrrigation ? 'animate-pulse' : ''}`}
+                      style={{
+                        background: isMatrixIrrigation
+                          ? 'linear-gradient(135deg, rgba(235, 200, 98, 0.15), rgba(255, 215, 0, 0.1))'
+                          : isLifeWhetstone
+                          ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.1))'
+                          : 'rgba(0, 0, 0, 0.3)',
+                        border: isMatrixIrrigation
+                          ? '2px solid rgba(255, 215, 0, 0.5)'
+                          : isLifeWhetstone
+                          ? '2px solid rgba(139, 92, 246, 0.5)'
+                          : '1px solid rgba(247, 231, 206, 0.15)'
+                      }}
+                    >
+                      <div className="flex items-center gap-4 mb-4">
+                        <div
+                          className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${isMatrixIrrigation || isLifeWhetstone ? 'animate-pulse' : ''}`}
+                          style={{
+                            background: isMatrixIrrigation
+                              ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(235, 200, 98, 0.3))'
+                              : isLifeWhetstone
+                              ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(59, 130, 246, 0.3))'
+                              : 'rgba(235, 200, 98, 0.2)',
+                            border: isMatrixIrrigation
+                              ? '2px solid rgba(255, 215, 0, 0.6)'
+                              : isLifeWhetstone
+                              ? '2px solid rgba(139, 92, 246, 0.6)'
+                              : '1px solid rgba(235, 200, 98, 0.3)',
+                            boxShadow: isMatrixIrrigation
+                              ? '0 0 20px rgba(255, 215, 0, 0.4)'
+                              : isLifeWhetstone
+                              ? '0 0 20px rgba(139, 92, 246, 0.4)'
+                              : 'none'
+                          }}
+                        >
+                          {isMatrixIrrigation ? '🌟' : isLifeWhetstone ? '⚡' : '✨'}
                         </div>
-                        <div className="text-xs opacity-70" style={{ color: '#EBC862' }}>{resonance.typeLabel}</div>
+                        <div className="flex-1">
+                          <div className="text-sm font-light" style={{ color: '#F7E7CE' }}>
+                            {resonance.familyMember}
+                          </div>
+                          <div
+                            className="text-xs opacity-70"
+                            style={{
+                              color: isMatrixIrrigation
+                                ? '#FFD700'
+                                : isLifeWhetstone
+                                ? '#8B5CF6'
+                                : '#EBC862'
+                            }}
+                          >
+                            {resonance.typeLabel}
+                          </div>
+                        </div>
+                        <div
+                          className="text-lg font-light"
+                          style={{
+                            color: isMatrixIrrigation
+                              ? '#FFD700'
+                              : isLifeWhetstone
+                              ? '#8B5CF6'
+                              : '#EBC862',
+                            fontWeight: isMatrixIrrigation || isLifeWhetstone ? 500 : 300
+                          }}
+                        >
+                          {Math.round(resonance.synergyStrength * 100)}%
+                        </div>
                       </div>
-                      <div className="text-lg font-light" style={{ color: '#EBC862' }}>
-                        {Math.round(resonance.synergyStrength * 100)}%
-                      </div>
+                      <p
+                        className="text-sm font-light leading-relaxed opacity-90"
+                        style={{
+                          color: '#F7E7CE',
+                          lineHeight: '1.7'
+                        }}
+                      >
+                        {resonance.description}
+                      </p>
+                      {resonance.synergyDescription && (
+                        <div className="mt-3 pt-3 border-t border-white/10">
+                          <p className="text-xs font-light opacity-70" style={{ color: '#EBC862' }}>
+                            {resonance.synergyDescription}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm font-light leading-relaxed opacity-90" style={{ color: '#F7E7CE' }}>
-                      {resonance.description}
-                    </p>
-                    {resonance.synergyDescription && (
-                      <div className="mt-3 pt-3 border-t border-white/10">
-                        <p className="text-xs font-light opacity-70" style={{ color: '#EBC862' }}>
-                          {resonance.synergyDescription}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -303,13 +367,15 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                 border: '1px solid rgba(235, 200, 98, 0.3)'
               }}>
                 <span className="text-lg">🌬️</span>
-                <span className="text-sm font-light tracking-wider" style={{ color: '#EBC862' }}>2026 白风年显化建议</span>
+                <span className="text-sm font-light tracking-wider" style={{ color: '#EBC862' }}>
+                  {report.yearGuidance.year} {report.yearGuidance.theme}
+                </span>
               </div>
-              <h3 className="text-lg font-light mb-4" style={{ color: '#F7E7CE' }}>从风暴到呼吸</h3>
-              <p className="text-sm font-light leading-relaxed opacity-90" style={{ color: '#F7E7CE' }}>
-                重点在于将"指令"转化为有温度的传播。学会不再用风暴去摧毁，而是用呼吸去同步。
-                你的权威不在于发号施令，而在于如何让每个人都能听见内在的真实声音。
-                2026是释放控制、学会倾听、让智慧自然流动的一年。
+              <h3 className="text-lg font-light mb-4" style={{ color: '#F7E7CE' }}>
+                {report.yearGuidance.mainEnergy}
+              </h3>
+              <p className="text-sm font-light leading-relaxed opacity-90" style={{ color: '#F7E7CE', lineHeight: '1.8' }}>
+                {report.yearGuidance.advice}
               </p>
             </div>
           </div>
