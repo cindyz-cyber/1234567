@@ -248,26 +248,39 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const titleText = selectedBodyStates.length > 0 ? '身体的反馈是？' : '此刻，你的情绪是？';
 
   return (
-    <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative" style={{ backgroundColor: 'transparent !important' }}>
+    <div
+      className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative"
+      style={{
+        backgroundColor: 'transparent !important',
+        background: 'transparent !important'
+      }}
+    >
       <div className="forest-background-layer">
         <video
           ref={videoRef}
-          autoPlay={true}
-          loop={true}
-          muted={true}
-          playsInline={true}
+          autoPlay
+          loop
+          muted
+          playsInline
           preload="auto"
           crossOrigin="anonymous"
           className="forest-background-video"
           style={{
-            WebkitTransform: 'translate3d(0,0,0)',
-            transform: 'translate3d(0,0,0)'
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)'
           }}
+          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23020d0a'/%3E%3C/svg%3E"
         >
           <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
         </video>
       </div>
-      <div className="background-overlay" style={{ opacity: backgroundDarkness, backgroundColor: 'transparent' }} />
+      <div
+        className="background-overlay"
+        style={{
+          opacity: backgroundDarkness,
+          backgroundColor: 'transparent'
+        }}
+      />
 
       {particles.map(particle => (
         <div
@@ -418,6 +431,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
               <button
                 key={state.label}
                 onClick={(e) => toggleBodyState(state.label, e)}
+                onTouchStart={handleUserInteraction}
                 className={`glass-bubble body-bubble mandala-bubble ${state.label === '其他' ? 'other-bubble' : ''} ${poppedBubbles.has(state.label) ? 'popping' : ''} ${selectedBodyStates.includes(state.label) ? 'selected' : ''}`}
                 style={{
                   position: 'absolute',
@@ -573,11 +587,13 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           width: 100%;
           height: 100vh;
           background-color: transparent !important;
+          background: transparent !important;
           z-index: 1;
           pointer-events: none;
           -webkit-overflow-scrolling: touch;
-          -webkit-transform: translate3d(0,0,0);
-          transform: translate3d(0,0,0);
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+          will-change: transform;
         }
 
         .forest-background-video {
@@ -588,10 +604,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           height: 100%;
           object-fit: cover;
           filter: contrast(1.2) brightness(1.1) saturate(1.1);
-          -webkit-transform: translate3d(0,0,0);
-          transform: translate3d(0,0,0);
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
           animation: cameraBreath 20s ease-in-out infinite;
           will-change: transform;
+          background-color: transparent !important;
         }
 
         .background-overlay {

@@ -33,12 +33,19 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 breathing-fade relative overflow-hidden" style={{ backgroundColor: 'transparent !important' }}>
+    <div
+      className="min-h-screen flex items-center justify-center px-6 breathing-fade relative overflow-hidden"
+      style={{
+        backgroundColor: 'transparent !important',
+        background: 'transparent !important'
+      }}
+    >
       <div
         className="fixed inset-0 w-full h-full"
         style={{
           zIndex: -1,
-          backgroundColor: 'transparent',
+          backgroundColor: 'rgba(2, 13, 10, 0.9)',
+          background: 'rgba(2, 13, 10, 0.9)',
           WebkitTransform: 'translate3d(0,0,0)',
           transform: 'translate3d(0,0,0)',
           WebkitOverflowScrolling: 'touch'
@@ -46,25 +53,29 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
       >
         <video
           ref={videoRef}
-          autoPlay={true}
-          loop={true}
-          muted={true}
-          playsInline={true}
+          autoPlay
+          loop
+          muted
+          playsInline
           preload="auto"
           crossOrigin="anonymous"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
-            WebkitTransform: 'translate3d(0,0,0)',
-            transform: 'translate3d(0,0,0)',
-            backgroundColor: 'rgba(2, 13, 10, 0.8)'
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            opacity: 1
           }}
+          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23020d0a'/%3E%3C/svg%3E"
         >
           <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
         </video>
         <div
           className="absolute inset-0 w-full h-full"
-          style={{ backgroundColor: 'rgba(2, 13, 10, 0.25)', pointerEvents: 'none' }}
+          style={{
+            backgroundColor: 'rgba(2, 13, 10, 0.25)',
+            pointerEvents: 'none'
+          }}
         />
       </div>
 
