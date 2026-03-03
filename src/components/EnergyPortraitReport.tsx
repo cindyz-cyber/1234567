@@ -79,7 +79,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
             <div className="text-center mb-10">
               {/* 大标题：Kin */}
               <div className="mb-6">
-                <h1 className="text-5xl font-light tracking-wide mb-4" style={{
+                <h1 className="text-5xl font-light tracking-wide mb-2" style={{
                   color: '#F7E7CE',
                   textShadow: '0 0 40px rgba(247, 231, 206, 0.3)',
                   letterSpacing: '0.15em'
@@ -87,30 +87,27 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                   Kin {report.kin}
                 </h1>
 
-                {/* 横向排版：调性图腾 | 波符 */}
-                <div className="flex items-center justify-center gap-6 flex-wrap mb-2">
-                  <div className="text-xl font-light tracking-widest" style={{
-                    color: '#EBC862',
-                    letterSpacing: '0.2em'
-                  }}>
-                    {extractToneAndSeal(report.portrait.essence).toneName}{extractToneAndSeal(report.portrait.essence).sealName}
-                  </div>
-                  {report.wavespellInfluence && (
-                    <>
-                      <div
-                        className="w-px h-6"
-                        style={{ background: 'rgba(247, 231, 206, 0.2)' }}
-                      />
-                      <div className="text-base font-light tracking-wide" style={{
-                        color: '#F7E7CE',
-                        opacity: 0.8,
-                        letterSpacing: '0.15em'
-                      }}>
-                        {report.wavespellInfluence}波符
-                      </div>
-                    </>
-                  )}
+                {/* Kin 完整名字 */}
+                <div className="text-2xl font-light tracking-wide mb-6" style={{
+                  color: '#EBC862',
+                  opacity: 0.9,
+                  letterSpacing: '0.15em'
+                }}>
+                  {extractToneAndSeal(report.portrait.essence).toneName}{extractToneAndSeal(report.portrait.essence).sealName}
                 </div>
+
+                {/* 横向排版：波符标识 */}
+                {report.wavespellInfluence && (
+                  <div className="flex items-center justify-center gap-6 flex-wrap mb-2">
+                    <div className="text-base font-light tracking-wide" style={{
+                      color: '#F7E7CE',
+                      opacity: 0.8,
+                      letterSpacing: '0.15em'
+                    }}>
+                      {report.wavespellInfluence}波符
+                    </div>
+                  </div>
+                )}
 
                 {/* Kin 199 特殊注解 */}
                 {report.kin === 199 && (
@@ -151,13 +148,13 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
               </div>
 
               {/* 能量背景卡片 */}
-              <div className="inline-block px-8 py-4 rounded-2xl mb-6" style={{
+              <div className="inline-block px-8 py-5 rounded-2xl mb-6" style={{
                 background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 100%)',
                 backdropFilter: 'blur(30px)',
                 border: '1px solid rgba(247, 231, 206, 0.25)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
               }}>
-                <div className="text-sm font-light leading-relaxed mb-3" style={{
+                <div className="text-sm font-light leading-relaxed mb-2" style={{
                   color: '#F7E7CE',
                   letterSpacing: '0.08em',
                   lineHeight: '1.8',
@@ -165,15 +162,16 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                 }}>
                   {extractEssenceDescription(report.portrait.essence)}
                 </div>
-                <div className="flex items-center justify-center gap-6 text-xs" style={{
+                <div className="flex items-center justify-center gap-3 text-xs flex-wrap" style={{
                   color: '#EBC862',
-                  opacity: 0.8
+                  opacity: 0.85,
+                  letterSpacing: '0.05em'
                 }}>
                   <span className="tracking-wider">{report.portrait.mode}</span>
-                  <span>•</span>
+                  <span className="opacity-60">•</span>
                   <span className="tracking-wider">{report.portrait.perspective}</span>
-                  <span>•</span>
-                  <span className="tracking-wider">{report.wavespellInfluence}</span>
+                  <span className="opacity-60">•</span>
+                  <span className="tracking-wider">{extractToneAndSeal(report.portrait.essence).sealName}</span>
                 </div>
               </div>
             </div>
