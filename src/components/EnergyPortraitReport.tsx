@@ -98,7 +98,10 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
                   opacity: 0.9,
                   letterSpacing: '0.15em'
                 }}>
-                  {extractToneAndSeal(report.portrait.essence).toneName}{extractToneAndSeal(report.portrait.essence).sealName}
+                  {(() => {
+                    const { toneName, sealName } = extractToneAndSeal(report.portrait.essence);
+                    return toneName && sealName ? `${toneName}的${sealName}` : `${toneName}${sealName}`;
+                  })()}
                 </div>
 
                 {/* 横向排版：波符标识 */}
@@ -497,13 +500,17 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
 }
 
 function extractToneAndSeal(essence: string): { toneName: string; sealName: string } {
-  // essence 格式: "宇宙黄太阳。你是宇宙光明的化身..."
+  // essence 格式: "宇宙黄太阳。你是宇宙光明的化身..." 或 "行星蓝夜。..."
   const match = essence.match(/^(.+?)。/);
   if (match) {
-    return {
-      toneName: match[1].slice(0, -3), // 提取"宇宙"
-      sealName: match[1].slice(-3)      // 提取"黄太阳"
-    };
+    const fullName = match[1];
+    // 尝试匹配常见的图腾名（2-4个字）
+    const sealMatch = fullName.match(/(红龙|白风|蓝夜|黄种子|红蛇|白世界桥|蓝手|黄星星|红月|白狗|蓝猴|黄人|红天行者|白巫师|蓝鹰|黄战士|红地球|白镜|蓝风暴|黄太阳)$/);
+    if (sealMatch) {
+      const sealName = sealMatch[1];
+      const toneName = fullName.slice(0, -sealName.length);
+      return { toneName, sealName };
+    }
   }
   return { toneName: '', sealName: '' };
 }
