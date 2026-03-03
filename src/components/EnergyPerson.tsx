@@ -288,7 +288,7 @@ export default function EnergyPerson() {
                   letterSpacing: '0.05em'
                 }}
               >
-                听音识人
+                能量自测
               </h1>
               <p
                 className="text-lg"
