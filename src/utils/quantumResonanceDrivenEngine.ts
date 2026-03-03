@@ -77,12 +77,12 @@ export async function analyzeQuantumResonanceDriven(
 
   console.log(`🔍 量子共振分析: Kin ${kinA} ⇄ Kin ${kinB}, 差值=${kinDelta}`);
 
-  // Step 2: 判断特殊关系
+  // Step 2: 初始化变量
   let effectType: QuantumResonanceResult['effectType'] = 'normal';
   let synergyScore = Math.round((scoreA.throat + scoreA.heart + scoreA.pineal + scoreB.throat + scoreB.heart + scoreB.pineal) / 6);
-  let relationshipType = '协作共振';
-  let relationshipLabel = '协作共振';
-  let description = '你们之间存在协作的能量场域，适合在共同目标下展开合作与互助。';
+  let relationshipType = 'collaboration';
+  let relationshipLabel = '能量协同';
+  let description = '';
   let energyBoost = {};
 
   // Step 3: 检查是否为母体灌溉 (Kin差值 = 1)
@@ -127,6 +127,17 @@ export async function analyzeQuantumResonanceDriven(
       } else {
         effectType = 'collaboration';
       }
+
+      console.log(`📊 数据库返回关系: ${relationshipLabel} (类型=${relationshipType})`);
+    } else {
+      // 如果数据库没有该关系，使用智能降级逻辑
+      console.warn(`⚠️ 数据库未找到 Kin差值=${kinDelta} 的关系定义，使用智能降级`);
+
+      effectType = 'normal';
+      relationshipType = 'natural_resonance';
+      relationshipLabel = '自然共振';
+      description = `你们之间形成${kinDelta}度的能量角度，创造出独特的共振模式。这种连接既非对冲也非融合，而是一种自然的能量互动，适合在特定情境下的协作与支持。`;
+      energyBoost = {};
     }
   }
 
