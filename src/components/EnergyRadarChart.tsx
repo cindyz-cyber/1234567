@@ -58,26 +58,46 @@ export default function EnergyRadarChart({ profile, synergies = [], kinData }: E
             border: '1px solid rgba(247, 231, 206, 0.2)'
           }}
         >
-          <div className="flex items-center justify-center gap-3 mb-2">
+          <div
+            className="text-3xl font-light tracking-wider mb-4"
+            style={{ color: '#F7E7CE' }}
+          >
+            Kin {kinData.kin}
+          </div>
+
+          {/* 横向排版：调性 + 图腾 + 波符 */}
+          <div className="flex items-center justify-center gap-6 flex-wrap">
             <div
-              className="text-2xl font-light tracking-wider"
-              style={{ color: '#F7E7CE' }}
-            >
-              Kin {kinData.kin}
-            </div>
-            <div
-              className="text-sm opacity-60 tracking-widest"
-              style={{ color: '#EBC862' }}
+              className="text-base tracking-widest"
+              style={{ color: '#EBC862', opacity: 0.9 }}
             >
               {kinData.toneName}的{kinData.sealName}
             </div>
+            <div
+              className="w-px h-6"
+              style={{ background: 'rgba(247, 231, 206, 0.2)' }}
+            />
+            <div
+              className="text-base tracking-wide"
+              style={{ color: '#F7E7CE', opacity: 0.8, letterSpacing: '0.15em' }}
+            >
+              {kinData.wavespellName}波符
+            </div>
           </div>
-          <div
-            className="text-sm opacity-70 tracking-wide"
-            style={{ color: '#F7E7CE', letterSpacing: '0.15em' }}
-          >
-            {kinData.wavespellName}波符
-          </div>
+
+          {/* Kin 199 特殊注解 */}
+          {kinData.kin === 199 && (
+            <div
+              className="mt-4 text-xs tracking-widest"
+              style={{
+                color: '#8AB4F8',
+                opacity: 0.7,
+                letterSpacing: '0.2em'
+              }}
+            >
+              自我存在的蓝风波
+            </div>
+          )}
         </div>
       )}
 

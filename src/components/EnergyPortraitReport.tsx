@@ -75,23 +75,56 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
         {/* 首屏：紧凑横向布局 */}
         <div className="flex-1 flex flex-col justify-center items-center px-6 py-12">
           <div className="w-full max-w-7xl">
-            {/* 核心身份卡片 - Kin + 音调 + 图腾 */}
+            {/* 核心身份卡片 - Kin + 音调 + 图腾 + 波符 */}
             <div className="text-center mb-10">
-              {/* 大标题：Kin 200 宇宙黄太阳 */}
+              {/* 大标题：Kin */}
               <div className="mb-6">
-                <h1 className="text-5xl font-light tracking-wide mb-2" style={{
+                <h1 className="text-5xl font-light tracking-wide mb-4" style={{
                   color: '#F7E7CE',
                   textShadow: '0 0 40px rgba(247, 231, 206, 0.3)',
                   letterSpacing: '0.15em'
                 }}>
                   Kin {report.kin}
                 </h1>
-                <div className="text-2xl font-light tracking-widest" style={{
-                  color: '#EBC862',
-                  letterSpacing: '0.2em'
-                }}>
-                  {extractToneAndSeal(report.portrait.essence).toneName}{extractToneAndSeal(report.portrait.essence).sealName}
+
+                {/* 横向排版：调性图腾 | 波符 */}
+                <div className="flex items-center justify-center gap-6 flex-wrap mb-2">
+                  <div className="text-xl font-light tracking-widest" style={{
+                    color: '#EBC862',
+                    letterSpacing: '0.2em'
+                  }}>
+                    {extractToneAndSeal(report.portrait.essence).toneName}{extractToneAndSeal(report.portrait.essence).sealName}
+                  </div>
+                  {report.wavespellInfluence && (
+                    <>
+                      <div
+                        className="w-px h-6"
+                        style={{ background: 'rgba(247, 231, 206, 0.2)' }}
+                      />
+                      <div className="text-base font-light tracking-wide" style={{
+                        color: '#F7E7CE',
+                        opacity: 0.8,
+                        letterSpacing: '0.15em'
+                      }}>
+                        {report.wavespellInfluence}波符
+                      </div>
+                    </>
+                  )}
                 </div>
+
+                {/* Kin 199 特殊注解 */}
+                {report.kin === 199 && (
+                  <div
+                    className="text-sm tracking-widest mt-2"
+                    style={{
+                      color: '#8AB4F8',
+                      opacity: 0.7,
+                      letterSpacing: '0.2em'
+                    }}
+                  >
+                    自我存在的蓝风波
+                  </div>
+                )}
 
                 {/* 子时双Kin标识 */}
                 {report.midnightType && report.secondaryKin && (
