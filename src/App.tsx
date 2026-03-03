@@ -5,7 +5,6 @@ import EmotionScan from './components/EmotionScan';
 import InnerWhisperJournal from './components/InnerWhisperJournal';
 import GoldenTransition from './components/GoldenTransition';
 import HigherSelfDialogue from './components/HigherSelfDialogue';
-import Header from './components/Header';
 import Navigation from './components/Navigation';
 import EnergyCenter from './components/EnergyCenter';
 import EnergyPerson from './components/EnergyPerson';
@@ -273,7 +272,6 @@ function App() {
     <>
       {currentTab !== 'person' && <VideoBackground />}
       <GoldenDust />
-      {currentTab !== 'breath' && <Header />}
 
       {currentTab === 'breath' && (
         <HomePage

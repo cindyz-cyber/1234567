@@ -11,7 +11,7 @@ interface ProfileProps {
 
 export default function Profile({ userName, higherSelfName, isPremium, onShowPremium, onNavigateArchive, onResetIdentity }: ProfileProps) {
   return (
-    <div className="min-h-screen pb-24 pt-20 px-6">
+    <div className="min-h-screen pb-24 px-6">
       <div className="max-w-md mx-auto space-y-6">
         <div className="mb-6 text-center privacy-notice" style={{ animation: 'fadeInPrivacy 1.5s ease-in-out' }}>
           <p

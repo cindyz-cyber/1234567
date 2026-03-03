@@ -224,7 +224,7 @@ export default function EnergyPerson() {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-32 px-6 relative overflow-hidden">
+    <div className="min-h-screen pb-32 px-6 relative overflow-hidden">
       <video
         autoPlay
         loop

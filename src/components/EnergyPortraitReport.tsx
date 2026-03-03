@@ -78,7 +78,7 @@ export default function EnergyPortraitReport({ report, onBack }: Props) {
       {/* 内容层 */}
       <div className={`relative min-h-screen flex flex-col ${isVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`} style={{ zIndex: 10 }}>
         {/* 首屏：紧凑横向布局 */}
-        <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 pt-20">
+        <div className="flex-1 flex flex-col justify-center items-center px-6 py-12">
           <div className="w-full max-w-7xl">
             {/* 核心身份卡片 - Kin + 音调 + 图腾 + 波符 */}
             <div className="text-center mb-10">
