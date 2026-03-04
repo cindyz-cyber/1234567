@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { applyIOSVideoFix } from '../utils/iosVideoFix';
 
 interface PortalBackgroundProps {
   videoSrc: string;
@@ -19,10 +20,7 @@ export default function PortalBackground({
     const video = videoRef.current;
     if (!video) return;
 
-    video.defaultMuted = true;
-    video.muted = true;
-    video.setAttribute('muted', '');
-    video.setAttribute('playsinline', '');
+    const cleanup = applyIOSVideoFix(video);
 
     const playVideo = async () => {
       try {
@@ -34,15 +32,7 @@ export default function PortalBackground({
 
     playVideo();
 
-    const handleCanPlay = () => {
-      video.play().catch(() => {});
-    };
-
-    video.addEventListener('canplay', handleCanPlay);
-
-    return () => {
-      video.removeEventListener('canplay', handleCanPlay);
-    };
+    return cleanup;
   }, []);
 
   return (
@@ -75,15 +65,19 @@ export default function PortalBackground({
           willChange: 'transform',
           filter: 'contrast(1.15) brightness(0.95) saturate(1.05)',
           opacity: 1,
+          pointerEvents: 'none',
         }}
         onLoadedData={(e) => {
           const videoEl = e.target as HTMLVideoElement;
           videoEl.defaultMuted = true;
           videoEl.muted = true;
+          videoEl.volume = 0;
           videoEl.play().catch(() => {});
         }}
         onCanPlay={(e) => {
           const videoEl = e.target as HTMLVideoElement;
+          videoEl.muted = true;
+          videoEl.volume = 0;
           videoEl.play().catch(() => {});
         }}
       >
