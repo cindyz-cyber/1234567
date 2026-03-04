@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import PortalBackground from './PortalBackground';
+import posterImage from '../assets/0_1_640_N.webp';
 
 interface HomePageProps {
   userName: string;
@@ -27,36 +29,10 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 breathing-fade relative">
-      <div
-        className="fixed inset-0 w-full h-full"
-        style={{
-          zIndex: -1,
-          backgroundColor: 'rgba(2, 13, 10, 0.8)',
-          WebkitTransform: 'translate3d(0,0,0)',
-          transform: 'translate3d(0,0,0)'
-        }}
-      >
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          crossOrigin="anonymous"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{
-            filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
-            WebkitTransform: 'translate3d(0,0,0)',
-            transform: 'translate3d(0,0,0)'
-          }}
-        >
-          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
-        </video>
-        <div
-          className="absolute inset-0 w-full h-full"
-          style={{ backgroundColor: 'rgba(2, 13, 10, 0.15)' }}
-        />
-      </div>
+      <PortalBackground
+        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
+        posterImg={posterImage}
+      />
 
       <div className="absolute top-0 left-0 w-full h-[30vh] z-20 pointer-events-none top-vignette" />
 
