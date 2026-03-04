@@ -9,20 +9,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
   const [higherSelfName, setHigherSelfName] = useState('');
   const [userName, setUserName] = useState('');
   const [step, setStep] = useState(1);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = true;
-      videoRef.current.play().catch(() => {
-        setTimeout(() => {
-          if (videoRef.current) {
-            videoRef.current.play().catch(() => {});
-          }
-        }, 100);
-      });
-    }
-  }, []);
 
   const handleFirstSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,41 +33,53 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
         background: 'transparent !important'
       }}
     >
+      {/* 深空宇宙 GIF 背景 - 移动端优先优化 */}
       <div
         className="fixed inset-0 w-full h-full"
         style={{
           zIndex: -1,
-          backgroundColor: 'rgba(2, 13, 10, 0.9)',
-          background: 'rgba(2, 13, 10, 0.9)',
+          // 初始底色：匹配 GIF 主色调（深绿蓝色 + 金色光晕）
+          backgroundColor: '#0a1e1a',
+          background: 'linear-gradient(135deg, #0a1e1a 0%, #1a2f2a 50%, #0f2520 100%)',
+          // 移动端硬件加速（强制 GPU 渲染，消除延迟）
           WebkitTransform: 'translate3d(0,0,0)',
           transform: 'translate3d(0,0,0)',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+          perspective: '1000px',
+          willChange: 'transform',
+          isolation: 'isolate',
           WebkitOverflowScrolling: 'touch'
         }}
       >
-        <video
-          ref={videoRef}
-          autoPlay={true}
-          loop={true}
-          muted={true}
-          playsInline={true}
-          preload="auto"
-          crossOrigin="anonymous"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{
-            filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
-            WebkitTransform: 'translateZ(0)',
-            transform: 'translateZ(0)',
-            willChange: 'transform',
-            opacity: 1
-          }}
-          poster="/assets/videos/golden-flow-poster.jpg"
-        >
-          <source src="/assets/videos/golden-flow.mp4" type="video/mp4" />
-        </video>
+        {/* GIF 动图层 - 自动滚动播放 */}
         <div
           className="absolute inset-0 w-full h-full"
           style={{
-            backgroundColor: 'rgba(2, 13, 10, 0.25)',
+            // 使用 background-image 而不是 img 标签（性能更好）
+            backgroundImage: 'url(/assets/u8192925825_A_hyper-realistic_deep_space_cosmic_background_li_b84b7c1b-df4c-415a-915f-eb3a46e28f88_1.gif)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            // 强制立即渲染（移动端优化）
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            // 淡入效果（从底色过渡到 GIF）
+            opacity: 1,
+            animation: 'cosmicFadeIn 1.5s ease-out',
+            // 微调对比度和亮度（增强视觉效果）
+            filter: 'contrast(1.1) brightness(1.05) saturate(1.15)'
+          }}
+        />
+
+        {/* 渐变覆盖层 - 增强文字可读性 */}
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(2, 13, 10, 0.3) 50%, rgba(0, 0, 0, 0.25) 100%)',
             pointerEvents: 'none'
           }}
         />
@@ -200,6 +198,17 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
       </div>
 
       <style>{`
+        @keyframes cosmicFadeIn {
+          0% {
+            opacity: 0;
+            transform: scale(1.05);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
         @keyframes ritualFadeIn {
           0% {
             opacity: 0;
@@ -218,11 +227,21 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
         .ritual-text {
           position: relative;
           animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+          /* 增强文字阴影 - 深空背景上更清晰 */
+          text-shadow:
+            0 2px 20px rgba(247, 231, 206, 0.5),
+            0 4px 35px rgba(247, 231, 206, 0.3),
+            0 1px 3px rgba(0, 0, 0, 0.9) !important;
         }
 
         .ritual-text-secondary {
           position: relative;
           animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+          /* 增强文字阴影 */
+          text-shadow:
+            0 2px 20px rgba(247, 231, 206, 0.6),
+            0 4px 35px rgba(247, 231, 206, 0.4),
+            0 1px 3px rgba(0, 0, 0, 0.9) !important;
         }
 
         .ritual-question {
@@ -233,7 +252,12 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
           line-height: 2;
           text-align: center;
           font-family: Georgia, "STSong", "Songti SC", "SimSun", serif;
-          text-shadow: 0 2px 24px rgba(247, 231, 206, 0.5);
+          /* 增强文字阴影，确保在深色宇宙背景上清晰可读 */
+          text-shadow:
+            0 2px 24px rgba(247, 231, 206, 0.6),
+            0 4px 40px rgba(247, 231, 206, 0.4),
+            0 0 60px rgba(235, 200, 98, 0.3),
+            0 1px 3px rgba(0, 0, 0, 0.8);
           animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
         }
 
@@ -243,17 +267,26 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
 
         .ritual-input {
           width: 100%;
-          background: transparent;
+          /* 半透明毛玻璃背景 - 增强可读性 */
+          background: rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
           text-align: center;
           font-size: 20px;
           font-weight: 300;
-          padding: 20px 0;
+          padding: 20px 16px;
           outline: none;
           border: none;
-          border-bottom: 1px solid rgba(247, 231, 206, 0.25);
+          border-bottom: 1px solid rgba(247, 231, 206, 0.3);
+          border-radius: 8px 8px 0 0;
           color: #F7E7CE;
           letter-spacing: 0.15em;
           font-family: Georgia, "STSong", "Songti SC", "SimSun", serif;
+          /* 增强文字阴影 */
+          text-shadow:
+            0 2px 12px rgba(247, 231, 206, 0.5),
+            0 0 30px rgba(235, 200, 98, 0.3),
+            0 1px 2px rgba(0, 0, 0, 0.8);
           transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -263,8 +296,13 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
         }
 
         .ritual-input:focus {
-          border-bottom-color: rgba(247, 231, 206, 0.6);
-          text-shadow: 0 0 20px rgba(247, 231, 206, 0.4);
+          background: rgba(0, 0, 0, 0.3);
+          border-bottom-color: rgba(247, 231, 206, 0.7);
+          box-shadow: 0 4px 20px rgba(247, 231, 206, 0.2);
+          text-shadow:
+            0 2px 16px rgba(247, 231, 206, 0.6),
+            0 0 40px rgba(235, 200, 98, 0.4),
+            0 1px 3px rgba(0, 0, 0, 0.9);
         }
 
         @media (max-width: 640px) {
