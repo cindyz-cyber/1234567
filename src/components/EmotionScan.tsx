@@ -68,23 +68,22 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
     const video = videoRef.current;
     if (!video) return;
 
-    const handleCanPlay = () => {
+    // Optimize for fast start on mobile
+    const handleLoadedData = () => {
       setVideoLoaded(true);
+      video.setAttribute('data-loaded', 'true');
       video.play().catch(() => {});
     };
 
-    video.addEventListener('canplay', handleCanPlay);
-
-    // Preload the video immediately
-    video.load();
+    video.addEventListener('loadeddata', handleLoadedData);
 
     return () => {
-      video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('loadeddata', handleLoadedData);
     };
   }, []);
 
   const handleUserInteraction = () => {
-    if (videoRef.current && videoLoaded) {
+    if (videoRef.current) {
       videoRef.current.play().catch(() => {});
     }
   };
@@ -282,7 +281,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           loop
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
           crossOrigin="anonymous"
           className="forest-background-video"
           style={{
@@ -607,8 +606,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           left: 0;
           width: 100%;
           height: 100vh;
-          background-color: transparent !important;
-          background: transparent !important;
+          background: radial-gradient(circle at center, #001a0d 0%, #000000 100%);
           z-index: 1;
           pointer-events: none;
           -webkit-overflow-scrolling: touch;
@@ -632,6 +630,12 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           background-color: transparent !important;
           -webkit-backface-visibility: hidden;
           backface-visibility: hidden;
+          opacity: 0;
+          transition: opacity 0.8s ease-in;
+        }
+
+        .forest-background-video[data-loaded="true"] {
+          opacity: 1;
         }
 
         .background-overlay {
