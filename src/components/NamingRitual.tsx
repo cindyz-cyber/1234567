@@ -33,52 +33,42 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
         background: 'transparent !important'
       }}
     >
-      {/* 深空宇宙 GIF 背景 - 移动端优先优化 */}
+      {/* 深空宇宙高画质 MP4 背景 - 移动端优先优化 */}
       <div
         className="fixed inset-0 w-full h-full"
         style={{
           zIndex: -1,
-          // 初始底色：匹配 GIF 主色调（深绿蓝色 + 金色光晕）
+          // 初始底色：匹配深空宇宙主色调（深绿蓝色 + 金色光晕）
           backgroundColor: '#0a1e1a',
-          background: 'linear-gradient(135deg, #0a1e1a 0%, #1a2f2a 50%, #0f2520 100%)',
-          // 移动端硬件加速（强制 GPU 渲染，消除延迟）
-          WebkitTransform: 'translate3d(0,0,0)',
-          transform: 'translate3d(0,0,0)',
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden',
-          perspective: '1000px',
-          willChange: 'transform',
-          isolation: 'isolate',
-          WebkitOverflowScrolling: 'touch'
+          background: 'linear-gradient(135deg, #0a1e1a 0%, #1a2f2a 50%, #0f2520 100%)'
         }}
       >
-        {/* GIF 动图层 - 自动滚动播放 */}
-        <div
-          className="absolute inset-0 w-full h-full"
+        {/* MP4 视频层 - 高画质自动循环播放 */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/assets/videos/energy-field-poster.jpg"
+          className="absolute inset-0 w-full h-full object-cover"
           style={{
-            // 使用 background-image 而不是 img 标签（性能更好）
-            backgroundImage: 'url(/assets/u8192925825_A_hyper-realistic_deep_space_cosmic_background_li_b84b7c1b-df4c-415a-915f-eb3a46e28f88_1.gif)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            // 强制立即渲染（移动端优化）
+            // 移动端硬件加速（强制 GPU 渲染）
             WebkitTransform: 'translateZ(0)',
             transform: 'translateZ(0)',
-            willChange: 'transform',
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
-            // 淡入效果（从底色过渡到 GIF）
-            opacity: 1,
-            animation: 'cosmicFadeIn 1.5s ease-out',
-            // 最大化清晰度：高对比度 + 高亮度 + 高饱和度（无模糊）
+            willChange: 'transform',
+            // 最大化清晰度：高对比度 + 高亮度 + 高饱和度
             filter: 'contrast(1.25) brightness(1.35) saturate(1.3)',
-            // 强制高清渲染
-            imageRendering: 'crisp-edges' as any,
-            WebkitImageRendering: '-webkit-optimize-contrast' as any
+            // 淡入效果
+            opacity: 1,
+            animation: 'cosmicFadeIn 1.5s ease-out'
           }}
-        />
+        >
+          <source src="/assets/videos/energy-field.mp4" type="video/mp4" />
+        </video>
 
-        {/* 渐变覆盖层 - 进一步降低遮罩，让背景更清晰 */}
+        {/* 渐变覆盖层 - 保持文字可读性 */}
         <div
           className="absolute inset-0 w-full h-full"
           style={{
