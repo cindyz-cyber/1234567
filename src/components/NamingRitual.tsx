@@ -9,6 +9,24 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
   const [higherSelfName, setHigherSelfName] = useState('');
   const [userName, setUserName] = useState('');
   const [step, setStep] = useState(1);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    // 确保视频在移动端自动播放
+    const video = videoRef.current;
+    if (video) {
+      video.play().catch(() => {
+        // 如果自动播放失败，等待用户交互
+        const playOnInteraction = () => {
+          video.play().catch(() => {});
+          document.removeEventListener('touchstart', playOnInteraction);
+          document.removeEventListener('click', playOnInteraction);
+        };
+        document.addEventListener('touchstart', playOnInteraction);
+        document.addEventListener('click', playOnInteraction);
+      });
+    }
+  }, []);
 
   const handleFirstSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,11 +63,12 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
       >
         {/* MP4 视频层 - 高画质自动循环播放 */}
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             // 移动端硬件加速（强制 GPU 渲染）
@@ -58,15 +77,19 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
             willChange: 'transform',
-            // 降低亮度 10%：从 1.65 降低到 1.48（约 -10%）
-            filter: 'contrast(1.25) brightness(1.48) saturate(1.3)',
+            // 降低亮度以匹配深色氛围
+            filter: 'contrast(1.15) brightness(0.95) saturate(1.05)',
             // 淡入效果
             opacity: 1,
             animation: 'cosmicFadeIn 1.5s ease-out'
           }}
           poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%230a1e1a'/%3E%3Cstop offset='50%25' style='stop-color:%231a2f2a'/%3E%3Cstop offset='100%25' style='stop-color:%230f2520'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E"
+          onLoadedData={(e) => {
+            // 确保移动端自动播放
+            (e.target as HTMLVideoElement).play().catch(() => {});
+          }}
         >
-          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/6kfzc4s01kk-1772592380079.mp4" type="video/mp4" />
+          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/rsf1ds4ve9q-1772593417225.mp4" type="video/mp4" />
         </video>
 
         {/* 渐变覆盖层 - 增强文字可读性（更暗的遮罩） */}
