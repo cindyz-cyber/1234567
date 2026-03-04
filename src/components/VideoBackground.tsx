@@ -32,6 +32,15 @@ export default function VideoBackground() {
 
   return (
     <>
+      {/* 全屏兜底背景 - 立即显示，防止白屏 */}
+      <div
+        className="fixed inset-0 w-full h-full"
+        style={{
+          zIndex: -3,
+          backgroundColor: BRAND_COLORS.primary,
+        }}
+      />
+
       <video
         ref={videoRef}
         autoPlay={true}
@@ -52,7 +61,6 @@ export default function VideoBackground() {
           filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
           WebkitTransform: 'translate3d(0,0,0)',
           transform: 'translate3d(0,0,0)',
-          backgroundColor: BRAND_COLORS.primary,
           opacity: isVideoReady ? 1 : 0,
           transition: 'opacity 0.5s ease-in-out',
           willChange: 'opacity, transform',
