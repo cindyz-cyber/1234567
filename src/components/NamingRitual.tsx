@@ -49,7 +49,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
           loop
           muted
           playsInline
-          poster="/assets/videos/energy-field-poster.jpg"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             // 移动端硬件加速（强制 GPU 渲染）
@@ -58,14 +57,14 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
             willChange: 'transform',
-            // 最大化清晰度：高对比度 + 高亮度 + 高饱和度
-            filter: 'contrast(1.25) brightness(1.35) saturate(1.3)',
+            // 提高亮度 30%：从 1.35 增加到 1.65
+            filter: 'contrast(1.25) brightness(1.65) saturate(1.3)',
             // 淡入效果
             opacity: 1,
             animation: 'cosmicFadeIn 1.5s ease-out'
           }}
         >
-          <source src="/assets/videos/energy-field.mp4" type="video/mp4" />
+          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/6kfzc4s01kk-1772592380079.mp4" type="video/mp4" />
         </video>
 
         {/* 渐变覆盖层 - 保持文字可读性 */}
