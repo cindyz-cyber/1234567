@@ -33,7 +33,7 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
+            finalTranscript += transcript;
           } else {
             interimTranscript += transcript;
           }
@@ -46,14 +46,34 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
 
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error', event.error);
+        if (event.error === 'no-speech') {
+          return;
+        }
         setIsListening(false);
       };
 
       recognitionRef.current.onend = () => {
-        setIsListening(false);
+        if (isListening) {
+          try {
+            recognitionRef.current?.start();
+          } catch (e) {
+            console.error('Failed to restart recognition', e);
+            setIsListening(false);
+          }
+        }
       };
     }
-  }, []);
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.error('Error stopping recognition', e);
+        }
+      }
+    };
+  }, [isListening]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -67,18 +87,28 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
     return () => clearInterval(interval);
   }, [isListening]);
 
-  const toggleVoiceInput = () => {
+  const toggleVoiceInput = async () => {
     if (!recognitionRef.current) {
       alert('您的浏览器不支持语音输入功能');
       return;
     }
 
     if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
+      try {
+        recognitionRef.current.stop();
+        setIsListening(false);
+      } catch (e) {
+        console.error('Error stopping recognition', e);
+        setIsListening(false);
+      }
     } else {
-      recognitionRef.current.start();
-      setIsListening(true);
+      try {
+        await recognitionRef.current.start();
+        setIsListening(true);
+      } catch (e) {
+        console.error('Error starting recognition', e);
+        alert('无法启动语音识别，请确保您已授权麦克风权限');
+      }
     }
   };
 
@@ -135,15 +165,20 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
           loop
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
           crossOrigin="anonymous"
+          poster="/assets/79757b3cae9165b1c14088a60f3c4d94.jpg"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
-            WebkitTransform: 'translateZ(0)',
-            transform: 'translateZ(0)',
+            WebkitTransform: 'translate3d(0,0,0)',
+            transform: 'translate3d(0,0,0)',
             willChange: 'transform',
             backgroundColor: 'rgba(2, 13, 10, 0.5)'
+          }}
+          onLoadedMetadata={(e) => {
+            const video = e.currentTarget;
+            video.play().catch(err => console.log('Video autoplay failed:', err));
           }}
         >
           <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/fe2rqfs27y-1772615676760.mp4" type="video/mp4" />
