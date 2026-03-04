@@ -62,9 +62,29 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [backgroundDarkness, setBackgroundDarkness] = useState(0.25);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleCanPlay = () => {
+      setVideoLoaded(true);
+      video.play().catch(() => {});
+    };
+
+    video.addEventListener('canplay', handleCanPlay);
+
+    // Preload the video immediately
+    video.load();
+
+    return () => {
+      video.removeEventListener('canplay', handleCanPlay);
+    };
+  }, []);
 
   const handleUserInteraction = () => {
-    if (videoRef.current) {
+    if (videoRef.current && videoLoaded) {
       videoRef.current.play().catch(() => {});
     }
   };
@@ -270,9 +290,9 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             transform: 'translateZ(0)',
             willChange: 'transform'
           }}
-          poster="/assets/videos/golden-flow-poster.jpg"
+          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0%25' stop-color='%23001a0d'/%3E%3Cstop offset='100%25' stop-color='%23000000'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23g)'/%3E%3C/svg%3E"
         >
-          <source src="/assets/videos/golden-flow.mp4" type="video/mp4" />
+          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/rsf1ds4ve9q-1772593417225.mp4" type="video/mp4" />
         </video>
       </div>
       <div
@@ -604,12 +624,14 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          filter: contrast(1.2) brightness(1.1) saturate(1.1);
+          filter: contrast(1.15) brightness(0.95) saturate(1.05);
           -webkit-transform: translateZ(0);
           transform: translateZ(0);
           animation: cameraBreath 20s ease-in-out infinite;
           will-change: transform;
           background-color: transparent !important;
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
         }
 
         .background-overlay {
