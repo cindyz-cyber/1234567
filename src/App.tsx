@@ -286,8 +286,8 @@ function App() {
     }
 
     // 如果步骤不匹配任何已知步骤，回到首页
-    console.warn('⚠️ Unknown step, returning to home:', currentStep);
-    return null;
+    console.warn('⚠️ Unknown step, resetting to home:', currentStep);
+    setCurrentStep('home');
   }
 
   console.log('🏠 Rendering home tabs. currentStep:', currentStep, 'currentTab:', currentTab);
