@@ -1,6 +1,13 @@
 /**
- * 全局背景预加载控制中心
- * 在 App 启动时扫描所有路由页面的背景资源并静默预加载
+ * 全局背景预加载控制中心（移动端优化版）
+ *
+ * 移动端策略：
+ * - 只预加载 Poster 图片（必需）
+ * - 完全跳过视频预加载（节省流量）
+ *
+ * 桌面端策略：
+ * - 预加载 Poster（高优先级）
+ * - 预加载视频（中优先级）
  */
 
 import { BACKGROUND_ASSETS } from './backgroundAssets';
@@ -12,32 +19,46 @@ interface PreloadLink {
   priority: 'high' | 'medium' | 'low';
 }
 
+// 设备检测
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+  typeof navigator !== 'undefined' ? navigator.userAgent : ''
+);
+
+// 网络检测
+const isSlowConnection = (() => {
+  if (typeof navigator === 'undefined' || !('connection' in navigator)) return false;
+  const conn = (navigator as any).connection;
+  return conn?.saveData || conn?.effectiveType === 'slow-2g' || conn?.effectiveType === '2g' || conn?.effectiveType === '3g';
+})();
+
 class GlobalBackgroundPreloader {
   private injectedLinks = new Set<string>();
   private preloadQueue: PreloadLink[] = [];
 
   /**
-   * 扫描所有背景资源并生成预加载队列
+   * 扫描所有背景资源并生成预加载队列（智能筛选）
    */
   private scanAllBackgrounds(): PreloadLink[] {
     const links: PreloadLink[] = [];
 
     // 遍历所有背景资源
     Object.entries(BACKGROUND_ASSETS).forEach(([key, asset]) => {
-      // 视频资源 - 高优先级
-      links.push({
-        href: asset.videoUrl,
-        as: 'video',
-        type: 'video/mp4',
-        priority: key === 'golden_flow' ? 'high' : 'medium' // golden_flow 最高优先级
-      });
-
-      // Poster 图片 - 最高优先级（体积小，必须瞬间加载）
+      // Poster 图片 - 所有设备都需要（最高优先级）
       links.push({
         href: asset.posterUrl,
         as: 'image',
         priority: 'high'
       });
+
+      // 视频资源 - 仅桌面端 + 快速网络
+      if (!isMobileDevice && !isSlowConnection) {
+        links.push({
+          href: asset.videoUrl,
+          as: 'video',
+          type: 'video/mp4',
+          priority: key === 'golden_flow' ? 'high' : 'medium'
+        });
+      }
     });
 
     return links;
@@ -72,25 +93,34 @@ class GlobalBackgroundPreloader {
   }
 
   /**
-   * 按优先级分批注入预加载链接
+   * 按优先级分批注入预加载链接（智能调度）
    */
   async startGlobalPreload(): Promise<void> {
-    console.log('🌐 全局背景预加载控制中心启动...');
+    const deviceType = isMobileDevice ? '移动端' : '桌面端';
+    const networkType = isSlowConnection ? '慢速网络' : '正常网络';
+    console.log(`🌐 全局预加载启动 [${deviceType}, ${networkType}]`);
 
     // 扫描所有背景资源
     this.preloadQueue = this.scanAllBackgrounds();
 
-    // 第一批：高优先级资源（Poster 图片 + golden_flow 视频）
-    const highPriority = this.preloadQueue.filter(l => l.priority === 'high');
-    highPriority.forEach(link => this.injectPreloadLink(link));
+    if (this.preloadQueue.length === 0) {
+      console.log('⚠️  无需预加载（可能为移动端 + 慢速网络）');
+      return;
+    }
 
-    // 延迟 500ms 后加载中优先级资源（其他视频）
-    setTimeout(() => {
-      const mediumPriority = this.preloadQueue.filter(l => l.priority === 'medium');
-      mediumPriority.forEach(link => this.injectPreloadLink(link));
-    }, 500);
+    // 第一批：Poster 图片（立即注入，最高优先级）
+    const posters = this.preloadQueue.filter(l => l.as === 'image');
+    posters.forEach(link => this.injectPreloadLink(link));
 
-    console.log(`✅ 全局预加载已启动: ${this.preloadQueue.length} 个资源加入队列`);
+    // 第二批：视频（仅桌面端，延迟加载）
+    if (!isMobileDevice && !isSlowConnection) {
+      setTimeout(() => {
+        const videos = this.preloadQueue.filter(l => l.as === 'video');
+        videos.forEach(link => this.injectPreloadLink(link));
+      }, 800); // 延迟 800ms，确保 Poster 优先
+    }
+
+    console.log(`✅ 预加载队列: ${posters.length} 张图片${!isMobileDevice ? ` + ${this.preloadQueue.length - posters.length} 个视频` : ''}`);
   }
 
   /**

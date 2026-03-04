@@ -1,20 +1,19 @@
 /**
- * ZenBackground - 通用背景组件
+ * ZenBackground - 通用背景组件（移动端优先版本）
  *
- * 自动应用所有"秒开"优化逻辑：
- * 1. 三级渲染协议（底色 → Poster → 视频）
- * 2. GPU 硬件加速
- * 3. 移动端兼容性补丁
- * 4. 预加载资源复用
- * 5. 优雅降级策略
+ * 策略：
+ * - 移动端：立即显示静态图，完全跳过视频（性能优先）
+ * - 桌面端：显示视频（体验优先）
+ * - 低性能设备：自动降级为静态图
  *
- * 使用示例：
- * <ZenBackground assetId="golden_flow" overlay="rgba(2, 13, 10, 0.25)" />
+ * 三级渲染协议：
+ * 1. 0ms - 底色（品牌色，永不白屏）
+ * 2. 0ms - Poster 静态图（立即显示，不等待）
+ * 3. 可选 - 视频（仅桌面端 + 高性能设备）
  */
 
 import { useEffect, useRef, useState } from 'react';
 import { BACKGROUND_ASSETS, type BackgroundAsset } from '../utils/backgroundAssets';
-import { videoPreloader } from '../utils/videoPreloader';
 
 interface ZenBackgroundProps {
   assetId: keyof typeof BACKGROUND_ASSETS;
@@ -22,74 +21,94 @@ interface ZenBackgroundProps {
   className?: string;
   style?: React.CSSProperties;
   onReady?: () => void;
+  forceStatic?: boolean; // 强制使用静态图
 }
+
+// 检测设备类型
+const isMobile = (() => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+})();
+
+// 检测网络状况
+const isSlowConnection = (() => {
+  if (typeof navigator === 'undefined' || !('connection' in navigator)) return false;
+  const conn = (navigator as any).connection;
+  return conn?.saveData || conn?.effectiveType === 'slow-2g' || conn?.effectiveType === '2g';
+})();
 
 export default function ZenBackground({
   assetId,
   overlay,
   className = '',
   style = {},
-  onReady
+  onReady,
+  forceStatic = false
 }: ZenBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [renderStage, setRenderStage] = useState<'color' | 'poster' | 'video'>('color');
+  const posterRef = useRef<HTMLDivElement>(null);
+  const [posterLoaded, setPosterLoaded] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const asset: BackgroundAsset = BACKGROUND_ASSETS[assetId];
 
+  // 决定是否使用视频（移动端 + 慢速网络 = 纯静态）
+  const shouldUseVideo = !isMobile && !isSlowConnection && !forceStatic;
+
   useEffect(() => {
-    // 第一级：底色（立即显示，0ms）
-    setRenderStage('color');
+    // 立即预加载 Poster 图片
+    const img = new Image();
+    img.onload = () => {
+      setPosterLoaded(true);
+      if (!shouldUseVideo && onReady) {
+        onReady(); // 移动端：Poster 加载完成即就绪
+      }
+    };
+    img.src = asset.posterUrl;
 
-    // 第二级：Poster（50ms 后显示）
-    const posterTimer = setTimeout(() => {
-      setRenderStage('poster');
-    }, 50);
-
-    // 第三级：视频加载
-    if (!videoRef.current) {
-      clearTimeout(posterTimer);
+    // 如果不使用视频，到此为止
+    if (!shouldUseVideo) {
       return;
     }
 
+    // 桌面端：尝试加载视频
     const videoElement = videoRef.current;
+    if (!videoElement) return;
 
-    // 尝试使用预加载的视频
-    const preloadedVideo = videoPreloader.getVideo(assetId);
+    let playTimeout: NodeJS.Timeout;
 
-    const handleVideoReady = () => {
-      setRenderStage('video');
-      if (onReady) onReady();
+    const tryPlayVideo = () => {
+      videoElement.play()
+        .then(() => {
+          setVideoLoaded(true);
+          if (onReady) onReady();
+        })
+        .catch(() => {
+          // 播放失败，保持使用 Poster
+          console.warn(`Video autoplay blocked for ${assetId}, using poster`);
+        });
     };
 
-    if (preloadedVideo) {
-      // 使用预加载实例
-      videoElement.load();
-      videoElement.play()
-        .then(handleVideoReady)
-        .catch(() => {
-          console.warn(`Video autoplay failed for ${assetId}, using poster`);
-          // 保持 poster 显示
-        });
-    } else {
-      // 降级加载
-      const handleCanPlay = () => {
-        videoElement.play()
-          .then(handleVideoReady)
-          .catch(() => {
-            console.warn(`Play failed for ${assetId}`);
-          });
-      };
+    // 监听 canplay 事件（不等待 canplaythrough，更快）
+    const handleCanPlay = () => {
+      clearTimeout(playTimeout);
+      playTimeout = setTimeout(tryPlayVideo, 100);
+    };
 
-      videoElement.addEventListener('canplaythrough', handleCanPlay, { once: true });
+    videoElement.addEventListener('canplay', handleCanPlay, { once: true });
 
-      return () => {
-        clearTimeout(posterTimer);
-        videoElement.removeEventListener('canplaythrough', handleCanPlay);
-      };
-    }
+    // 3秒超时保护：如果视频加载过慢，放弃
+    const abandonTimeout = setTimeout(() => {
+      console.warn(`Video loading timeout for ${assetId}, keeping poster only`);
+      videoElement.removeEventListener('canplay', handleCanPlay);
+    }, 3000);
 
-    return () => clearTimeout(posterTimer);
-  }, [assetId, onReady]);
+    return () => {
+      clearTimeout(playTimeout);
+      clearTimeout(abandonTimeout);
+      videoElement.removeEventListener('canplay', handleCanPlay);
+    };
+  }, [assetId, shouldUseVideo, onReady, asset.posterUrl]);
 
   return (
     <div
@@ -97,65 +116,65 @@ export default function ZenBackground({
       className={`fixed inset-0 w-full h-full ${className}`}
       style={{
         zIndex: -1,
-        // 第一级兜底：主题底色（0ms 瞬间显示）
+        // 第一级：品牌底色（0ms 立即显示，永不白屏）
         backgroundColor: asset.fallbackColor,
         background: asset.fallbackColor,
-        // 移动端硬件加速补丁（防止 iOS 闪烁/消失）
+        // 移动端硬件加速补丁
         WebkitTransform: 'translateZ(0)',
         transform: 'translateZ(0)',
         backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
         perspective: '1000px',
-        willChange: 'transform, opacity',
-        WebkitOverflowScrolling: 'touch',
+        willChange: 'auto',
         isolation: 'isolate',
         ...style
       }}
     >
-      {/* 第二级兜底：Poster 静态封面 (50ms) */}
-      {renderStage !== 'color' && (
-        <div
-          className="absolute inset-0 w-full h-full"
-          style={{
-            backgroundImage: `url(${asset.posterUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            opacity: renderStage === 'poster' ? 1 : 0,
-            transition: 'opacity 0.3s ease-in-out',
-            WebkitTransform: 'translateZ(0)',
-            transform: 'translateZ(0)'
-          }}
-        />
-      )}
-
-      {/* 第三级：动态视频背景 (加载完成后 Cross-fade 淡入) */}
-      <video
-        ref={videoRef}
-        autoPlay={true}
-        loop={true}
-        muted={true}
-        playsInline={true}
-        preload="auto"
-        crossOrigin="anonymous"
-        poster={asset.posterUrl}
-        className="absolute inset-0 w-full h-full object-cover"
+      {/* 第二级：Poster 静态图（0ms 立即显示，不等待）*/}
+      <div
+        ref={posterRef}
+        className="absolute inset-0 w-full h-full"
         style={{
-          filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
-          // GPU 硬件加速
+          backgroundImage: `url(${asset.posterUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          opacity: 1, // 始终显示
           WebkitTransform: 'translateZ(0)',
           transform: 'translateZ(0)',
-          willChange: 'transform, opacity',
-          backfaceVisibility: 'hidden',
-          perspective: '1000px',
-          // Cross-fade 效果
-          opacity: renderStage === 'video' ? 1 : 0,
-          transition: 'opacity 0.5s ease-in-out'
+          // Poster 加载后微调透明度
+          transition: posterLoaded ? 'none' : 'opacity 0.2s ease-in'
         }}
-      >
-        <source src={asset.videoUrl} type="video/mp4" />
-      </video>
+      />
 
-      {/* 覆盖层（可选） */}
+      {/* 第三级：视频背景（仅桌面端 + 高性能设备）*/}
+      {shouldUseVideo && (
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata" // 移动端改为 metadata，不预加载完整视频
+          crossOrigin="anonymous"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            // 视频淡入效果（不遮挡 Poster）
+            opacity: videoLoaded ? 1 : 0,
+            transition: 'opacity 0.8s ease-in-out',
+            pointerEvents: 'none'
+          }}
+        >
+          <source src={asset.videoUrl} type="video/mp4" />
+        </video>
+      )}
+
+      {/* 覆盖层（可选）*/}
       {overlay && (
         <div
           className="absolute inset-0 w-full h-full"
@@ -166,18 +185,23 @@ export default function ZenBackground({
         />
       )}
 
-      {/* 调试信息（开发环境） */}
+      {/* 调试信息（开发环境）*/}
       {import.meta.env.DEV && (
         <div
           className="absolute bottom-4 right-4 px-3 py-1 text-xs rounded"
           style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            color: '#fff',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            color: '#0f0',
             fontFamily: 'monospace',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            fontSize: '11px',
+            lineHeight: '1.4'
           }}
         >
-          Stage: {renderStage} | Asset: {assetId}
+          Device: {isMobile ? 'Mobile' : 'Desktop'}<br />
+          Mode: {shouldUseVideo ? 'Video' : 'Static'}<br />
+          Poster: {posterLoaded ? 'Loaded' : 'Loading'}<br />
+          {shouldUseVideo && <>Video: {videoLoaded ? 'Playing' : 'Loading'}</>}
         </div>
       )}
     </div>

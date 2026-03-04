@@ -1,11 +1,18 @@
 /**
- * 优化的视频背景组件
- * 使用预加载的视频实例 + poster 兜底，确保瞬间显示
+ * 优化的视频背景组件（移动端优先）
+ *
+ * 移动端策略：
+ * - 立即显示 Poster 静态图（0ms）
+ * - 完全跳过视频加载
+ * - 节省流量和电量
+ *
+ * 桌面端策略：
+ * - 显示 Poster（0ms）
+ * - 加载并播放视频（可选增强）
  */
 
 import { useEffect, useRef, useState } from 'react';
 import { BACKGROUND_ASSETS, type BackgroundAsset } from '../utils/backgroundAssets';
-import { videoPreloader } from '../utils/videoPreloader';
 
 interface OptimizedVideoBackgroundProps {
   assetId: keyof typeof BACKGROUND_ASSETS;
@@ -13,6 +20,11 @@ interface OptimizedVideoBackgroundProps {
   className?: string;
   style?: React.CSSProperties;
 }
+
+// 设备检测
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+  typeof navigator !== 'undefined' ? navigator.userAgent : ''
+);
 
 export default function OptimizedVideoBackground({
   assetId,
@@ -22,39 +34,45 @@ export default function OptimizedVideoBackground({
 }: OptimizedVideoBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoReady, setVideoReady] = useState(false);
+  const [posterLoaded, setPosterLoaded] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const asset: BackgroundAsset = BACKGROUND_ASSETS[assetId];
 
   useEffect(() => {
-    if (!videoRef.current) return;
+    // 预加载 Poster（优先级最高）
+    const img = new Image();
+    img.onload = () => setPosterLoaded(true);
+    img.src = asset.posterUrl;
 
-    // 尝试获取预加载的视频
-    const preloadedVideo = videoPreloader.getVideo(assetId);
-
-    if (preloadedVideo) {
-      // 使用预加载的视频（直接替换 src）
-      const source = videoRef.current.querySelector('source');
-      if (source) {
-        source.src = asset.videoUrl;
-      }
-      videoRef.current.load();
-
-      // 立即播放
-      videoRef.current.play().then(() => {
-        setVideoReady(true);
-      }).catch(() => {
-        // 播放失败，使用 poster 兜底
-        console.warn(`Video autoplay failed for ${assetId}, using poster`);
-        setVideoReady(true);
-      });
-    } else {
-      // 如果预加载未完成，正常加载
-      videoRef.current.load();
-      videoRef.current.play().catch(() => {
-        setVideoReady(true);
-      });
+    // 移动端：只显示 Poster，完全跳过视频
+    if (isMobileDevice) {
+      return;
     }
-  }, [assetId, asset.videoUrl]);
+
+    // 桌面端：尝试加载视频
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    const handleCanPlay = () => {
+      videoElement.play()
+        .then(() => setVideoPlaying(true))
+        .catch(() => {
+          console.warn(`Video autoplay blocked for ${assetId}`);
+        });
+    };
+
+    videoElement.addEventListener('canplay', handleCanPlay, { once: true });
+
+    // 3秒超时：放弃视频加载
+    const timeout = setTimeout(() => {
+      videoElement.removeEventListener('canplay', handleCanPlay);
+    }, 3000);
+
+    return () => {
+      clearTimeout(timeout);
+      videoElement.removeEventListener('canplay', handleCanPlay);
+    };
+  }, [assetId, asset.posterUrl]);
 
   return (
     <div
@@ -62,36 +80,51 @@ export default function OptimizedVideoBackground({
       className={`fixed inset-0 w-full h-full ${className}`}
       style={{
         zIndex: -1,
+        // 第一级：品牌底色
         backgroundColor: asset.fallbackColor,
-        background: asset.fallbackColor,
-        WebkitTransform: 'translate3d(0,0,0)',
-        transform: 'translate3d(0,0,0)',
-        WebkitOverflowScrolling: 'touch',
+        WebkitTransform: 'translateZ(0)',
+        transform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
         ...style
       }}
     >
-      {/* 视频层 */}
-      <video
-        ref={videoRef}
-        autoPlay={true}
-        loop={true}
-        muted={true}
-        playsInline={true}
-        preload="auto"
-        crossOrigin="anonymous"
-        poster={asset.posterUrl}
-        className="absolute inset-0 w-full h-full object-cover"
+      {/* 第二级：Poster 静态图（立即显示）*/}
+      <div
+        className="absolute inset-0 w-full h-full"
         style={{
-          filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
+          backgroundImage: `url(${asset.posterUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          opacity: 1,
           WebkitTransform: 'translateZ(0)',
-          transform: 'translateZ(0)',
-          willChange: 'transform',
-          opacity: videoReady ? 1 : 0.95,
-          transition: 'opacity 0.5s ease-in-out'
+          transform: 'translateZ(0)'
         }}
-      >
-        <source src={asset.videoUrl} type="video/mp4" />
-      </video>
+      />
+
+      {/* 第三级：视频（仅桌面端）*/}
+      {!isMobileDevice && (
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          crossOrigin="anonymous"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            opacity: videoPlaying ? 1 : 0,
+            transition: 'opacity 0.8s ease-in-out',
+            pointerEvents: 'none'
+          }}
+        >
+          <source src={asset.videoUrl} type="video/mp4" />
+        </video>
+      )}
 
       {/* 覆盖层 */}
       {overlay && (
