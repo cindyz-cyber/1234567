@@ -8,67 +8,57 @@ interface NamingRitualProps {
 export default function NamingRitual({ onComplete }: NamingRitualProps) {
   const [higherSelfName, setHigherSelfName] = useState('');
   const [userName, setUserName] = useState('');
-  const [step, setStep] = useState(1);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // 确保视频在移动端自动播放
+    // iOS Safari 强制静音自动播放
     const video = videoRef.current;
     if (video) {
-      video.play().catch(() => {
-        // 如果自动播放失败，等待用户交互
-        const playOnInteraction = () => {
-          video.play().catch(() => {});
-          document.removeEventListener('touchstart', playOnInteraction);
-          document.removeEventListener('click', playOnInteraction);
-        };
-        document.addEventListener('touchstart', playOnInteraction);
-        document.addEventListener('click', playOnInteraction);
+      // 强制静音属性（针对 iOS Safari）
+      video.defaultMuted = true;
+      video.muted = true;
+
+      // 强制播放，不显示任何UI
+      video.play().catch((error) => {
+        console.log("Autoplay prevented, but UI button is removed.", error);
+        // 即使自动播放失败，也不显示播放按钮
       });
     }
   }, []);
 
-  const handleFirstSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (higherSelfName.trim()) {
-      setStep(2);
-    }
-  };
-
-  const handleSecondSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (userName.trim()) {
+    if (higherSelfName.trim() && userName.trim()) {
       onComplete(higherSelfName.trim(), userName.trim());
     }
   };
-
 
   return (
     <div
       className="min-h-screen flex items-center justify-center px-6 breathing-fade relative overflow-hidden"
       style={{
-        backgroundColor: 'transparent !important',
-        background: 'transparent !important'
+        backgroundColor: '#0a1e1a',
+        background: 'linear-gradient(135deg, #0a1e1a 0%, #1a2f2a 50%, #0f2520 100%)'
       }}
     >
-      {/* 深空宇宙高画质 MP4 背景 - 移动端优先优化 */}
+      {/* 深绿色兜底背景 + 视频背景 */}
       <div
         className="fixed inset-0 w-full h-full"
         style={{
           zIndex: -1,
-          // 初始底色：匹配深空宇宙主色调（深绿蓝色 + 金色光晕）
+          // 深绿色兜底背景
           backgroundColor: '#0a1e1a',
           background: 'linear-gradient(135deg, #0a1e1a 0%, #1a2f2a 50%, #0f2520 100%)'
         }}
       >
-        {/* MP4 视频层 - 高画质自动循环播放 */}
+        {/* MP4 视频层 - 硬编码自动播放属性 */}
         <video
           ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
+          autoPlay={true}
+          loop={true}
+          muted={true}
+          playsInline={true}
+          preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             // 移动端硬件加速（强制 GPU 渲染）
@@ -79,20 +69,21 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
             willChange: 'transform',
             // 降低亮度以匹配深色氛围
             filter: 'contrast(1.15) brightness(0.95) saturate(1.05)',
-            // 淡入效果
             opacity: 1,
-            animation: 'cosmicFadeIn 1.5s ease-out'
           }}
           poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%230a1e1a'/%3E%3Cstop offset='50%25' style='stop-color:%231a2f2a'/%3E%3Cstop offset='100%25' style='stop-color:%230f2520'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E"
           onLoadedData={(e) => {
             // 确保移动端自动播放
-            (e.target as HTMLVideoElement).play().catch(() => {});
+            const videoEl = e.target as HTMLVideoElement;
+            videoEl.defaultMuted = true;
+            videoEl.muted = true;
+            videoEl.play().catch(() => {});
           }}
         >
           <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/naming-ritual-bg-1772594261349.mp4" type="video/mp4" />
         </video>
 
-        {/* 渐变覆盖层 - 增强文字可读性（更暗的遮罩） */}
+        {/* 渐变覆盖层 - 增强文字可读性 */}
         <div
           className="absolute inset-0 w-full h-full"
           style={{
@@ -103,129 +94,108 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
       </div>
 
       <div className="w-full max-w-xl relative z-10">
-        {step === 1 ? (
-          <form onSubmit={handleFirstSubmit} className="space-y-16">
-            <div className="space-y-12 mb-16 ritual-intro">
-              <p
-                className="text-center leading-loose font-light ritual-text"
-                style={{
-                  color: '#F7E7CE',
-                  fontSize: '17px',
-                  letterSpacing: '0.12em',
-                  lineHeight: '2.4',
-                  fontFamily: 'Georgia, "STSong", "Songti SC", "SimSun", serif',
-                  textShadow: '0 2px 20px rgba(247, 231, 206, 0.4)',
-                  animation: 'ritualFadeIn 2s ease-out',
-                  fontWeight: 300,
-                }}
-              >
-                万物生长，皆有逻辑。
-              </p>
-              <p
-                className="text-center leading-loose font-light ritual-text"
-                style={{
-                  color: '#F7E7CE',
-                  fontSize: '17px',
-                  letterSpacing: '0.12em',
-                  lineHeight: '2.4',
-                  fontFamily: 'Georgia, "STSong", "Songti SC", "SimSun", serif',
-                  textShadow: '0 2px 20px rgba(247, 231, 206, 0.4)',
-                  animation: 'ritualFadeIn 2s ease-out 0.4s both',
-                  fontWeight: 300,
-                }}
-              >
-                在开启这段向内生长的旅程前，
-                <br />
-                我们需要建立连接。
-              </p>
-              <p
-                className="text-center leading-loose font-light ritual-text-secondary"
-                style={{
-                  color: 'rgba(247, 231, 206, 0.98)',
-                  fontSize: '15px',
-                  letterSpacing: '0.1em',
-                  lineHeight: '2.2',
-                  fontFamily: 'Georgia, "STSong", "Songti SC", "SimSun", serif',
-                  textShadow: '0 2px 20px rgba(247, 231, 206, 0.5)',
-                  animation: 'ritualFadeIn 2s ease-out 0.8s both',
-                  fontWeight: 300,
-                  marginTop: '32px',
-                }}
-              >
-                请赋予"自己"一个名字，
-                <br />
-                那是你当下的存在；
-                <br />
-                再赋予你的"高我"（老师）一个名字，
-                <br />
-                那是你智慧的指引。
-              </p>
-            </div>
-            <h1
-              className="ritual-question"
+        <form onSubmit={handleSubmit} className="space-y-16">
+          <div className="space-y-12 mb-16 ritual-intro">
+            <p
+              className="text-center leading-loose font-light ritual-text"
               style={{
-                animation: 'ritualFadeIn 2s ease-out 1.2s both',
-              }}
-            >
-              那个智慧的内在自我，
-              <br />
-              你如何称呼它？
-            </h1>
-            <div className="relative ritual-input-container">
-              <input
-                type="text"
-                value={higherSelfName}
-                onChange={(e) => setHigherSelfName(e.target.value)}
-                className="ritual-input"
-                autoFocus
-              />
-            </div>
-            <div style={{ animation: 'ritualFadeIn 2s ease-out 1.6s both' }}>
-              <GoldButton type="submit" disabled={!higherSelfName.trim()} className="w-full">
-                继续
-              </GoldButton>
-            </div>
-          </form>
-        ) : (
-          <form onSubmit={handleSecondSubmit} className="space-y-20">
-            <h1
-              className="ritual-question"
-              style={{
+                color: '#F7E7CE',
+                fontSize: '17px',
+                letterSpacing: '0.12em',
+                lineHeight: '2.4',
+                fontFamily: 'Georgia, "STSong", "Songti SC", "SimSun", serif',
+                textShadow: '0 2px 20px rgba(247, 231, 206, 0.4)',
                 animation: 'ritualFadeIn 2s ease-out',
+                fontWeight: 300,
               }}
             >
-              它该如何称呼你？
-            </h1>
-            <div className="relative ritual-input-container" style={{ animation: 'ritualFadeIn 2s ease-out 0.4s both' }}>
-              <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                className="ritual-input"
-                autoFocus
-              />
-            </div>
-            <div style={{ animation: 'ritualFadeIn 2s ease-out 0.8s both' }}>
-              <GoldButton type="submit" disabled={!userName.trim()} className="w-full">
-                开启植本人觉察之旅
-              </GoldButton>
-            </div>
-          </form>
-        )}
+              万物生长,皆有逻辑。
+            </p>
+            <p
+              className="text-center leading-loose font-light ritual-text"
+              style={{
+                color: '#F7E7CE',
+                fontSize: '17px',
+                letterSpacing: '0.12em',
+                lineHeight: '2.4',
+                fontFamily: 'Georgia, "STSong", "Songti SC", "SimSun", serif',
+                textShadow: '0 2px 20px rgba(247, 231, 206, 0.4)',
+                animation: 'ritualFadeIn 2s ease-out 0.4s both',
+                fontWeight: 300,
+              }}
+            >
+              在开启这段向内生长的旅程前,
+              <br />
+              我们需要建立连接。
+            </p>
+            <p
+              className="text-center leading-loose font-light ritual-text-secondary"
+              style={{
+                color: 'rgba(247, 231, 206, 0.98)',
+                fontSize: '15px',
+                letterSpacing: '0.1em',
+                lineHeight: '2.2',
+                fontFamily: 'Georgia, "STSong", "Songti SC", "SimSun", serif',
+                textShadow: '0 2px 20px rgba(247, 231, 206, 0.5)',
+                animation: 'ritualFadeIn 2s ease-out 0.8s both',
+                fontWeight: 300,
+                marginTop: '32px',
+              }}
+            >
+              请赋予"自己"一个名字,
+              <br />
+              那是你当下的存在；
+              <br />
+              再赋予你的"高我"（老师）一个名字,
+              <br />
+              那是你智慧的指引。
+            </p>
+          </div>
+          <h1
+            className="ritual-question"
+            style={{
+              animation: 'ritualFadeIn 2s ease-out 1.2s both',
+            }}
+          >
+            那个智慧的内在自我,
+            <br />
+            你如何称呼它？
+          </h1>
+          <div className="relative ritual-input-container">
+            <input
+              type="text"
+              value={higherSelfName}
+              onChange={(e) => setHigherSelfName(e.target.value)}
+              className="ritual-input"
+              autoFocus
+            />
+          </div>
+          <h1
+            className="ritual-question"
+            style={{
+              animation: 'ritualFadeIn 2s ease-out 1.6s both',
+              marginTop: '48px',
+            }}
+          >
+            它该如何称呼你？
+          </h1>
+          <div className="relative ritual-input-container" style={{ animation: 'ritualFadeIn 2s ease-out 2s both' }}>
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              className="ritual-input"
+            />
+          </div>
+          <div style={{ animation: 'ritualFadeIn 2s ease-out 2.4s both' }}>
+            <GoldButton type="submit" disabled={!higherSelfName.trim() || !userName.trim()} className="w-full">
+              开启植本人觉察之旅
+            </GoldButton>
+          </div>
+        </form>
       </div>
 
       <style>{`
-        @keyframes cosmicFadeIn {
-          0% {
-            opacity: 0;
-            transform: scale(1.05);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
         @keyframes ritualFadeIn {
           0% {
             opacity: 0;
@@ -244,7 +214,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
         .ritual-text {
           position: relative;
           animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
-          /* 超强文字阴影 - 适配高亮度高清晰度背景 */
           text-shadow:
             0 2px 24px rgba(247, 231, 206, 0.7),
             0 4px 40px rgba(247, 231, 206, 0.5),
@@ -256,7 +225,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
         .ritual-text-secondary {
           position: relative;
           animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
-          /* 超强文字阴影 */
           text-shadow:
             0 2px 24px rgba(247, 231, 206, 0.75),
             0 4px 40px rgba(247, 231, 206, 0.55),
@@ -273,7 +241,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
           line-height: 2;
           text-align: center;
           font-family: Georgia, "STSong", "Songti SC", "SimSun", serif;
-          /* 超强文字阴影，适配高清晰度明亮背景 */
           text-shadow:
             0 2px 28px rgba(247, 231, 206, 0.8),
             0 4px 45px rgba(247, 231, 206, 0.6),
@@ -289,7 +256,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
 
         .ritual-input {
           width: 100%;
-          /* 透明毛玻璃背景 - 几乎看不到黑色，只有模糊效果 */
           background: rgba(255, 255, 255, 0.03);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
@@ -304,7 +270,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
           color: #F7E7CE;
           letter-spacing: 0.15em;
           font-family: Georgia, "STSong", "Songti SC", "SimSun", serif;
-          /* 超强文字阴影（适配高清晰度明亮背景） */
           text-shadow:
             0 2px 18px rgba(247, 231, 206, 0.8),
             0 0 45px rgba(235, 200, 98, 0.6),
