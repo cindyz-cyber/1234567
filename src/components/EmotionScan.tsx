@@ -244,7 +244,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const titleText = selectedBodyStates.length > 0 ? '身体的反馈是？' : '此刻，你的情绪是？';
 
   return (
-    <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative">
+    <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative" style={{ position: 'relative', zIndex: 1 }}>
       <VideoBackground />
       <PortalBackground
         videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
