@@ -89,7 +89,7 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
             (e.target as HTMLVideoElement).play().catch(() => {});
           }}
         >
-          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/rsf1ds4ve9q-1772593417225.mp4" type="video/mp4" />
+          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/naming-ritual-bg-1772594261349.mp4" type="video/mp4" />
         </video>
 
         {/* 渐变覆盖层 - 增强文字可读性（更暗的遮罩） */}
