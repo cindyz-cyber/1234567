@@ -132,8 +132,17 @@ function App() {
   function handleStartJourney() {
     console.log('🚀 Starting journey, setting step to: emotion');
     alert('🚀 handleStartJourney 被调用了！将设置 currentStep 为 emotion');
-    setCurrentStep('emotion');
-    console.log('✅ setCurrentStep("emotion") 已执行');
+
+    // 强制在下一个事件循环中更新状态
+    setTimeout(() => {
+      setCurrentStep('emotion');
+      console.log('✅ setCurrentStep("emotion") 已执行');
+
+      // 检查状态是否真的更新了
+      setTimeout(() => {
+        console.log('🔍 检查状态更新结果...');
+      }, 100);
+    }, 0);
   }
 
   function handleEmotionComplete(emotions: string[], bodyStates: string[]) {
