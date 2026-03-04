@@ -186,7 +186,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
 
         .portal-video-container {
           position: fixed;
-          top: 0;
+          top: 1cm;
           left: 0;
           width: 100%;
           height: 33.333vh;
