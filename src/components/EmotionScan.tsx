@@ -248,30 +248,14 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
   const titleText = selectedBodyStates.length > 0 ? '身体的反馈是？' : '此刻，你的情绪是？';
 
+  const handleUserInteraction = () => {
+    // iOS需要用户交互才能播放音频/视频
+  };
+
   console.log('🎨 EmotionScan rendering, step:', step);
 
   return (
     <>
-      {/* 紧急兜底背景 - 确保绝对不会白屏 */}
-      <div className="fixed inset-0 w-full h-full" style={{ zIndex: -10, backgroundColor: '#0A0A0F' }} />
-
-      {/* 超级明显的测试元素 */}
-      <div style={{
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 9999,
-        backgroundColor: 'red',
-        color: 'white',
-        padding: '20px',
-        fontSize: '24px',
-        fontWeight: 'bold',
-        border: '5px solid yellow'
-      }}>
-        EmotionScan 已加载 - step: {step}
-      </div>
-
       <VideoBackground />
       <PortalBackground
         videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
