@@ -340,3 +340,150 @@ body {
 .animate-fade-in-scale {
   animation: fadeInScale 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+/**
+ * ========================================
+ * 全局背景优化 - 移动端硬件加速补丁
+ * ========================================
+ */
+
+/* 通用背景容器优化 */
+.zen-background-container,
+[class*="background"],
+[class*="video-bg"],
+video {
+  /* GPU 硬件加速（强制独立渲染层） */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+
+  /* 防止背面渲染（优化性能） */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+
+  /* 3D 透视（触发 GPU 加速） */
+  perspective: 1000px;
+
+  /* 提前告知浏览器将要变化的属性 */
+  will-change: transform, opacity;
+
+  /* iOS 滚动优化 */
+  -webkit-overflow-scrolling: touch;
+
+  /* 创建独立合成层 */
+  isolation: isolate;
+}
+
+/* 视频元素专用优化 */
+video {
+  /* 对象适配方式 */
+  object-fit: cover;
+  object-position: center;
+
+  /* 防止长按弹出菜单（移动端） */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+
+  /* 确保视频不会被遮挡 */
+  pointer-events: none;
+}
+
+/* 背景图片元素优化 */
+[style*="background-image"] {
+  /* 背景渲染优化 */
+  background-attachment: scroll; /* 移动端不支持 fixed */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/**
+ * 三级渲染协议 - CSS 动画支持
+ */
+
+/* 第一级：底色淡入（0ms） */
+@keyframes zenFadeInColor {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 第二级：Poster 淡入（50ms） */
+@keyframes zenFadeInPoster {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 第三级：视频淡入（加载完成后） */
+@keyframes zenFadeInVideo {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 应用动画类 */
+.zen-stage-color {
+  animation: zenFadeInColor 0.15s ease-out;
+}
+
+.zen-stage-poster {
+  animation: zenFadeInPoster 0.3s ease-out;
+}
+
+.zen-stage-video {
+  animation: zenFadeInVideo 0.5s ease-in-out;
+}
+
+/**
+ * 移动端性能优化
+ */
+
+/* 禁用不必要的动画（低性能设备） */
+@media (prefers-reduced-motion: reduce) {
+  .zen-stage-color,
+  .zen-stage-poster,
+  .zen-stage-video {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/**
+ * 防止移动端选中文本时出现蓝色高亮
+ */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/**
+ * 全局容器优化
+ */
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  position: relative;
+
+  /* 防止橡皮筋效果（iOS） */
+  overscroll-behavior: none;
+}
+
+/* 防止整个页面被缩放（移动端） */
+body {
+  touch-action: manipulation;
+}

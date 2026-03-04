@@ -4,6 +4,7 @@ import App from './App.tsx';
 import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
 import { initializeVideoPreload } from './utils/videoPreloader';
+import { initializeGlobalBackgroundPreload } from './utils/globalBackgroundPreloader';
 
 // Kin 计算引擎自检：启动时必须通过三个断言测试
 function validateKinEngine() {
@@ -55,7 +56,12 @@ function validateKinEngine() {
 // 启动时初始化
 validateKinEngine();
 
-// 在后台静默预加载视频（非阻塞）
+// 🌐 全局背景预加载控制中心（最高优先级）
+initializeGlobalBackgroundPreload().catch(err => {
+  console.warn('全局背景预加载失败（非致命）:', err);
+});
+
+// 在后台静默预加载视频（双重保险）
 initializeVideoPreload().catch(err => {
   console.warn('视频预加载失败（非致命）:', err);
 });
