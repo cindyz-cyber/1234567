@@ -20,13 +20,13 @@ export interface BackgroundAsset {
   description: string;
 }
 
-// 核心背景资源（本地化后）
+// 核心背景资源（使用 Supabase CDN）
 export const BACKGROUND_ASSETS: Record<string, BackgroundAsset> = {
   // 主背景 - 金色流动（最常用）
   golden_flow: {
     id: 'golden_flow',
-    videoUrl: '/assets/videos/golden-flow.mp4',  // 对应 b84b7c1b
-    posterUrl: '/assets/videos/golden-flow-poster.jpg',
+    videoUrl: 'https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4',
+    posterUrl: new URL('../assets/0_1_640_N.webp', import.meta.url).href,
     fallbackColor: BRAND_COLORS.primary,
     description: '金色能量流动'
   },
@@ -34,8 +34,8 @@ export const BACKGROUND_ASSETS: Record<string, BackgroundAsset> = {
   // 能量场背景 - 深紫流动
   energy_field: {
     id: 'energy_field',
-    videoUrl: '/assets/videos/energy-field.mp4',  // 对应 73a6b711
-    posterUrl: '/assets/videos/energy-field-poster.jpg',
+    videoUrl: 'https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4',
+    posterUrl: new URL('../assets/0_1_640_N.webp', import.meta.url).href,
     fallbackColor: BRAND_COLORS.secondary,
     description: '紫色能量场'
   },
@@ -43,8 +43,8 @@ export const BACKGROUND_ASSETS: Record<string, BackgroundAsset> = {
   // 共振背景 - 蓝色波纹
   resonance_wave: {
     id: 'resonance_wave',
-    videoUrl: '/assets/videos/resonance-wave.mp4',  // 对应 661ffc10
-    posterUrl: '/assets/videos/resonance-wave-poster.jpg',
+    videoUrl: 'https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4',
+    posterUrl: new URL('../assets/0_1_640_N.webp', import.meta.url).href,
     fallbackColor: BRAND_COLORS.accent,
     description: '蓝色共振波'
   },
@@ -52,8 +52,8 @@ export const BACKGROUND_ASSETS: Record<string, BackgroundAsset> = {
   // 禅意背景 - 金色漩涡
   zen_vortex: {
     id: 'zen_vortex',
-    videoUrl: '/assets/videos/zen-vortex.mp4',  // 对应 7e901a1c
-    posterUrl: '/assets/videos/zen-vortex-poster.jpg',
+    videoUrl: '/assets/videos/zen-vortex.mp4',
+    posterUrl: new URL('../assets/0_1_640_N.webp', import.meta.url).href,
     fallbackColor: BRAND_COLORS.golden,
     description: '金色禅意漩涡'
   }
