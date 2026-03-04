@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { stopAllAudio } from '../utils/audioManager';
+import PortalBackground from './PortalBackground';
+import posterImage from '../assets/0_1_640_N.webp';
 
 interface BookOfAnswersProps {
   onComplete: () => void;
@@ -42,31 +44,17 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6 book-of-answers-container">
-      <div className="home-background-layer">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          crossOrigin="anonymous"
-          className="home-background-video"
-          style={{
-            WebkitTransform: 'translate3d(0,0,0)',
-            transform: 'translate3d(0,0,0)'
-          }}
-        >
-          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
-        </video>
-        <div className="home-background-overlay" />
-      </div>
+      <PortalBackground
+        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
+        posterImg={posterImage}
+      />
 
       <div className="portal-video-container">
         <video
-          autoPlay
-          loop
-          muted
-          playsInline
+          autoPlay={true}
+          loop={true}
+          muted={true}
+          playsInline={true}
           preload="auto"
           crossOrigin="anonymous"
           className="portal-video"

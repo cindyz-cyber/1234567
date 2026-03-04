@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
+import PortalBackground from './PortalBackground';
+import posterImage from '../assets/0_1_640_N.webp';
 
 interface Particle {
   id: string;
@@ -61,32 +63,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [poppedBubbles, setPoppedBubbles] = useState<Set<string>>(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [backgroundDarkness, setBackgroundDarkness] = useState(0.25);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoLoaded, setVideoLoaded] = useState(false);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    // Optimize for fast start on mobile
-    const handleLoadedData = () => {
-      setVideoLoaded(true);
-      video.setAttribute('data-loaded', 'true');
-      video.play().catch(() => {});
-    };
-
-    video.addEventListener('loadeddata', handleLoadedData);
-
-    return () => {
-      video.removeEventListener('loadeddata', handleLoadedData);
-    };
-  }, []);
-
-  const handleUserInteraction = () => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
-    }
-  };
 
   const emotionPositions = useMemo(() =>
     EMOTIONS.map((emotion, index) => ({
@@ -267,39 +243,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const titleText = selectedBodyStates.length > 0 ? '身体的反馈是？' : '此刻，你的情绪是？';
 
   return (
-    <div
-      className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative"
-      style={{
-        backgroundColor: 'transparent !important',
-        background: 'transparent !important'
-      }}
-    >
-      <div className="forest-background-layer">
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          crossOrigin="anonymous"
-          className="forest-background-video"
-          style={{
-            WebkitTransform: 'translateZ(0)',
-            transform: 'translateZ(0)',
-            willChange: 'transform'
-          }}
-          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0%25' stop-color='%23001a0d'/%3E%3Cstop offset='100%25' stop-color='%23000000'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23g)'/%3E%3C/svg%3E"
-        >
-          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/rsf1ds4ve9q-1772593417225.mp4" type="video/mp4" />
-        </video>
-      </div>
-      <div
-        className="background-overlay"
-        style={{
-          opacity: backgroundDarkness,
-          backgroundColor: 'transparent'
-        }}
+    <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative">
+      <PortalBackground
+        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
+        posterImg={posterImage}
+        overlayGradient={`rgba(0, 0, 0, ${backgroundDarkness})`}
       />
 
       {particles.map(particle => (

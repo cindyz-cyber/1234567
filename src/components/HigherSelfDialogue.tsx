@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Volume2, VolumeX, ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
+import PortalBackground from './PortalBackground';
+import posterImage from '../assets/0_1_640_N.webp';
 
 interface HigherSelfDialogueProps {
   userName: string;
@@ -56,32 +58,12 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
     }
   };
 
-  const handleUserInteraction = () => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ backgroundColor: 'transparent !important' }}>
-      <div className="home-background-layer">
-        <video
-          autoPlay={true}
-          loop={true}
-          muted={true}
-          playsInline={true}
-          preload="auto"
-          crossOrigin="anonymous"
-          className="home-background-video"
-          style={{
-            WebkitTransform: 'translate3d(0,0,0)',
-            transform: 'translate3d(0,0,0)'
-          }}
-        >
-          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
-        </video>
-        <div className="home-background-overlay" />
-      </div>
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      <PortalBackground
+        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
+        posterImg={posterImage}
+      />
 
       <div className="portal-video-container">
         <video
@@ -131,8 +113,6 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
               ref={textareaRef}
               value={response}
               onChange={(e) => setResponse(e.target.value)}
-              onTouchStart={handleUserInteraction}
-              onClick={handleUserInteraction}
               className="dialogue-textarea-input"
               placeholder="倾听内在的声音..."
               autoFocus

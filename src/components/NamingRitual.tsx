@@ -1,5 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import GoldButton from './GoldButton';
+import PortalBackground from './PortalBackground';
+import posterImage from '../assets/0_1_640_N.webp';
 
 interface NamingRitualProps {
   onComplete: (higherSelfName: string, userName: string) => void;
@@ -9,23 +11,6 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
   const [higherSelfName, setHigherSelfName] = useState('');
   const [userName, setUserName] = useState('');
   const [step, setStep] = useState(1);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    // iOS Safari 强制静音自动播放
-    const video = videoRef.current;
-    if (video) {
-      // 强制静音属性（针对 iOS Safari）
-      video.defaultMuted = true;
-      video.muted = true;
-
-      // 强制播放，不显示任何UI
-      video.play().catch((error) => {
-        console.log("Autoplay prevented, but UI button is removed.", error);
-        // 即使自动播放失败，也不显示播放按钮
-      });
-    }
-  }, []);
 
   const handleFirstSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,64 +27,11 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-6 breathing-fade relative overflow-hidden"
-      style={{
-        backgroundColor: '#0a1e1a',
-        background: 'linear-gradient(135deg, #0a1e1a 0%, #1a2f2a 50%, #0f2520 100%)'
-      }}
-    >
-      {/* 深绿色兜底背景 + 视频背景 */}
-      <div
-        className="fixed inset-0 w-full h-full"
-        style={{
-          zIndex: -1,
-          // 深绿色兜底背景
-          backgroundColor: '#0a1e1a',
-          background: 'linear-gradient(135deg, #0a1e1a 0%, #1a2f2a 50%, #0f2520 100%)'
-        }}
-      >
-        {/* MP4 视频层 - 硬编码自动播放属性 */}
-        <video
-          ref={videoRef}
-          autoPlay={true}
-          loop={true}
-          muted={true}
-          playsInline={true}
-          preload="auto"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{
-            // 移动端硬件加速（强制 GPU 渲染）
-            WebkitTransform: 'translateZ(0)',
-            transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            willChange: 'transform',
-            // 降低亮度以匹配深色氛围
-            filter: 'contrast(1.15) brightness(0.95) saturate(1.05)',
-            opacity: 1,
-          }}
-          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%230a1e1a'/%3E%3Cstop offset='50%25' style='stop-color:%231a2f2a'/%3E%3Cstop offset='100%25' style='stop-color:%230f2520'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E"
-          onLoadedData={(e) => {
-            // 确保移动端自动播放
-            const videoEl = e.target as HTMLVideoElement;
-            videoEl.defaultMuted = true;
-            videoEl.muted = true;
-            videoEl.play().catch(() => {});
-          }}
-        >
-          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/naming-ritual-bg-1772594261349.mp4" type="video/mp4" />
-        </video>
-
-        {/* 渐变覆盖层 - 增强文字可读性 */}
-        <div
-          className="absolute inset-0 w-full h-full"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(2, 13, 10, 0.25) 50%, rgba(0, 0, 0, 0.22) 100%)',
-            pointerEvents: 'none'
-          }}
-        />
-      </div>
+    <div className="min-h-screen flex items-center justify-center px-6 breathing-fade relative overflow-hidden">
+      <PortalBackground
+        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
+        posterImg={posterImage}
+      />
 
       <div className="w-full max-w-xl relative z-10">
         {step === 1 ? (
