@@ -50,6 +50,10 @@ function App() {
   });
 
   useEffect(() => {
+    console.log('🔄 currentStep changed to:', currentStep);
+  }, [currentStep]);
+
+  useEffect(() => {
     const timeout = setTimeout(() => {
       console.warn('Loading timeout - forcing app to render');
       setLoading(false);
@@ -126,6 +130,7 @@ function App() {
   }
 
   function handleStartJourney() {
+    console.log('🚀 Starting journey, setting step to: emotion');
     setCurrentStep('emotion');
   }
 
@@ -227,8 +232,12 @@ function App() {
     return <NamingRitual onComplete={handleNamingComplete} />;
   }
 
-  if (currentStep === 'emotion' || currentStep === 'energy' || currentStep === 'innerWhisper' || currentStep === 'transition' || currentStep === 'dialogue' || currentStep === 'answers') {
+  // 旅程步骤优先于标签页渲染
+  if (currentStep !== 'home') {
+    console.log('📍 Current step in journey:', currentStep);
+
     if (currentStep === 'emotion') {
+      console.log('✅ Rendering EmotionScan');
       return <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />;
     }
 
@@ -273,6 +282,10 @@ function App() {
     if (currentStep === 'answers') {
       return <BookOfAnswers onComplete={handleAnswersComplete} backgroundAudio={backgroundAudio} onBack={handleBackToDialogue} />;
     }
+
+    // 如果步骤不匹配任何已知步骤，回到首页
+    console.warn('⚠️ Unknown step, returning to home:', currentStep);
+    return null;
   }
 
   return (
