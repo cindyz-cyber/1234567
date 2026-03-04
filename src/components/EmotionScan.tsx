@@ -258,7 +258,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
     <>
       <VideoBackground />
       <PortalBackground
-        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
+        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/qg5emh46ebi-1772600045215.mp4"
         posterImg={posterImage}
         overlayGradient={`rgba(0, 0, 0, ${backgroundDarkness})`}
       />
