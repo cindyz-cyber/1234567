@@ -70,16 +70,16 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
             // 淡入效果（从底色过渡到 GIF）
             opacity: 1,
             animation: 'cosmicFadeIn 1.5s ease-out',
-            // 微调对比度和亮度（增强视觉效果）
-            filter: 'contrast(1.1) brightness(1.05) saturate(1.15)'
+            // 提高清晰度 + 亮度增加 30%（从 1.05 → 1.35）
+            filter: 'contrast(1.15) brightness(1.35) saturate(1.2)'
           }}
         />
 
-        {/* 渐变覆盖层 - 增强文字可读性 */}
+        {/* 渐变覆盖层 - 增强文字可读性（降低遮罩强度以配合提亮后的背景） */}
         <div
           className="absolute inset-0 w-full h-full"
           style={{
-            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(2, 13, 10, 0.3) 50%, rgba(0, 0, 0, 0.25) 100%)',
+            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(2, 13, 10, 0.15) 50%, rgba(0, 0, 0, 0.12) 100%)',
             pointerEvents: 'none'
           }}
         />
@@ -267,26 +267,26 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
 
         .ritual-input {
           width: 100%;
-          /* 半透明毛玻璃背景 - 增强可读性 */
-          background: rgba(0, 0, 0, 0.2);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
+          /* 透明毛玻璃背景 - 几乎看不到黑色，只有模糊效果 */
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           text-align: center;
           font-size: 20px;
           font-weight: 300;
           padding: 20px 16px;
           outline: none;
           border: none;
-          border-bottom: 1px solid rgba(247, 231, 206, 0.3);
+          border-bottom: 1px solid rgba(247, 231, 206, 0.4);
           border-radius: 8px 8px 0 0;
           color: #F7E7CE;
           letter-spacing: 0.15em;
           font-family: Georgia, "STSong", "Songti SC", "SimSun", serif;
-          /* 增强文字阴影 */
+          /* 增强文字阴影（背景更亮后需要更强的阴影） */
           text-shadow:
-            0 2px 12px rgba(247, 231, 206, 0.5),
-            0 0 30px rgba(235, 200, 98, 0.3),
-            0 1px 2px rgba(0, 0, 0, 0.8);
+            0 2px 14px rgba(247, 231, 206, 0.6),
+            0 0 35px rgba(235, 200, 98, 0.4),
+            0 1px 3px rgba(0, 0, 0, 0.9);
           transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -296,13 +296,13 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
         }
 
         .ritual-input:focus {
-          background: rgba(0, 0, 0, 0.3);
-          border-bottom-color: rgba(247, 231, 206, 0.7);
-          box-shadow: 0 4px 20px rgba(247, 231, 206, 0.2);
+          background: rgba(255, 255, 255, 0.06);
+          border-bottom-color: rgba(247, 231, 206, 0.75);
+          box-shadow: 0 4px 24px rgba(247, 231, 206, 0.25);
           text-shadow:
-            0 2px 16px rgba(247, 231, 206, 0.6),
-            0 0 40px rgba(235, 200, 98, 0.4),
-            0 1px 3px rgba(0, 0, 0, 0.9);
+            0 2px 18px rgba(247, 231, 206, 0.7),
+            0 0 45px rgba(235, 200, 98, 0.5),
+            0 1px 4px rgba(0, 0, 0, 0.95);
         }
 
         @media (max-width: 640px) {
