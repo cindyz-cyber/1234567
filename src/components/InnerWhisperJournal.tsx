@@ -137,7 +137,6 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
           playsInline
           preload="auto"
           crossOrigin="anonymous"
-          poster="/assets/videos/golden-flow-poster.jpg"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
@@ -147,7 +146,7 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
             backgroundColor: 'rgba(2, 13, 10, 0.5)'
           }}
         >
-          <source src="/assets/videos/golden-flow.mp4" type="video/mp4" />
+          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/fe2rqfs27y-1772615676760.mp4" type="video/mp4" />
         </video>
         <div
           className="absolute inset-0 w-full h-full"
