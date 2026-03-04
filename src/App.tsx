@@ -288,6 +288,8 @@ function App() {
     return null;
   }
 
+  console.log('🏠 Rendering home tabs. currentStep:', currentStep, 'currentTab:', currentTab);
+
   return (
     <>
       {currentTab !== 'person' && <VideoBackground />}

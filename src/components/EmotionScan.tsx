@@ -65,6 +65,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [backgroundDarkness, setBackgroundDarkness] = useState(0.25);
 
+  useEffect(() => {
+    console.log('🎭 EmotionScan mounted');
+    return () => console.log('🎭 EmotionScan unmounted');
+  }, []);
+
   const emotionPositions = useMemo(() =>
     EMOTIONS.map((emotion, index) => ({
       ...emotion,

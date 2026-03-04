@@ -13,6 +13,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
 
   const handleCircleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    console.log('🟡 Yellow ball clicked!');
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -24,6 +25,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
     }, 1000);
 
     setTimeout(() => {
+      console.log('🟡 Calling onStartJourney after delay');
       onStartJourney();
     }, 400);
   };
