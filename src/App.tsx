@@ -131,7 +131,9 @@ function App() {
 
   function handleStartJourney() {
     console.log('🚀 Starting journey, setting step to: emotion');
+    alert('🚀 handleStartJourney 被调用了！将设置 currentStep 为 emotion');
     setCurrentStep('emotion');
+    console.log('✅ setCurrentStep("emotion") 已执行');
   }
 
   function handleEmotionComplete(emotions: string[], bodyStates: string[]) {
@@ -233,11 +235,15 @@ function App() {
   }
 
   // 旅程步骤优先于标签页渲染
+  console.log('🔍 App render, currentStep:', currentStep, 'currentTab:', currentTab);
+
   if (currentStep !== 'home') {
     console.log('📍 Current step in journey:', currentStep);
+    alert(`📍 currentStep !== 'home', currentStep = ${currentStep}`);
 
     if (currentStep === 'emotion') {
       console.log('✅ Rendering EmotionScan');
+      alert('✅ 即将渲染 EmotionScan');
       return <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />;
     }
 
