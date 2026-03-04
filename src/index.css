@@ -487,3 +487,140 @@ body,
 body {
   touch-action: manipulation;
 }
+
+/**
+ * ========================================
+ * 终极封杀：所有视频原生控件（iOS Safari WebKit）
+ * ========================================
+ */
+
+/* 移除所有 WebKit 视频控件 */
+video::-webkit-media-controls {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* 移除播放按钮 */
+video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* 移除播放/暂停按钮 */
+video::-webkit-media-controls-play-button {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* 移除控制面板 */
+video::-webkit-media-controls-panel {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 移除覆盖层播放按钮（iOS 最顽固的白色三角形） */
+video::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+}
+
+/* 移除控件容器 */
+video::-webkit-media-controls-enclosure {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 移除时间轴 */
+video::-webkit-media-controls-timeline {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 移除当前时间显示 */
+video::-webkit-media-controls-current-time-display {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 移除剩余时间显示 */
+video::-webkit-media-controls-time-remaining-display {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 移除音量控制 */
+video::-webkit-media-controls-volume-slider {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 移除静音按钮 */
+video::-webkit-media-controls-mute-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 移除全屏按钮 */
+video::-webkit-media-controls-fullscreen-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 移除画中画按钮 */
+video::-webkit-media-controls-picture-in-picture-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 移除加载指示器 */
+video::-webkit-media-controls-loading-panel {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 移除下载按钮 */
+video::-webkit-media-controls-download-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 强制所有视频元素禁用控件 */
+video {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* 防止长按弹出上下文菜单 */
+video {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}

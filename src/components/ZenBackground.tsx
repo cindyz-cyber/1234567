@@ -151,12 +151,15 @@ export default function ZenBackground({
       {shouldUseVideo && (
         <video
           ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata" // 移动端改为 metadata，不预加载完整视频
+          autoPlay={true}
+          loop={true}
+          muted={true}
+          playsInline={true}
+          controls={false}
+          preload="metadata"
           crossOrigin="anonymous"
+          disablePictureInPicture={true}
+          disableRemotePlayback={true}
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
@@ -164,7 +167,6 @@ export default function ZenBackground({
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
-            // 视频淡入效果（不遮挡 Poster）
             opacity: videoLoaded ? 1 : 0,
             transition: 'opacity 0.8s ease-in-out',
             pointerEvents: 'none'

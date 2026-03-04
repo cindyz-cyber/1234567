@@ -34,12 +34,15 @@ export default function VideoBackground() {
     <>
       <video
         ref={videoRef}
-        autoPlay
-        loop
-        muted
-        playsInline
+        autoPlay={true}
+        loop={true}
+        muted={true}
+        playsInline={true}
+        controls={false}
         preload="auto"
         poster={asset.posterUrl}
+        disablePictureInPicture={true}
+        disableRemotePlayback={true}
         className="fixed w-full object-cover"
         style={{
           top: '66vh',

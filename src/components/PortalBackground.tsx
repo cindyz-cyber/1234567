@@ -21,16 +21,28 @@ export default function PortalBackground({
 
     video.defaultMuted = true;
     video.muted = true;
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
 
     const playVideo = async () => {
       try {
         await video.play();
       } catch (error) {
-        console.log('Autoplay initiated, poster fallback active');
+        console.log('Autoplay restricted, static poster remains visible');
       }
     };
 
     playVideo();
+
+    const handleCanPlay = () => {
+      video.play().catch(() => {});
+    };
+
+    video.addEventListener('canplay', handleCanPlay);
+
+    return () => {
+      video.removeEventListener('canplay', handleCanPlay);
+    };
   }, []);
 
   return (
@@ -48,10 +60,13 @@ export default function PortalBackground({
         loop={true}
         muted={true}
         playsInline={true}
+        controls={false}
         crossOrigin="anonymous"
         preload="auto"
         poster={posterImg}
-        className="absolute inset-0 w-full h-full object-cover"
+        disablePictureInPicture={true}
+        disableRemotePlayback={true}
+        className="absolute inset-0 w-full h-full object-cover portal-background-video"
         style={{
           WebkitTransform: 'translateZ(0)',
           transform: 'translateZ(0)',
@@ -67,6 +82,10 @@ export default function PortalBackground({
           videoEl.muted = true;
           videoEl.play().catch(() => {});
         }}
+        onCanPlay={(e) => {
+          const videoEl = e.target as HTMLVideoElement;
+          videoEl.play().catch(() => {});
+        }}
       >
         <source src={videoSrc} type="video/mp4" />
       </video>
@@ -77,6 +96,30 @@ export default function PortalBackground({
           background: overlayGradient,
         }}
       />
+
+      <style>{`
+        .portal-background-video::-webkit-media-controls {
+          display: none !important;
+        }
+        .portal-background-video::-webkit-media-controls-start-playback-button {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+        .portal-background-video::-webkit-media-controls-play-button {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+        .portal-background-video::-webkit-media-controls-panel {
+          display: none !important;
+        }
+        .portal-background-video::-webkit-media-controls-overlay-play-button {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      `}</style>
     </div>
   );
 }
