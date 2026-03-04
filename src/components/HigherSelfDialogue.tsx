@@ -80,7 +80,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
             transform: 'translate3d(0,0,0)'
           }}
         >
-          <source src="https://cdn.midjourney.com/video/7e901a1c-929f-466d-8def-ac47f9d0c15b/3.mp4" type="video/mp4" />
+          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/tq3r5bzzfbj-1772600548434.mp4" type="video/mp4" />
         </video>
 
         <div className="portal-glow-effect" />
