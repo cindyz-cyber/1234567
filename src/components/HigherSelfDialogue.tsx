@@ -62,7 +62,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       <PortalBackground
         videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/fe2rqfs27y-1772615676760.mp4"
-        posterImg="/assets/2727456938fb748cde8acee3844831d1.jpg"
+        posterImg="/assets/ecb075f8800e9ca0b7ffce2ee54c75ac.jpg"
       />
 
       <div className="portal-video-container">
