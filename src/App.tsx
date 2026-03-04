@@ -280,6 +280,48 @@ function App() {
       {currentTab !== 'person' && <VideoBackground />}
       <GoldenDust />
 
+      {userNames && (
+        <button
+          onClick={async () => {
+            if (confirm('设置当前用户为管理员？')) {
+              try {
+                const { data: existing } = await supabase
+                  .from('user_profile')
+                  .select('id')
+                  .eq('user_name', userNames.userName)
+                  .eq('higher_self_name', userNames.higherSelfName)
+                  .maybeSingle();
+
+                if (existing) {
+                  await supabase
+                    .from('user_profile')
+                    .update({ is_admin: true })
+                    .eq('user_name', userNames.userName)
+                    .eq('higher_self_name', userNames.higherSelfName);
+                } else {
+                  await supabase
+                    .from('user_profile')
+                    .insert({
+                      user_name: userNames.userName,
+                      higher_self_name: userNames.higherSelfName,
+                      is_admin: true
+                    });
+                }
+                alert('✅ 已设置为管理员！页面将刷新...');
+                window.location.reload();
+              } catch (error) {
+                console.error(error);
+                alert('❌ 设置失败');
+              }
+            }
+          }}
+          className="fixed top-4 right-4 z-50 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 text-white rounded-lg text-sm backdrop-blur-lg transition-all"
+          style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' }}
+        >
+          ��️ 设为管理员
+        </button>
+      )}
+
       {currentTab === 'breath' && (
         <HomePage
           userName={userNames.userName}
