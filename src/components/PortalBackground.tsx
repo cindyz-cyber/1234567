@@ -56,7 +56,7 @@ export default function PortalBackground({
         poster={posterImg}
         disablePictureInPicture={true}
         disableRemotePlayback={true}
-        className="absolute inset-0 w-full h-full object-cover portal-background-video"
+        className="absolute inset-0 w-full h-full object-cover"
         style={{
           WebkitTransform: 'translateZ(0)',
           transform: 'translateZ(0)',
@@ -65,7 +65,6 @@ export default function PortalBackground({
           willChange: 'transform',
           filter: 'contrast(1.15) brightness(0.95) saturate(1.05)',
           opacity: 1,
-          pointerEvents: 'none',
         }}
         onLoadedData={(e) => {
           const videoEl = e.target as HTMLVideoElement;
@@ -91,29 +90,6 @@ export default function PortalBackground({
         }}
       />
 
-      <style>{`
-        .portal-background-video::-webkit-media-controls {
-          display: none !important;
-        }
-        .portal-background-video::-webkit-media-controls-start-playback-button {
-          display: none !important;
-          opacity: 0 !important;
-          pointer-events: none !important;
-        }
-        .portal-background-video::-webkit-media-controls-play-button {
-          display: none !important;
-          opacity: 0 !important;
-          pointer-events: none !important;
-        }
-        .portal-background-video::-webkit-media-controls-panel {
-          display: none !important;
-        }
-        .portal-background-video::-webkit-media-controls-overlay-play-button {
-          display: none !important;
-          opacity: 0 !important;
-          pointer-events: none !important;
-        }
-      `}</style>
     </div>
   );
 }

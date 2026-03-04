@@ -8,47 +8,10 @@ export function applyIOSVideoFix(videoElement: HTMLVideoElement) {
   videoElement.setAttribute('playsinline', 'true');
   videoElement.setAttribute('webkit-playsinline', 'true');
   videoElement.setAttribute('x-webkit-airplay', 'deny');
+  videoElement.setAttribute('x5-playsinline', 'true');
+  videoElement.setAttribute('x5-video-player-type', 'h5');
+  videoElement.setAttribute('x5-video-player-fullscreen', 'false');
   videoElement.removeAttribute('controls');
-
-  const style = document.createElement('style');
-  style.textContent = `
-    video::-webkit-media-controls { display: none !important; }
-    video::-webkit-media-controls-start-playback-button { display: none !important; }
-    video::-webkit-media-controls-overlay-play-button { display: none !important; }
-  `;
-
-  if (videoElement.parentElement) {
-    videoElement.parentElement.appendChild(style);
-  }
-
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: auto;
-    background: transparent;
-    -webkit-tap-highlight-color: transparent;
-  `;
-
-  overlay.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    videoElement.muted = true;
-    videoElement.play().catch(() => {});
-  }, { capture: true });
-
-  overlay.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    videoElement.muted = true;
-    videoElement.play().catch(() => {});
-  }, { capture: true, passive: false });
-
-  if (videoElement.parentElement) {
-    videoElement.parentElement.style.position = 'relative';
-    videoElement.parentElement.appendChild(overlay);
-  }
 
   const forcePlay = () => {
     videoElement.muted = true;
@@ -59,6 +22,21 @@ export function applyIOSVideoFix(videoElement: HTMLVideoElement) {
   videoElement.addEventListener('loadedmetadata', forcePlay);
   videoElement.addEventListener('canplay', forcePlay);
   videoElement.addEventListener('loadeddata', forcePlay);
+  videoElement.addEventListener('play', () => {
+    videoElement.muted = true;
+    videoElement.volume = 0;
+  });
+
+  const clickHandler = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    videoElement.muted = true;
+    videoElement.play().catch(() => {});
+  };
+
+  videoElement.addEventListener('click', clickHandler, { capture: true });
+  videoElement.addEventListener('touchstart', clickHandler, { capture: true, passive: false });
+  videoElement.addEventListener('touchend', clickHandler, { capture: true, passive: false });
 
   const intervalId = setInterval(() => {
     if (videoElement.paused) {
@@ -69,7 +47,11 @@ export function applyIOSVideoFix(videoElement: HTMLVideoElement) {
 
   return () => {
     clearInterval(intervalId);
-    overlay.remove();
-    style.remove();
+    videoElement.removeEventListener('loadedmetadata', forcePlay);
+    videoElement.removeEventListener('canplay', forcePlay);
+    videoElement.removeEventListener('loadeddata', forcePlay);
+    videoElement.removeEventListener('click', clickHandler, true);
+    videoElement.removeEventListener('touchstart', clickHandler, true);
+    videoElement.removeEventListener('touchend', clickHandler, true);
   };
 }

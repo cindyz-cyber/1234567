@@ -624,25 +624,3 @@ video {
   -webkit-user-select: none !important;
   user-select: none !important;
 }
-
-/* iOS Safari 终极方案：通过 z-index 和透明覆盖层屏蔽播放按钮 */
-.portal-background-video::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: auto;
-  background: transparent;
-  display: block;
-}
-
-/* 强制所有视频层级降到最低 */
-video.portal-background-video {
-  position: relative;
-  z-index: -10 !important;
-}
-
-/* 移除 iOS 视频元素的默认外观 */
-video {
-  -webkit-mask-image: -webkit-radial-gradient(white, black) !important;
-}
