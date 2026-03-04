@@ -244,13 +244,18 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const titleText = selectedBodyStates.length > 0 ? '身体的反馈是？' : '此刻，你的情绪是？';
 
   return (
-    <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative" style={{ position: 'relative', zIndex: 1 }}>
+    <>
+      {/* 紧急兜底背景 - 确保绝对不会白屏 */}
+      <div className="fixed inset-0 w-full h-full" style={{ zIndex: -10, backgroundColor: '#0A0A0F' }} />
+
       <VideoBackground />
       <PortalBackground
         videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
         posterImg={posterImage}
         overlayGradient={`rgba(0, 0, 0, ${backgroundDarkness})`}
       />
+
+      <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative" style={{ position: 'relative', zIndex: 1 }}>
 
       {particles.map(particle => (
         <div
@@ -1213,6 +1218,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             inset 0 0 25px rgba(255, 255, 255, 0.6) !important;
         }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 }
