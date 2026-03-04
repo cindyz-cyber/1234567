@@ -49,6 +49,7 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
           loop
           muted
           playsInline
+          preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             // 移动端硬件加速（强制 GPU 渲染）
@@ -57,21 +58,22 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
             willChange: 'transform',
-            // 提高亮度 30%：从 1.35 增加到 1.65
-            filter: 'contrast(1.25) brightness(1.65) saturate(1.3)',
+            // 降低亮度 10%：从 1.65 降低到 1.48（约 -10%）
+            filter: 'contrast(1.25) brightness(1.48) saturate(1.3)',
             // 淡入效果
             opacity: 1,
             animation: 'cosmicFadeIn 1.5s ease-out'
           }}
+          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%230a1e1a'/%3E%3Cstop offset='50%25' style='stop-color:%231a2f2a'/%3E%3Cstop offset='100%25' style='stop-color:%230f2520'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E"
         >
           <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/6kfzc4s01kk-1772592380079.mp4" type="video/mp4" />
         </video>
 
-        {/* 渐变覆盖层 - 保持文字可读性 */}
+        {/* 渐变覆盖层 - 增强文字可读性（更暗的遮罩） */}
         <div
           className="absolute inset-0 w-full h-full"
           style={{
-            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 0%, rgba(2, 13, 10, 0.08) 50%, rgba(0, 0, 0, 0.06) 100%)',
+            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(2, 13, 10, 0.25) 50%, rgba(0, 0, 0, 0.22) 100%)',
             pointerEvents: 'none'
           }}
         />
