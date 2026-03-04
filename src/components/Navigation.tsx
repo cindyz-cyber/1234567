@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Home, FileText, User, Settings, Upload, Sparkles } from 'lucide-react';
+import { Home, FileText, User, Settings, Upload, Sparkles, Video } from 'lucide-react';
 
 interface NavigationProps {
-  currentTab: 'breath' | 'person' | 'profile' | 'admin' | 'samples';
-  onTabChange: (tab: 'breath' | 'person' | 'profile' | 'admin' | 'samples') => void;
+  currentTab: 'breath' | 'person' | 'profile' | 'admin' | 'samples' | 'uploader';
+  onTabChange: (tab: 'breath' | 'person' | 'profile' | 'admin' | 'samples' | 'uploader') => void;
   isAdmin?: boolean;
 }
 
@@ -16,7 +16,7 @@ export default function Navigation({ currentTab, onTabChange, isAdmin = false }:
   ];
 
   const tabs = isAdmin
-    ? [...baseTabs, { id: 'admin' as const, label: '后台', icon: Settings }, { id: 'samples' as const, label: '样本', icon: Upload }]
+    ? [...baseTabs, { id: 'admin' as const, label: '后台', icon: Settings }, { id: 'samples' as const, label: '样本', icon: Upload }, { id: 'uploader' as const, label: '视频上传', icon: Video }]
     : baseTabs;
 
   return (

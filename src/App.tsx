@@ -13,6 +13,7 @@ import BookOfAnswers from './components/BookOfAnswers';
 import PremiumModal from './components/PremiumModal';
 import AdminPanel from './components/AdminPanel';
 import SampleUploadPanel from './components/SampleUploadPanel';
+import VideoUploader from './components/VideoUploader';
 import GoldenDust from './components/GoldenDust';
 import VideoBackground from './components/VideoBackground';
 import { supabase } from './lib/supabase';
@@ -20,7 +21,7 @@ import { stopAllAudio } from './utils/audioManager';
 import { preloadCoreBackgrounds } from './utils/backgroundAssets';
 
 type FlowStep = 'home' | 'emotion' | 'energy' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
-type TabType = 'breath' | 'person' | 'profile' | 'admin' | 'samples';
+type TabType = 'breath' | 'person' | 'profile' | 'admin' | 'samples' | 'uploader';
 
 interface JourneyData {
   emotions: string[];
@@ -303,6 +304,8 @@ function App() {
       {currentTab === 'admin' && isAdmin && <AdminPanel />}
 
       {currentTab === 'samples' && isAdmin && <SampleUploadPanel />}
+
+      {currentTab === 'uploader' && isAdmin && <VideoUploader />}
 
       <Navigation currentTab={currentTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
 
