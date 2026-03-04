@@ -130,19 +130,8 @@ function App() {
   }
 
   function handleStartJourney() {
-    console.log('🚀 Starting journey, setting step to: emotion');
-    alert('🚀 handleStartJourney 被调用了！将设置 currentStep 为 emotion');
-
-    // 强制在下一个事件循环中更新状态
-    setTimeout(() => {
-      setCurrentStep('emotion');
-      console.log('✅ setCurrentStep("emotion") 已执行');
-
-      // 检查状态是否真的更新了
-      setTimeout(() => {
-        console.log('🔍 检查状态更新结果...');
-      }, 100);
-    }, 0);
+    console.log('🚀 handleStartJourney called');
+    setCurrentStep('emotion');
   }
 
   function handleEmotionComplete(emotions: string[], bodyStates: string[]) {
@@ -247,12 +236,10 @@ function App() {
   console.log('🔍 App render, currentStep:', currentStep, 'currentTab:', currentTab);
 
   if (currentStep !== 'home') {
-    console.log('📍 Current step in journey:', currentStep);
-    alert(`📍 currentStep !== 'home', currentStep = ${currentStep}`);
+    console.log('📍 Current step:', currentStep);
 
     if (currentStep === 'emotion') {
       console.log('✅ Rendering EmotionScan');
-      alert('✅ 即将渲染 EmotionScan');
       return <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />;
     }
 
