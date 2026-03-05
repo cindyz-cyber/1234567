@@ -98,21 +98,6 @@ export default function ShareJournal() {
         <h1 className="share-title">觉察日记</h1>
         <p className="share-subtitle">记录你内心深处的声音</p>
 
-        {error && (
-          <div style={{
-            padding: '12px 16px',
-            background: 'rgba(255, 100, 100, 0.1)',
-            border: '1px solid rgba(255, 100, 100, 0.3)',
-            borderRadius: '8px',
-            color: 'rgba(255, 150, 150, 0.9)',
-            fontSize: '14px',
-            marginBottom: '20px',
-            textAlign: 'center'
-          }}>
-            {error}
-          </div>
-        )}
-
         <div className="journal-input-wrapper">
           <textarea
             value={journalText}

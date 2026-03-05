@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import ErrorBoundary from './components/ErrorBoundary';
 import NamingRitual from './components/NamingRitual';
 import HomePage from './components/HomePage';
 import EmotionScan from './components/EmotionScan';
@@ -18,7 +16,6 @@ import SampleUploadPanel from './components/SampleUploadPanel';
 import VideoUploader from './components/VideoUploader';
 import GoldenDust from './components/GoldenDust';
 import VideoBackground from './components/VideoBackground';
-import ShareJournal from './components/ShareJournal';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 import { preloadCoreBackgrounds } from './utils/backgroundAssets';
@@ -37,7 +34,7 @@ interface UserNames {
   higherSelfName: string;
 }
 
-function MainApp() {
+function App() {
   const [loading, setLoading] = useState(true);
   const [userNames, setUserNames] = useState<UserNames | null>(null);
   const [currentStep, setCurrentStep] = useState<FlowStep>('home');
@@ -378,19 +375,6 @@ function MainApp() {
         />
       )}
     </>
-  );
-}
-
-function App() {
-  return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/share/journal" element={<ShareJournal />} />
-          <Route path="/*" element={<MainApp />} />
-        </Routes>
-      </BrowserRouter>
-    </ErrorBoundary>
   );
 }
 
