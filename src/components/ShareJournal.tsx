@@ -8,6 +8,7 @@ export default function ShareJournal() {
   const [energyFeedback, setEnergyFeedback] = useState('');
   const [showPoster, setShowPoster] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const posterRef = useRef<HTMLDivElement>(null);
 
   const generateEnergyFeedback = (text: string): string => {
@@ -30,28 +31,35 @@ export default function ShareJournal() {
   };
 
   const handleSubmit = async () => {
-    if (!journalText.trim()) return;
-
-    const feedback = generateEnergyFeedback(journalText);
-    setEnergyFeedback(feedback);
+    if (!journalText?.trim()) return;
 
     try {
-      await supabase.from('journal_entries').insert({
-        journal_content: journalText,
-        source: 'web_share',
-        emotions: [],
-        body_states: []
-      });
-    } catch (error) {
-      console.warn('Database insert failed (non-critical):', error);
+      const feedback = generateEnergyFeedback(journalText);
+      setEnergyFeedback(feedback);
+      setError(null);
+
+      try {
+        await supabase?.from('journal_entries')?.insert({
+          journal_content: journalText,
+          source: 'web_share',
+          emotions: [],
+          body_states: []
+        });
+      } catch (dbError) {
+        console.warn('Database insert failed (non-critical):', dbError);
+      }
+    } catch (err) {
+      console.error('Submit error:', err);
+      setError('提交失败，请重试');
     }
   };
 
   const generatePoster = async () => {
-    if (!posterRef.current) return;
+    if (!posterRef?.current) return;
 
     setIsGenerating(true);
     setShowPoster(true);
+    setError(null);
 
     await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -75,10 +83,10 @@ export default function ShareJournal() {
         }
         setIsGenerating(false);
       }, 'image/png', 1.0);
-    } catch (error) {
-      console.error('Poster generation failed:', error);
+    } catch (err) {
+      console.error('Poster generation failed:', err);
       setIsGenerating(false);
-      alert('生成失败，请重试');
+      setError('生成失败，请重试');
     }
   };
 
@@ -89,6 +97,21 @@ export default function ShareJournal() {
       <div className="share-container">
         <h1 className="share-title">觉察日记</h1>
         <p className="share-subtitle">记录你内心深处的声音</p>
+
+        {error && (
+          <div style={{
+            padding: '12px 16px',
+            background: 'rgba(255, 100, 100, 0.1)',
+            border: '1px solid rgba(255, 100, 100, 0.3)',
+            borderRadius: '8px',
+            color: 'rgba(255, 150, 150, 0.9)',
+            fontSize: '14px',
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
 
         <div className="journal-input-wrapper">
           <textarea
