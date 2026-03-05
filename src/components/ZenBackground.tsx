@@ -52,10 +52,21 @@ export default function ZenBackground({
   const [videoLoaded, setVideoLoaded] = useState(false);
   const asset: BackgroundAsset = BACKGROUND_ASSETS[assetId];
 
+  if (!asset) {
+    console.error(`❌ 背景资源 ${assetId} 未定义`);
+    return null;
+  }
+
   // 决定是否使用视频（移动端 + 慢速网络 = 纯静态）
   const shouldUseVideo = !isMobile && !isSlowConnection && !forceStatic;
 
   useEffect(() => {
+    if (!asset?.posterUrl) {
+      console.warn(`⚠️  背景资源 ${assetId} 缺少 posterUrl`);
+      if (onReady) onReady();
+      return;
+    }
+
     // 立即预加载 Poster 图片
     const img = new Image();
     img.onload = () => {
@@ -108,7 +119,7 @@ export default function ZenBackground({
       clearTimeout(abandonTimeout);
       videoElement.removeEventListener('canplay', handleCanPlay);
     };
-  }, [assetId, shouldUseVideo, onReady, asset.posterUrl]);
+  }, [assetId, shouldUseVideo, onReady, asset?.posterUrl]);
 
   return (
     <div
@@ -135,14 +146,13 @@ export default function ZenBackground({
         ref={posterRef}
         className="absolute inset-0 w-full h-full"
         style={{
-          backgroundImage: `url(${asset.posterUrl})`,
+          backgroundImage: asset?.posterUrl ? `url(${asset.posterUrl})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          opacity: 1, // 始终显示
+          opacity: 1,
           WebkitTransform: 'translateZ(0)',
           transform: 'translateZ(0)',
-          // Poster 加载后微调透明度
           transition: posterLoaded ? 'none' : 'opacity 0.2s ease-in'
         }}
       />

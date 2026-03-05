@@ -43,15 +43,22 @@ class GlobalBackgroundPreloader {
 
     // 遍历所有背景资源
     Object.entries(BACKGROUND_ASSETS).forEach(([key, asset]) => {
+      if (!asset) {
+        console.warn(`⚠️  背景资源 ${key} 未定义，跳过预加载`);
+        return;
+      }
+
       // Poster 图片 - 所有设备都需要（最高优先级）
-      links.push({
-        href: asset.posterUrl,
-        as: 'image',
-        priority: 'high'
-      });
+      if (asset.posterUrl) {
+        links.push({
+          href: asset.posterUrl,
+          as: 'image',
+          priority: 'high'
+        });
+      }
 
       // 视频资源 - 仅桌面端 + 快速网络
-      if (!isMobileDevice && !isSlowConnection) {
+      if (!isMobileDevice && !isSlowConnection && asset.videoUrl) {
         links.push({
           href: asset.videoUrl,
           as: 'video',

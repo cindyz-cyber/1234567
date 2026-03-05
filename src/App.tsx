@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ErrorBoundary from './components/ErrorBoundary';
 import NamingRitual from './components/NamingRitual';
 import HomePage from './components/HomePage';
 import EmotionScan from './components/EmotionScan';
@@ -378,4 +379,12 @@ function App() {
   );
 }
 
-export default App;
+function AppWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+}
+
+export default AppWithErrorBoundary;

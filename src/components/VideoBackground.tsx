@@ -10,6 +10,11 @@ export default function VideoBackground() {
   const [isVideoReady, setIsVideoReady] = useState(false);
   const asset = BACKGROUND_ASSETS.golden_flow;
 
+  if (!asset) {
+    console.error('❌ golden_flow 背景资源未定义');
+    return <div className="fixed inset-0" style={{ backgroundColor: BRAND_COLORS.primary, zIndex: -3 }} />;
+  }
+
   useEffect(() => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
@@ -49,7 +54,7 @@ export default function VideoBackground() {
         playsInline={true}
         controls={false}
         preload="auto"
-        poster={asset.posterUrl}
+        poster={asset?.posterUrl || ''}
         disablePictureInPicture={true}
         disableRemotePlayback={true}
         className="fixed w-full object-cover"
@@ -67,7 +72,7 @@ export default function VideoBackground() {
           visibility: 'visible'
         }}
       >
-        <source src={asset.videoUrl} type="video/mp4" />
+          {asset?.videoUrl && <source src={asset.videoUrl} type="video/mp4" />}
       </video>
 
       <div

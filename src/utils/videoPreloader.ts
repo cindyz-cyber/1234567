@@ -33,6 +33,11 @@ class VideoPreloadService {
 
     const asset = BACKGROUND_ASSETS[assetId];
 
+    if (!asset) {
+      console.warn(`⚠️  背景资源 ${assetId} 未定义，跳过预加载`);
+      return Promise.resolve();
+    }
+
     const loadPromise = new Promise<void>((resolve, reject) => {
       const video = document.createElement('video');
       video.muted = true;
@@ -40,7 +45,7 @@ class VideoPreloadService {
       video.loop = true;
       video.preload = 'auto';
       video.crossOrigin = 'anonymous';
-      video.poster = asset.posterUrl;
+      video.poster = asset?.posterUrl || '';
 
       // 添加 GPU 优化
       video.style.transform = 'translateZ(0)';
@@ -94,12 +99,16 @@ class VideoPreloadService {
         resolve(); // 不 reject，让应用继续运行
       }, { once: true });
 
-      const source = document.createElement('source');
-      source.src = asset.videoUrl;
-      source.type = 'video/mp4';
-      video.appendChild(source);
-
-      video.load();
+      if (asset?.videoUrl) {
+        const source = document.createElement('source');
+        source.src = asset.videoUrl;
+        source.type = 'video/mp4';
+        video.appendChild(source);
+        video.load();
+      } else {
+        console.warn(`⚠️  背景资源 ${assetId} 缺少 videoUrl`);
+        resolve();
+      }
     });
 
     this.loadingPromises.set(assetId, loadPromise);

@@ -38,7 +38,17 @@ export default function OptimizedVideoBackground({
   const [videoPlaying, setVideoPlaying] = useState(false);
   const asset: BackgroundAsset = BACKGROUND_ASSETS[assetId];
 
+  if (!asset) {
+    console.error(`❌ 背景资源 ${assetId} 未定义`);
+    return null;
+  }
+
   useEffect(() => {
+    if (!asset?.posterUrl) {
+      console.warn(`⚠️  背景资源 ${assetId} 缺少 posterUrl`);
+      return;
+    }
+
     // 预加载 Poster（优先级最高）
     const img = new Image();
     img.onload = () => setPosterLoaded(true);
@@ -72,7 +82,7 @@ export default function OptimizedVideoBackground({
       clearTimeout(timeout);
       videoElement.removeEventListener('canplay', handleCanPlay);
     };
-  }, [assetId, asset.posterUrl]);
+  }, [assetId, asset?.posterUrl]);
 
   return (
     <div
@@ -92,7 +102,7 @@ export default function OptimizedVideoBackground({
       <div
         className="absolute inset-0 w-full h-full"
         style={{
-          backgroundImage: `url(${asset.posterUrl})`,
+          backgroundImage: asset?.posterUrl ? `url(${asset.posterUrl})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

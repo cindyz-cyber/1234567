@@ -56,6 +56,15 @@ export const BACKGROUND_ASSETS: Record<string, BackgroundAsset> = {
     posterUrl: new URL('../assets/0_1_640_N.webp', import.meta.url).href,
     fallbackColor: BRAND_COLORS.golden,
     description: '金色禅意漩涡'
+  },
+
+  // 分享日记背景
+  journal: {
+    id: 'journal',
+    videoUrl: '/assets/videos/zen-vortex.mp4',
+    posterUrl: new URL('../assets/0_1_640_N.webp', import.meta.url).href,
+    fallbackColor: BRAND_COLORS.primary,
+    description: '觉察日记背景'
   }
 } as const;
 
