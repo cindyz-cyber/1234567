@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Home, FileText, User, Settings, Upload, Sparkles, Video } from 'lucide-react';
 
 interface NavigationProps {
@@ -8,7 +9,12 @@ interface NavigationProps {
 }
 
 export default function Navigation({ currentTab, onTabChange, isAdmin = false }: NavigationProps) {
+  const location = useLocation();
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+
+  if (location.pathname.includes('/share')) {
+    return null;
+  }
   const baseTabs = [
     { id: 'breath' as const, label: '觉察日记', icon: Home },
     { id: 'person' as const, label: '能量自测', icon: Sparkles },

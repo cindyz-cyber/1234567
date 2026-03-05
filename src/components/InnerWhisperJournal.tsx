@@ -7,7 +7,7 @@ interface InnerWhisperJournalProps {
   emotions?: string[];
   bodyStates?: string[];
   onBack?: () => void;
-  onNext?: () => void;
+  onNext?: (journalContent?: string) => void;
 }
 
 export default function InnerWhisperJournal({ emotions = [], bodyStates = [], onBack, onNext }: InnerWhisperJournalProps) {
@@ -137,12 +137,12 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
       }
 
       if (onNext) {
-        onNext();
+        onNext(journalText);
       }
     } catch (error) {
       console.error('Error saving journal:', error);
       if (onNext) {
-        onNext();
+        onNext(journalText);
       }
     } finally {
       setIsSaving(false);
