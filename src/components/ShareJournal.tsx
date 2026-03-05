@@ -37,27 +37,13 @@ export default function ShareJournal() {
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const startBackgroundMusic = async () => {
-      if ((currentStep === 'home' || currentStep === 'emotion') && !backgroundMusic) {
-        const bgMusic = await playBackgroundMusicLoop();
-        if (bgMusic) {
-          setBackgroundMusic(bgMusic);
-          console.log('Background music started for share flow');
-        }
-      }
-    };
-
-    startBackgroundMusic();
-  }, [currentStep, backgroundMusic]);
-
-  useEffect(() => {
     return () => {
       if (backgroundMusic) {
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0;
       }
     };
-  }, []);
+  }, [backgroundMusic]);
 
   const updateState = (updates: Partial<JournalState>) => {
     setState(prev => ({ ...prev, ...updates }));
@@ -91,15 +77,18 @@ export default function ShareJournal() {
       console.warn('Database save failed (non-critical):', err);
     }
 
+    setCurrentStep('transition');
+  };
+
+  const handleTransitionComplete = (transitionMusic: HTMLAudioElement | null) => {
+    if (transitionMusic) {
+      setBackgroundMusic(transitionMusic);
+    }
     setCurrentStep('dialogue');
   };
 
   const handleDialogueComplete = (message: string, audio: HTMLAudioElement | null) => {
     updateState({ higherSelfMessage: message });
-    setCurrentStep('transition');
-  };
-
-  const handleTransitionComplete = (transitionMusic: HTMLAudioElement | null) => {
     setCurrentStep('answer');
   };
 

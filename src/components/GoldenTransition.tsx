@@ -25,7 +25,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
 
       fadeOutTimer = window.setTimeout(() => {
         setFadeOut(true);
-      }, transitionDuration - 2000);
+      }, transitionDuration - 1000);
 
       completeTimer = window.setTimeout(() => {
         onComplete(backgroundMusic);
