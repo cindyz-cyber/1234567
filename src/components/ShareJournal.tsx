@@ -170,12 +170,7 @@ export default function ShareJournal() {
         return (
           <InnerWhisperJournal
             emotions={state.selectedEmotions}
-            onNext={(content) => {
-              if (content) {
-                updateState({ journalContent: content });
-              }
-              setCurrentStep('dialogue');
-            }}
+            onNext={handleJournalComplete}
           />
         );
 
