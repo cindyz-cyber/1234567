@@ -297,7 +297,7 @@ function App() {
       {currentTab !== 'person' && <VideoBackground />}
       <GoldenDust />
 
-      {userNames && (
+      {false && userNames && (
         <button
           onClick={async () => {
             if (confirm('设置当前用户为管理员？')) {
