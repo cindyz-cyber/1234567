@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { stopAllAudio } from '../utils/audioManager';
-import PortalBackground from './PortalBackground';
-import posterImage from '../assets/0_1_640_N.webp';
 
 interface BookOfAnswersProps {
   onComplete: () => void;
@@ -44,12 +42,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6 book-of-answers-container">
-      <PortalBackground
-        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
-        posterImg={posterImage}
-      />
-
-      <div className="portal-video-container">
+      <div className="book-background-layer">
         <video
           autoPlay={true}
           loop={true}
@@ -57,16 +50,15 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           playsInline={true}
           preload="auto"
           crossOrigin="anonymous"
-          className="portal-video"
+          className="book-background-video"
           style={{
             WebkitTransform: 'translate3d(0,0,0)',
             transform: 'translate3d(0,0,0)'
           }}
         >
-          <source src="https://cdn.midjourney.com/video/7e901a1c-929f-466d-8def-ac47f9d0c15b/3.mp4" type="video/mp4" />
+          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/0e1txddh4g17-1772692096278.mp4" type="video/mp4" />
         </video>
-        <div className="portal-glow-effect" />
-        <div className="mesh-gradient-transition" />
+        <div className="book-background-overlay" />
       </div>
 
       {onBack && (
@@ -250,32 +242,33 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
             0 0 40px rgba(200, 220, 255, 0.15);
         }
 
-        .home-background-layer {
+        .book-background-layer {
           position: fixed;
           top: 0;
           left: 0;
           width: 100%;
           height: 100%;
-          z-index: -1;
+          z-index: 0;
           overflow: hidden;
-          background-color: rgba(2, 13, 10, 0.8);
+          background-color: #000;
           -webkit-transform: translate3d(0,0,0);
           transform: translate3d(0,0,0);
+          -webkit-overflow-scrolling: touch;
         }
 
-        .home-background-video {
+        .book-background-video {
           position: absolute;
           top: 0;
           left: 0;
           width: 100%;
           height: 100%;
           object-fit: cover;
-          filter: brightness(0.7) contrast(1.15) saturate(0.9);
+          filter: brightness(0.8) contrast(1.1);
           -webkit-transform: translate3d(0,0,0);
           transform: translate3d(0,0,0);
         }
 
-        .home-background-overlay {
+        .book-background-overlay {
           position: absolute;
           top: 0;
           left: 0;
@@ -283,78 +276,8 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           height: 100%;
           background: linear-gradient(
             to bottom,
-            transparent 0%,
-            rgba(5, 10, 20, 0.4) 66.666vh,
-            rgba(2, 5, 12, 0.7) 100%
-          );
-        }
-
-        .portal-video-container {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 33.333vh;
-          overflow: hidden;
-          z-index: 1;
-          background-color: rgba(5, 10, 20, 0.5);
-          -webkit-transform: translate3d(0,0,0);
-          transform: translate3d(0,0,0);
-        }
-
-        .portal-video {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          filter: brightness(0.95) contrast(1.05) saturate(1.15);
-          -webkit-transform: translate3d(0,0,0);
-          transform: translate3d(0,0,0);
-        }
-
-        .portal-glow-effect {
-          position: absolute;
-          bottom: -80px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 140%;
-          height: 160px;
-          background: radial-gradient(
-            ellipse at center,
-            rgba(180, 200, 255, 0.18) 0%,
-            rgba(150, 170, 220, 0.12) 30%,
-            rgba(120, 140, 180, 0.06) 50%,
-            transparent 70%
-          );
-          filter: blur(60px);
-          pointer-events: none;
-          animation: portalGlowPulse 5s ease-in-out infinite;
-        }
-
-        @keyframes portalGlowPulse {
-          0%, 100% {
-            opacity: 0.5;
-            transform: translateX(-50%) scale(1);
-          }
-          50% {
-            opacity: 0.8;
-            transform: translateX(-50%) scale(1.15);
-          }
-        }
-
-        .mesh-gradient-transition {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 50%;
-          background: linear-gradient(
-            180deg,
-            transparent 0%,
-            rgba(180, 200, 255, 0.02) 15%,
-            rgba(150, 170, 220, 0.03) 30%,
-            rgba(120, 140, 180, 0.04) 50%,
-            rgba(90, 110, 140, 0.06) 70%,
-            rgba(5, 10, 20, 0.4) 100%
+            rgba(0, 0, 0, 0.2) 0%,
+            rgba(0, 0, 0, 0.3) 100%
           );
           pointer-events: none;
         }
