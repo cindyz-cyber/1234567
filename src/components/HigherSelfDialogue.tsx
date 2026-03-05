@@ -65,14 +65,14 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
         posterImg="/assets/ecb075f8800e9ca0b7ffce2ee54c75ac.jpg"
       />
 
-      <div className="portal-video-container">
+      <div className="portal-video-container" style={{ display: 'none' }}>
         <video
           ref={videoRef}
-          autoPlay={true}
-          loop={true}
+          autoPlay={false}
+          loop={false}
           muted={true}
           playsInline={true}
-          preload="auto"
+          preload="none"
           crossOrigin="anonymous"
           className="portal-video"
           style={{
