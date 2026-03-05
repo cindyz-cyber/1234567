@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import { supabase } from '../lib/supabase';
 import NamingRitual from './NamingRitual';
@@ -6,9 +6,11 @@ import HomePage from './HomePage';
 import EmotionScan from './EmotionScan';
 import InnerWhisperJournal from './InnerWhisperJournal';
 import HigherSelfDialogue from './HigherSelfDialogue';
+import GoldenTransition from './GoldenTransition';
 import BookOfAnswers from './BookOfAnswers';
+import { playBackgroundMusicLoop } from '../utils/audioManager';
 
-type JournalStep = 'naming' | 'home' | 'emotion' | 'journal' | 'dialogue' | 'answer' | 'card';
+type JournalStep = 'naming' | 'home' | 'emotion' | 'journal' | 'dialogue' | 'transition' | 'answer' | 'card';
 
 interface JournalState {
   userName: string;
@@ -31,7 +33,31 @@ export default function ShareJournal() {
   });
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const startBackgroundMusic = async () => {
+      if ((currentStep === 'home' || currentStep === 'emotion') && !backgroundMusic) {
+        const bgMusic = await playBackgroundMusicLoop();
+        if (bgMusic) {
+          setBackgroundMusic(bgMusic);
+          console.log('Background music started for share flow');
+        }
+      }
+    };
+
+    startBackgroundMusic();
+  }, [currentStep, backgroundMusic]);
+
+  useEffect(() => {
+    return () => {
+      if (backgroundMusic) {
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+      }
+    };
+  }, []);
 
   const updateState = (updates: Partial<JournalState>) => {
     setState(prev => ({ ...prev, ...updates }));
@@ -70,12 +96,34 @@ export default function ShareJournal() {
 
   const handleDialogueComplete = (message: string, audio: HTMLAudioElement | null) => {
     updateState({ higherSelfMessage: message });
+    setCurrentStep('transition');
+  };
+
+  const handleTransitionComplete = (transitionMusic: HTMLAudioElement | null) => {
     setCurrentStep('answer');
   };
 
   const handleAnswerComplete = () => {
     setCurrentStep('card');
     generateEnergyCard();
+
+    if (backgroundMusic) {
+      setTimeout(() => {
+        if (backgroundMusic) {
+          backgroundMusic.volume = 0.5;
+          const fadeOut = setInterval(() => {
+            if (backgroundMusic && backgroundMusic.volume > 0.05) {
+              backgroundMusic.volume = Math.max(0, backgroundMusic.volume - 0.05);
+            } else {
+              clearInterval(fadeOut);
+              if (backgroundMusic) {
+                backgroundMusic.pause();
+              }
+            }
+          }, 200);
+        }
+      }, 2000);
+    }
   };
 
   const generateEnergyCard = async () => {
@@ -148,13 +196,24 @@ export default function ShareJournal() {
             userName={state.userName}
             higherSelfName={state.higherSelfMessage || '高我'}
             journalContent={state.journalContent}
+            backgroundMusic={backgroundMusic}
             onComplete={handleDialogueComplete}
+          />
+        );
+
+      case 'transition':
+        return (
+          <GoldenTransition
+            userName={state.userName}
+            higherSelfName={state.higherSelfMessage || '高我'}
+            onComplete={handleTransitionComplete}
           />
         );
 
       case 'answer':
         return (
           <BookOfAnswers
+            backgroundAudio={backgroundMusic}
             onComplete={handleAnswerComplete}
           />
         );

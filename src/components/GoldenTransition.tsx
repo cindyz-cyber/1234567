@@ -14,7 +14,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
     let backgroundMusic: HTMLAudioElement | null = null;
     let fadeOutTimer: number | undefined;
     let completeTimer: number | undefined;
-    const transitionDuration = 30000;
+    const transitionDuration = 4000;
 
     const initializeAudio = async () => {
       const bgMusic = await playBackgroundMusicLoop();
