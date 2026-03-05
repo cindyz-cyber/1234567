@@ -1,6 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App.tsx';
+import ShareJournal from './components/ShareJournal.tsx';
 import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
 import { initializeVideoPreload } from './utils/videoPreloader';
@@ -81,6 +83,11 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/share/journal" element={<ShareJournal />} />
+        <Route path="/*" element={<App />} />
+      </Routes>
+    </BrowserRouter>
   </StrictMode>
 );
