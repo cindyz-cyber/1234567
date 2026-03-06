@@ -128,3 +128,30 @@ export const fadeOutAudio = (audio: HTMLAudioElement, duration: number = 2000): 
     }, 50);
   });
 };
+
+export const playShareBackgroundMusic = (musicUrl: string | null | undefined): HTMLAudioElement | null => {
+  if (!musicUrl || musicUrl.trim() === '') {
+    console.warn('⚠️ No background music URL provided');
+    return null;
+  }
+
+  console.log('🎵 Playing share background music from:', musicUrl);
+
+  const cacheBuster = `?v=${new Date().getTime()}`;
+  const audio = new Audio(musicUrl + cacheBuster);
+  audio.volume = 0.3;
+  audio.loop = true;
+  audio.crossOrigin = 'anonymous';
+
+  registerAudio(audio);
+
+  audio.play()
+    .then(() => {
+      console.log('✅ Background music started successfully');
+    })
+    .catch(err => {
+      console.error('❌ Audio play error:', err);
+    });
+
+  return audio;
+};

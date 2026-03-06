@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
-import { playBackgroundMusicLoop } from '../utils/audioManager';
+import { playBackgroundMusicLoop, playShareBackgroundMusic } from '../utils/audioManager';
 
 interface GoldenTransitionProps {
   userName: string;
   higherSelfName: string;
   onComplete: (backgroundMusic: HTMLAudioElement | null) => void;
+  backgroundMusicUrl?: string | null;
+  backgroundVideoUrl?: string | null;
 }
 
-export default function GoldenTransition({ userName, higherSelfName, onComplete }: GoldenTransitionProps) {
+export default function GoldenTransition({ userName, higherSelfName, onComplete, backgroundMusicUrl, backgroundVideoUrl }: GoldenTransitionProps) {
   const [fadeOut, setFadeOut] = useState(false);
+  const defaultVideoUrl = 'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
+  const effectiveVideoUrl = backgroundVideoUrl && backgroundVideoUrl.trim() !== '' ? backgroundVideoUrl : defaultVideoUrl;
 
   useEffect(() => {
     let backgroundMusic: HTMLAudioElement | null = null;
@@ -17,10 +21,21 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
     const transitionDuration = 10000;
 
     const initializeAudio = async () => {
-      const bgMusic = await playBackgroundMusicLoop();
-      if (bgMusic) {
-        backgroundMusic = bgMusic;
-        console.log('Background music started');
+      if (backgroundMusicUrl) {
+        console.log('🎵 Using share page background music:', backgroundMusicUrl);
+        backgroundMusic = playShareBackgroundMusic(backgroundMusicUrl);
+      } else {
+        console.log('🎵 Using default background music from database');
+        const bgMusic = await playBackgroundMusicLoop();
+        if (bgMusic) {
+          backgroundMusic = bgMusic;
+        }
+      }
+
+      if (backgroundMusic) {
+        console.log('✅ Background music started successfully');
+      } else {
+        console.warn('⚠️ No background music playing');
       }
 
       fadeOutTimer = window.setTimeout(() => {
@@ -38,7 +53,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
       if (fadeOutTimer) clearTimeout(fadeOutTimer);
       if (completeTimer) clearTimeout(completeTimer);
     };
-  }, [onComplete]);
+  }, [onComplete, backgroundMusicUrl]);
 
   return (
     <div
@@ -71,7 +86,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete 
             transform: 'translate3d(0,0,0)'
           }}
         >
-          <source src="https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4" type="video/mp4" />
+          <source src={effectiveVideoUrl} type="video/mp4" />
         </video>
         <div
           className="absolute inset-0 w-full h-full"

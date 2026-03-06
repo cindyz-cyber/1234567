@@ -76,40 +76,55 @@ export default function ShareJournal() {
         .maybeSingle();
 
       if (error) {
-        console.error('Config fetch error:', error);
+        console.error('❌ Config fetch error:', error);
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
       if (!data) {
+        console.warn('⚠️ No config found in database');
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
+      console.log('✅ Current Config from DB:', data);
+      console.log('🎵 Background Music URL:', data.bg_music_url);
+      console.log('🎬 Background Video URL:', data.bg_video_url);
+      console.log('🖼️ Card Inner BG URL:', data.card_inner_bg_url);
+
       setConfig(data);
 
       if (!data.is_active) {
+        console.warn('⚠️ H5 page is disabled');
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
       const urlParams = new URLSearchParams(window.location.search);
-      const urlToken = urlParams.get('token');
+      const pathSegments = window.location.pathname.split('/').filter(s => s);
+      const queryToken = urlParams.get('token');
+      const pathToken = pathSegments[pathSegments.length - 1];
+      const urlToken = queryToken || (pathToken !== 'journal' ? pathToken : null);
+
+      console.log('🔑 Token from URL:', urlToken);
+      console.log('🔑 Required token:', data.daily_token);
 
       if (!urlToken || urlToken !== data.daily_token) {
+        console.warn('⚠️ Token validation failed');
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
+      console.log('✅ Token validated successfully');
       await shareBackgroundPreloader.preloadAllAssets(data);
 
       setIsValidating(false);
     } catch (error) {
-      console.error('Validation error:', error);
+      console.error('❌ Validation error:', error);
       setCurrentStep('blocked');
       setIsValidating(false);
     }
@@ -309,16 +324,13 @@ export default function ShareJournal() {
 
       case 'transition':
         return (
-          <DynamicStepBackground
-            backgroundUrl={config?.bg_transition_url}
-            fallbackUrl={config?.bg_video_url}
-          >
-            <GoldenTransition
-              userName={state.userName}
-              higherSelfName={state.higherSelfMessage || '高我'}
-              onComplete={handleTransitionComplete}
-            />
-          </DynamicStepBackground>
+          <GoldenTransition
+            userName={state.userName}
+            higherSelfName={state.higherSelfMessage || '高我'}
+            onComplete={handleTransitionComplete}
+            backgroundMusicUrl={config?.bg_music_url}
+            backgroundVideoUrl={config?.bg_transition_url || config?.bg_video_url}
+          />
         );
 
       case 'answer':
