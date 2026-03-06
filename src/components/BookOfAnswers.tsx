@@ -177,12 +177,15 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
         </div>
 
         {flippedCard !== null && (
-          <div className="text-center">
+          <div className="text-center space-y-3">
+            <p className="card-hint-text">
+              ✨ 接收完成，生成你的专属能量卡片
+            </p>
             <button
               onClick={handleComplete}
               className="complete-button"
             >
-              我已接收
+              生成能量卡片
             </button>
           </div>
         )}
@@ -240,6 +243,25 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
             inset 0 0 30px rgba(180, 200, 255, 0.05),
             0 6px 30px rgba(0, 0, 0, 0.4),
             0 0 40px rgba(200, 220, 255, 0.15);
+        }
+
+        .card-hint-text {
+          color: rgba(200, 220, 255, 0.7);
+          font-size: 14px;
+          font-weight: 200;
+          letter-spacing: 0.1em;
+          font-family: 'Noto Serif SC', serif;
+          text-shadow: 0 0 20px rgba(200, 220, 255, 0.3);
+          animation: hintPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes hintPulse {
+          0%, 100% {
+            opacity: 0.7;
+          }
+          50% {
+            opacity: 1;
+          }
         }
 
         .book-background-layer {

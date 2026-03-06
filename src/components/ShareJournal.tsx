@@ -139,7 +139,11 @@ export default function ShareJournal() {
     setCurrentStep('home');
   };
 
-  const handleHomeStart = () => {
+  const handleHomeStart = async () => {
+    console.log('🎯 User started journey from home page');
+    if (config?.bg_music_url) {
+      console.log('🎵 Background music will start at GoldenTransition:', config.bg_music_url);
+    }
     setCurrentStep('emotion');
   };
 
@@ -167,7 +171,13 @@ export default function ShareJournal() {
 
   const handleTransitionComplete = (transitionMusic: HTMLAudioElement | null) => {
     if (transitionMusic) {
+      console.log('✅ Background music received from GoldenTransition, continuing playback');
+      console.log('🎵 Music playing:', !transitionMusic.paused);
+      console.log('🎵 Music volume:', transitionMusic.volume);
+      console.log('🎵 Music source:', transitionMusic.src);
       setBackgroundMusic(transitionMusic);
+    } else {
+      console.warn('⚠️ No background music from GoldenTransition');
     }
     setCurrentStep('dialogue');
   };
@@ -360,13 +370,14 @@ export default function ShareJournal() {
               <div className="card-result">
                 <div className="card-hint">
                   <span className="pulse-dot" />
-                  <p className="hint-text">长按图片保存，分享到微信</p>
+                  <p className="hint-text">✨ 能量卡已生成，长按图片发送给朋友</p>
                 </div>
 
                 <img
                   src={generatedImage}
                   alt="专属能量卡"
                   className="energy-card-image"
+                  style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
                 />
 
                 <button

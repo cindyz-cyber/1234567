@@ -135,10 +135,13 @@ export const playShareBackgroundMusic = (musicUrl: string | null | undefined): H
     return null;
   }
 
-  console.log('🎵 Playing share background music from:', musicUrl);
+  const cacheBuster = `?t=${Date.now()}`;
+  const finalAudioUrl = musicUrl + cacheBuster;
 
-  const cacheBuster = `?v=${new Date().getTime()}`;
-  const audio = new Audio(musicUrl + cacheBuster);
+  console.log('🎵 Original Music URL:', musicUrl);
+  console.log('🎵 Final Audio URL:', finalAudioUrl);
+
+  const audio = new Audio(finalAudioUrl);
   audio.volume = 0.3;
   audio.loop = true;
   audio.crossOrigin = 'anonymous';
