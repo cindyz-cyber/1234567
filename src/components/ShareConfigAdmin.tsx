@@ -12,6 +12,12 @@ interface H5ShareConfig {
   bg_video_url: string;
   bg_music_url: string;
   card_bg_image_url: string;
+  bg_naming_url: string;
+  bg_emotion_url: string;
+  bg_journal_url: string;
+  bg_transition_url: string;
+  bg_answer_book_url: string;
+  card_inner_bg_url: string;
   updated_at: string;
 }
 
@@ -28,7 +34,13 @@ export default function ShareConfigAdmin() {
     daily_token: '',
     bg_video_url: '',
     bg_music_url: '',
-    card_bg_image_url: ''
+    card_bg_image_url: '',
+    bg_naming_url: '',
+    bg_emotion_url: '',
+    bg_journal_url: '',
+    bg_transition_url: '',
+    bg_answer_book_url: '',
+    card_inner_bg_url: ''
   });
 
   const handleLogin = (e: React.FormEvent) => {
@@ -60,7 +72,13 @@ export default function ShareConfigAdmin() {
           daily_token: data.daily_token,
           bg_video_url: data.bg_video_url,
           bg_music_url: data.bg_music_url,
-          card_bg_image_url: data.card_bg_image_url
+          card_bg_image_url: data.card_bg_image_url,
+          bg_naming_url: data.bg_naming_url || '',
+          bg_emotion_url: data.bg_emotion_url || '',
+          bg_journal_url: data.bg_journal_url || '',
+          bg_transition_url: data.bg_transition_url || '',
+          bg_answer_book_url: data.bg_answer_book_url || '',
+          card_inner_bg_url: data.card_inner_bg_url || ''
         });
       }
     } catch (error) {
@@ -81,7 +99,13 @@ export default function ShareConfigAdmin() {
           daily_token: formData.daily_token,
           bg_video_url: formData.bg_video_url,
           bg_music_url: formData.bg_music_url,
-          card_bg_image_url: formData.card_bg_image_url
+          card_bg_image_url: formData.card_bg_image_url,
+          bg_naming_url: formData.bg_naming_url,
+          bg_emotion_url: formData.bg_emotion_url,
+          bg_journal_url: formData.bg_journal_url,
+          bg_transition_url: formData.bg_transition_url,
+          bg_answer_book_url: formData.bg_answer_book_url,
+          card_inner_bg_url: formData.card_inner_bg_url
         })
         .eq('id', CONFIG_ID);
 
@@ -200,43 +224,139 @@ export default function ShareConfigAdmin() {
               </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                背景视频URL (阿里云/腾讯云)
-              </label>
-              <input
-                type="text"
-                value={formData.bg_video_url}
-                onChange={(e) => setFormData({ ...formData, bg_video_url: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                placeholder="https://your-cdn.com/video.mp4"
-              />
+            <div className="bg-white/5 p-6 rounded-xl border border-white/10 space-y-4">
+              <h2 className="text-lg font-semibold text-amber-400 mb-4">媒体资源配置</h2>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  通用背景视频URL
+                </label>
+                <input
+                  type="text"
+                  value={formData.bg_video_url}
+                  onChange={(e) => setFormData({ ...formData, bg_video_url: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="https://your-cdn.com/video.mp4"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  背景音乐URL
+                </label>
+                <input
+                  type="text"
+                  value={formData.bg_music_url}
+                  onChange={(e) => setFormData({ ...formData, bg_music_url: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="https://your-cdn.com/music.mp3"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  分享卡片背景图URL（已废弃，请使用下方新字段）
+                </label>
+                <input
+                  type="text"
+                  value={formData.card_bg_image_url}
+                  onChange={(e) => setFormData({ ...formData, card_bg_image_url: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white/50 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="/0_0_640_N.webp 或云端图片链接"
+                />
+                <p className="text-xs text-white/40 mt-1">建议使用下方"流程背景配置"中的新字段</p>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                背景音乐URL (阿里云/腾讯云)
-              </label>
-              <input
-                type="text"
-                value={formData.bg_music_url}
-                onChange={(e) => setFormData({ ...formData, bg_music_url: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                placeholder="https://your-cdn.com/music.mp3"
-              />
+            <div className="bg-white/5 p-6 rounded-xl border border-amber-400/30 space-y-4">
+              <h2 className="text-lg font-semibold text-amber-400 mb-4">流程背景配置</h2>
+              <p className="text-xs text-white/60 mb-4">为每个页面设置独立的背景（视频或图片）</p>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  起名页面背景
+                </label>
+                <input
+                  type="text"
+                  value={formData.bg_naming_url}
+                  onChange={(e) => setFormData({ ...formData, bg_naming_url: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="https://cdn.com/naming-bg.mp4"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  情绪选择页面背景
+                </label>
+                <input
+                  type="text"
+                  value={formData.bg_emotion_url}
+                  onChange={(e) => setFormData({ ...formData, bg_emotion_url: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="https://cdn.com/emotion-bg.mp4"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  觉察日记书写页背景
+                </label>
+                <input
+                  type="text"
+                  value={formData.bg_journal_url}
+                  onChange={(e) => setFormData({ ...formData, bg_journal_url: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="https://cdn.com/journal-bg.mp4"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  黄金过渡页背景
+                </label>
+                <input
+                  type="text"
+                  value={formData.bg_transition_url}
+                  onChange={(e) => setFormData({ ...formData, bg_transition_url: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="https://cdn.com/transition-bg.mp4"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  答案之书结果页全屏背景
+                </label>
+                <input
+                  type="text"
+                  value={formData.bg_answer_book_url}
+                  onChange={(e) => setFormData({ ...formData, bg_answer_book_url: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="https://cdn.com/answer-bg.mp4"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                分享卡片背景图URL
-              </label>
-              <input
-                type="text"
-                value={formData.card_bg_image_url}
-                onChange={(e) => setFormData({ ...formData, card_bg_image_url: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                placeholder="/0_0_640_N.webp 或云端图片链接"
-              />
+            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 p-6 rounded-xl border border-amber-400/50 space-y-4">
+              <h2 className="text-lg font-semibold text-amber-300 mb-4">卡片视觉配置</h2>
+              <p className="text-xs text-amber-200/80 mb-4">精细控制分享卡片内部的视觉元素</p>
+
+              <div>
+                <label className="block text-sm font-medium text-amber-200 mb-2">
+                  答案之书卡片内部背景图
+                </label>
+                <input
+                  type="text"
+                  value={formData.card_inner_bg_url}
+                  onChange={(e) => setFormData({ ...formData, card_inner_bg_url: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-amber-400/30 rounded-lg text-white placeholder-amber-200/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="https://cdn.com/card-inner-bg.jpg"
+                />
+                <p className="text-xs text-amber-200/60 mt-2">
+                  此背景将显示在截图卡片内部（html2canvas 捕获区域）
+                </p>
+              </div>
             </div>
 
             {message && (

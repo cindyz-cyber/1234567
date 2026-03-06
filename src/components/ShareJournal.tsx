@@ -8,8 +8,9 @@ import InnerWhisperJournal from './InnerWhisperJournal';
 import HigherSelfDialogue from './HigherSelfDialogue';
 import GoldenTransition from './GoldenTransition';
 import BookOfAnswers from './BookOfAnswers';
-import VideoBackground from './VideoBackground';
+import DynamicStepBackground from './DynamicStepBackground';
 import { playBackgroundMusicLoop } from '../utils/audioManager';
+import { shareBackgroundPreloader } from '../utils/shareBackgroundPreloader';
 
 type JournalStep = 'blocked' | 'naming' | 'home' | 'emotion' | 'journal' | 'dialogue' | 'transition' | 'answer' | 'card';
 
@@ -19,6 +20,12 @@ interface H5ShareConfig {
   bg_video_url: string;
   bg_music_url: string;
   card_bg_image_url: string;
+  bg_naming_url: string;
+  bg_emotion_url: string;
+  bg_journal_url: string;
+  bg_transition_url: string;
+  bg_answer_book_url: string;
+  card_inner_bg_url: string;
 }
 
 interface JournalState {
@@ -97,6 +104,8 @@ export default function ShareJournal() {
         setIsValidating(false);
         return;
       }
+
+      await shareBackgroundPreloader.preloadAllAssets(data);
 
       setIsValidating(false);
     } catch (error) {
@@ -235,61 +244,94 @@ export default function ShareJournal() {
     switch (currentStep) {
       case 'naming':
         return (
-          <NamingRitual
-            onComplete={handleNamingComplete}
-          />
+          <DynamicStepBackground
+            backgroundUrl={config?.bg_naming_url}
+            fallbackUrl={config?.bg_video_url}
+          >
+            <NamingRitual
+              onComplete={handleNamingComplete}
+            />
+          </DynamicStepBackground>
         );
 
       case 'home':
         return (
-          <HomePage
-            userName={state.userName}
-            higherSelfName={state.higherSelfMessage}
-            onStartJourney={handleHomeStart}
-          />
+          <DynamicStepBackground
+            backgroundUrl={config?.bg_video_url}
+          >
+            <HomePage
+              userName={state.userName}
+              higherSelfName={state.higherSelfMessage}
+              onStartJourney={handleHomeStart}
+            />
+          </DynamicStepBackground>
         );
 
       case 'emotion':
         return (
-          <EmotionScan
-            onNext={handleEmotionComplete}
-          />
+          <DynamicStepBackground
+            backgroundUrl={config?.bg_emotion_url}
+            fallbackUrl={config?.bg_video_url}
+          >
+            <EmotionScan
+              onNext={handleEmotionComplete}
+            />
+          </DynamicStepBackground>
         );
 
       case 'journal':
         return (
-          <InnerWhisperJournal
-            emotions={state.selectedEmotions}
-            onNext={handleJournalComplete}
-          />
+          <DynamicStepBackground
+            backgroundUrl={config?.bg_journal_url}
+            fallbackUrl={config?.bg_video_url}
+          >
+            <InnerWhisperJournal
+              emotions={state.selectedEmotions}
+              onNext={handleJournalComplete}
+            />
+          </DynamicStepBackground>
         );
 
       case 'dialogue':
         return (
-          <HigherSelfDialogue
-            userName={state.userName}
-            higherSelfName={state.higherSelfMessage || '高我'}
-            journalContent={state.journalContent}
-            backgroundMusic={backgroundMusic}
-            onComplete={handleDialogueComplete}
-          />
+          <DynamicStepBackground
+            backgroundUrl={config?.bg_video_url}
+          >
+            <HigherSelfDialogue
+              userName={state.userName}
+              higherSelfName={state.higherSelfMessage || '高我'}
+              journalContent={state.journalContent}
+              backgroundMusic={backgroundMusic}
+              onComplete={handleDialogueComplete}
+            />
+          </DynamicStepBackground>
         );
 
       case 'transition':
         return (
-          <GoldenTransition
-            userName={state.userName}
-            higherSelfName={state.higherSelfMessage || '高我'}
-            onComplete={handleTransitionComplete}
-          />
+          <DynamicStepBackground
+            backgroundUrl={config?.bg_transition_url}
+            fallbackUrl={config?.bg_video_url}
+          >
+            <GoldenTransition
+              userName={state.userName}
+              higherSelfName={state.higherSelfMessage || '高我'}
+              onComplete={handleTransitionComplete}
+            />
+          </DynamicStepBackground>
         );
 
       case 'answer':
         return (
-          <BookOfAnswers
-            backgroundAudio={backgroundMusic}
-            onComplete={handleAnswerComplete}
-          />
+          <DynamicStepBackground
+            backgroundUrl={config?.bg_answer_book_url}
+            fallbackUrl={config?.bg_video_url}
+          >
+            <BookOfAnswers
+              backgroundAudio={backgroundMusic}
+              onComplete={handleAnswerComplete}
+            />
+          </DynamicStepBackground>
         );
 
       case 'card':
@@ -344,7 +386,7 @@ export default function ShareJournal() {
                 left: '-9999px',
                 width: '750px',
                 height: '1334px',
-                backgroundImage: `url(${config?.card_bg_image_url || '/0_0_640_N.webp'})`,
+                backgroundImage: `url(${config?.card_inner_bg_url || config?.card_bg_image_url || '/0_0_640_N.webp'})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -602,10 +644,6 @@ export default function ShareJournal() {
 
   return (
     <div className="share-journal-flow">
-      {!isValidating && currentStep !== 'blocked' && config?.bg_video_url && (
-        <VideoBackground videoUrl={config.bg_video_url} />
-      )}
-
       {renderStep()}
 
       <style>{`
