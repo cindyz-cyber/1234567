@@ -269,23 +269,24 @@ export default function ShareJournal() {
                 <div style={{
                   textAlign: 'center',
                   marginBottom: '60px',
-                  borderBottom: '1px solid rgba(247, 231, 206, 0.2)',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.25)',
                   paddingBottom: '40px'
                 }}>
                   <h1 style={{
                     fontSize: '56px',
-                    color: '#F7E7CE',
+                    color: '#FAFAFA',
                     fontWeight: 300,
                     letterSpacing: '0.3em',
                     marginBottom: '20px',
-                    textShadow: '0 0 30px rgba(247, 231, 206, 0.5)'
+                    textShadow: '0px 2px 6px rgba(0, 0, 0, 0.4), 0px 0px 20px rgba(255, 255, 255, 0.3)'
                   }}>
                     觉察时刻
                   </h1>
                   <p style={{
                     fontSize: '24px',
-                    color: 'rgba(235, 200, 98, 0.8)',
-                    letterSpacing: '0.2em'
+                    color: '#FAFAFA',
+                    letterSpacing: '0.2em',
+                    textShadow: '0px 2px 4px rgba(0, 0, 0, 0.35)'
                   }}>
                     {state.userName} 的内在之声
                   </p>
@@ -294,22 +295,24 @@ export default function ShareJournal() {
                 <div style={{
                   marginBottom: '50px',
                   padding: '40px',
-                  background: 'rgba(255, 255, 255, 0.03)',
+                  background: 'rgba(255, 255, 255, 0.85)',
                   borderRadius: '24px',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                  border: '1px solid rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
                 }}>
                   <h3 style={{
                     fontSize: '28px',
-                    color: '#EBC862',
+                    color: '#2d5016',
                     marginBottom: '24px',
                     letterSpacing: '0.15em',
-                    opacity: 0.9
+                    opacity: 0.9,
+                    fontWeight: 500
                   }}>
                     我的觉察
                   </h3>
                   <p style={{
                     fontSize: '26px',
-                    color: 'rgba(255, 255, 255, 0.85)',
+                    color: '#1a1a1a',
                     lineHeight: '1.8',
                     letterSpacing: '0.05em'
                   }}>
@@ -320,27 +323,28 @@ export default function ShareJournal() {
 
                 <div style={{
                   padding: '40px',
-                  background: 'linear-gradient(135deg, rgba(235, 200, 98, 0.1) 0%, rgba(247, 231, 206, 0.1) 100%)',
+                  background: 'rgba(255, 255, 255, 0.9)',
                   borderRadius: '24px',
-                  border: '1px solid rgba(235, 200, 98, 0.3)',
-                  boxShadow: '0 0 40px rgba(235, 200, 98, 0.1)'
+                  border: '2px solid rgba(45, 80, 22, 0.3)',
+                  boxShadow: '0 4px 24px rgba(45, 80, 22, 0.2)'
                 }}>
                   <h3 style={{
                     fontSize: '28px',
-                    color: '#F7E7CE',
+                    color: '#2d5016',
                     marginBottom: '24px',
                     letterSpacing: '0.15em',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    fontWeight: 500
                   }}>
                     高我的指引
                   </h3>
                   <p style={{
                     fontSize: '30px',
-                    color: '#EBC862',
+                    color: '#1a1a1a',
                     lineHeight: '1.9',
                     textAlign: 'center',
                     letterSpacing: '0.08em',
-                    textShadow: '0 0 20px rgba(235, 200, 98, 0.3)'
+                    fontWeight: 400
                   }}>
                     {state.higherSelfMessage || '你的内在智慧正在被唤醒'}
                   </p>
@@ -350,39 +354,42 @@ export default function ShareJournal() {
               <div style={{
                 textAlign: 'center',
                 paddingTop: '40px',
-                borderTop: '1px solid rgba(247, 231, 206, 0.15)'
+                borderTop: '1px solid rgba(255, 255, 255, 0.4)'
               }}>
                 <div style={{
                   width: '120px',
                   height: '120px',
                   margin: '0 auto 30px',
-                  background: 'radial-gradient(circle, rgba(247, 231, 206, 0.2) 0%, transparent 70%)',
+                  background: 'rgba(255, 255, 255, 0.85)',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '2px solid rgba(247, 231, 206, 0.3)'
+                  border: '2px solid rgba(45, 80, 22, 0.3)',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
                 }}>
                   <div style={{
                     fontSize: '48px',
-                    color: '#F7E7CE'
+                    color: '#2d5016'
                   }}>
                     ✨
                   </div>
                 </div>
                 <p style={{
                   fontSize: '32px',
-                  color: '#F7E7CE',
+                  color: '#FAFAFA',
                   letterSpacing: '0.25em',
                   fontWeight: 300,
-                  marginBottom: '12px'
+                  marginBottom: '12px',
+                  textShadow: '0px 2px 6px rgba(0, 0, 0, 0.4)'
                 }}>
                   植本逻辑
                 </p>
                 <p style={{
                   fontSize: '20px',
-                  color: 'rgba(255, 255, 255, 0.5)',
-                  letterSpacing: '0.2em'
+                  color: '#FAFAFA',
+                  letterSpacing: '0.2em',
+                  textShadow: '0px 2px 4px rgba(0, 0, 0, 0.35)'
                 }}>
                   觉察 · 疗愈 · 成长
                 </p>
