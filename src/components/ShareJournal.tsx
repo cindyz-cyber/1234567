@@ -254,7 +254,7 @@ export default function ShareJournal() {
                 left: '-9999px',
                 width: '750px',
                 height: '1334px',
-                backgroundImage: 'url(/src/assets/0_0_640_N.webp)',
+                backgroundImage: 'url(/0_0_640_N.webp)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
