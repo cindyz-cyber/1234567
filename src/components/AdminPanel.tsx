@@ -45,10 +45,19 @@ export default function AdminPanel() {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const audioFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
+    // 支持音频格式 + MP4 视频格式（可包含音频）
+    const audioFiles = Array.from(files).filter(file =>
+      file.type.startsWith('audio/') ||
+      file.type === 'video/mp4' ||
+      file.name.toLowerCase().endsWith('.mp3') ||
+      file.name.toLowerCase().endsWith('.wav') ||
+      file.name.toLowerCase().endsWith('.ogg') ||
+      file.name.toLowerCase().endsWith('.m4a') ||
+      file.name.toLowerCase().endsWith('.mp4')
+    );
 
     if (audioFiles.length === 0) {
-      setToast({ message: '请选择音频文件（MP3、WAV、OGG格式）', type: 'warning' });
+      setToast({ message: '请选择音频文件（MP3、WAV、OGG、M4A、MP4格式）', type: 'warning' });
       setTimeout(() => setToast(null), 3000);
       return;
     }
@@ -272,7 +281,7 @@ export default function AdminPanel() {
             </div>
             <input
               type="file"
-              accept="audio/*"
+              accept="audio/*,video/mp4,.mp3,.wav,.ogg,.m4a,.mp4"
               multiple
               onChange={handleFileUpload}
               disabled={uploading}
@@ -280,7 +289,7 @@ export default function AdminPanel() {
             />
           </label>
           <p className="text-sm text-slate-400 mt-3 text-center">
-            支持批量上传（可选择多个文件），格式：MP3, WAV, OGG，建议时长35秒-1分钟
+            支持批量上传（可选择多个文件），格式：MP3、WAV、OGG、M4A、MP4，建议时长35秒-1分钟
           </p>
         </div>
 
