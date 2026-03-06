@@ -20,6 +20,8 @@ export default function AdminPanel() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [activeView, setActiveView] = useState<'audio' | 'knowledge'>('audio');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void } | null>(null);
 
   useEffect(() => {
     loadAudioFiles();
@@ -46,7 +48,8 @@ export default function AdminPanel() {
     const audioFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
 
     if (audioFiles.length === 0) {
-      alert('请上传音频文件');
+      setToast({ message: '请选择音频文件（MP3、WAV、OGG格式）', type: 'warning' });
+      setTimeout(() => setToast(null), 3000);
       return;
     }
 
@@ -132,13 +135,15 @@ export default function AdminPanel() {
       await loadAudioFiles();
 
       if (failCount === 0) {
-        alert(`成功上传 ${successCount} 个音频文件！`);
+        setToast({ message: `成功上传 ${successCount} 个音频文件！`, type: 'success' });
       } else {
-        alert(`上传完成：成功 ${successCount} 个，失败 ${failCount} 个`);
+        setToast({ message: `上传完成：成功 ${successCount} 个，失败 ${failCount} 个`, type: 'warning' });
       }
+      setTimeout(() => setToast(null), 3000);
     } catch (error) {
       console.error('Upload error:', error);
-      alert('上传失败，请重试');
+      setToast({ message: '上传失败，请重试', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
     } finally {
       setUploading(false);
       event.target.value = '';
@@ -160,27 +165,35 @@ export default function AdminPanel() {
   };
 
   const deleteFile = async (file: AudioFile) => {
-    if (!confirm('确定要删除这个音频文件吗？')) return;
+    setConfirmDialog({
+      message: `确定要删除"${file.file_name}"吗？此操作无法撤销。`,
+      onConfirm: async () => {
+        const { error: storageError } = await supabase.storage
+          .from('audio-files')
+          .remove([file.file_path]);
 
-    const { error: storageError } = await supabase.storage
-      .from('audio-files')
-      .remove([file.file_path]);
+        if (storageError) {
+          console.error('Storage delete error:', storageError);
+        }
 
-    if (storageError) {
-      console.error('Storage delete error:', storageError);
-    }
+        const { error: dbError } = await supabase
+          .from('audio_files')
+          .delete()
+          .eq('id', file.id);
 
-    const { error: dbError } = await supabase
-      .from('audio_files')
-      .delete()
-      .eq('id', file.id);
+        if (dbError) {
+          console.error('Database delete error:', dbError);
+          setToast({ message: '删除失败，请重试', type: 'error' });
+          setTimeout(() => setToast(null), 3000);
+          return;
+        }
 
-    if (dbError) {
-      console.error('Database delete error:', dbError);
-      return;
-    }
-
-    await loadAudioFiles();
+        await loadAudioFiles();
+        setToast({ message: '删除成功', type: 'success' });
+        setTimeout(() => setToast(null), 3000);
+        setConfirmDialog(null);
+      }
+    });
   };
 
   const playAudio = async (file: AudioFile) => {
@@ -341,6 +354,71 @@ export default function AdminPanel() {
           )}
         </div>
       </div>
+
+      {toast && (
+        <div
+          className="fixed top-8 right-8 z-50 px-6 py-4 rounded-xl shadow-2xl animate-slide-in-right"
+          style={{
+            background: toast.type === 'success'
+              ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(22, 163, 74, 0.95))'
+              : toast.type === 'error'
+              ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))'
+              : 'linear-gradient(135deg, rgba(251, 191, 36, 0.95), rgba(245, 158, 11, 0.95))',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            maxWidth: '400px'
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="text-2xl">
+              {toast.type === 'success' ? '✅' : toast.type === 'error' ? '❌' : '⚠️'}
+            </div>
+            <p className="text-white font-medium">{toast.message}</p>
+          </div>
+        </div>
+      )}
+
+      {confirmDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 border border-slate-700">
+            <div className="p-6">
+              <h3 className="text-xl font-medium mb-4 text-white">确认操作</h3>
+              <p className="text-slate-300 mb-6">{confirmDialog.message}</p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setConfirmDialog(null)}
+                  className="px-6 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={confirmDialog.onConfirm}
+                  className="px-6 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
+                >
+                  确定删除
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slide-in-right {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
+        .animate-slide-in-right {
+          animation: slide-in-right 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
