@@ -5,10 +5,15 @@ import { BACKGROUND_ASSETS, getPreloadedVideo, BRAND_COLORS } from '../utils/bac
  * 优化后的视频背景组件
  * 使用三级兜底策略 + 本地化资源 + Mobile Safari 优化
  */
-export default function VideoBackground() {
+interface VideoBackgroundProps {
+  videoUrl?: string;
+}
+
+export default function VideoBackground({ videoUrl }: VideoBackgroundProps = {}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const asset = BACKGROUND_ASSETS.golden_flow;
+  const finalVideoUrl = videoUrl || asset?.sources?.[0]?.url;
 
   if (!asset) {
     console.error('❌ golden_flow 背景资源未定义');
@@ -57,6 +62,7 @@ export default function VideoBackground() {
         poster={asset?.posterUrl || ''}
         disablePictureInPicture={true}
         disableRemotePlayback={true}
+        src={finalVideoUrl}
         className="fixed w-full object-cover"
         style={{
           top: '66vh',
@@ -71,9 +77,8 @@ export default function VideoBackground() {
           willChange: 'opacity, transform',
           visibility: 'visible'
         }}
-      >
-          {asset?.videoUrl && <source src={asset.videoUrl} type="video/mp4" />}
-      </video>
+      />
+
 
       <div
         className="fixed"

@@ -8,9 +8,18 @@ import InnerWhisperJournal from './InnerWhisperJournal';
 import HigherSelfDialogue from './HigherSelfDialogue';
 import GoldenTransition from './GoldenTransition';
 import BookOfAnswers from './BookOfAnswers';
+import VideoBackground from './VideoBackground';
 import { playBackgroundMusicLoop } from '../utils/audioManager';
 
-type JournalStep = 'naming' | 'home' | 'emotion' | 'journal' | 'dialogue' | 'transition' | 'answer' | 'card';
+type JournalStep = 'blocked' | 'naming' | 'home' | 'emotion' | 'journal' | 'dialogue' | 'transition' | 'answer' | 'card';
+
+interface H5ShareConfig {
+  is_active: boolean;
+  daily_token: string;
+  bg_video_url: string;
+  bg_music_url: string;
+  card_bg_image_url: string;
+}
 
 interface JournalState {
   userName: string;
@@ -23,6 +32,8 @@ interface JournalState {
 
 export default function ShareJournal() {
   const [currentStep, setCurrentStep] = useState<JournalStep>('naming');
+  const [config, setConfig] = useState<H5ShareConfig | null>(null);
+  const [isValidating, setIsValidating] = useState(true);
   const [state, setState] = useState<JournalState>({
     userName: '',
     birthDate: null,
@@ -37,6 +48,10 @@ export default function ShareJournal() {
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    validateAccess();
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (backgroundMusic) {
         backgroundMusic.pause();
@@ -44,6 +59,52 @@ export default function ShareJournal() {
       }
     };
   }, [backgroundMusic]);
+
+  const validateAccess = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('h5_share_config')
+        .select('*')
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Config fetch error:', error);
+        setCurrentStep('blocked');
+        setIsValidating(false);
+        return;
+      }
+
+      if (!data) {
+        setCurrentStep('blocked');
+        setIsValidating(false);
+        return;
+      }
+
+      setConfig(data);
+
+      if (!data.is_active) {
+        setCurrentStep('blocked');
+        setIsValidating(false);
+        return;
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+
+      if (!urlToken || urlToken !== data.daily_token) {
+        setCurrentStep('blocked');
+        setIsValidating(false);
+        return;
+      }
+
+      setIsValidating(false);
+    } catch (error) {
+      console.error('Validation error:', error);
+      setCurrentStep('blocked');
+      setIsValidating(false);
+    }
+  };
 
   const updateState = (updates: Partial<JournalState>) => {
     setState(prev => ({ ...prev, ...updates }));
@@ -142,6 +203,35 @@ export default function ShareJournal() {
   };
 
   const renderStep = () => {
+    if (isValidating) {
+      return (
+        <div className="validation-screen">
+          <div className="validation-spinner" />
+          <p className="validation-text">验证访问权限...</p>
+        </div>
+      );
+    }
+
+    if (currentStep === 'blocked') {
+      return (
+        <div className="blocked-screen">
+          <div className="zen-container">
+            <div className="zen-icon">🌿</div>
+            <h1 className="zen-title">链接已随时间流转而失效</h1>
+            <p className="zen-message">
+              请关注"植本逻辑"<br />
+              获取最新能量场入口
+            </p>
+            <div className="zen-footer">
+              <div className="zen-sparkle">✨</div>
+              <p className="zen-brand">植本逻辑</p>
+              <p className="zen-tagline">觉察 · 疗愈 · 成长</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     switch (currentStep) {
       case 'naming':
         return (
@@ -254,7 +344,7 @@ export default function ShareJournal() {
                 left: '-9999px',
                 width: '750px',
                 height: '1334px',
-                backgroundImage: 'url(/0_0_640_N.webp)',
+                backgroundImage: `url(${config?.card_bg_image_url || '/0_0_640_N.webp'})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -512,6 +602,10 @@ export default function ShareJournal() {
 
   return (
     <div className="share-journal-flow">
+      {!isValidating && currentStep !== 'blocked' && config?.bg_video_url && (
+        <VideoBackground videoUrl={config.bg_video_url} />
+      )}
+
       {renderStep()}
 
       <style>{`
@@ -519,6 +613,102 @@ export default function ShareJournal() {
           min-height: 100vh;
           width: 100%;
           position: relative;
+        }
+
+        .validation-screen {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(180deg, #0a0e27 0%, #1a1a2e 100%);
+        }
+
+        .validation-spinner {
+          width: 50px;
+          height: 50px;
+          border: 3px solid rgba(247, 231, 206, 0.2);
+          border-top-color: #F7E7CE;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 20px;
+        }
+
+        .validation-text {
+          font-size: 16px;
+          color: #F7E7CE;
+          letter-spacing: 0.15em;
+        }
+
+        .blocked-screen {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          background: linear-gradient(180deg, #0a0e27 0%, #1a1a2e 100%);
+        }
+
+        .zen-container {
+          text-align: center;
+          max-width: 500px;
+          padding: 60px 40px;
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(20px);
+          border-radius: 24px;
+          border: 1px solid rgba(247, 231, 206, 0.2);
+        }
+
+        .zen-icon {
+          font-size: 80px;
+          margin-bottom: 30px;
+          animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+
+        .zen-title {
+          font-size: 28px;
+          color: #F7E7CE;
+          font-weight: 300;
+          letter-spacing: 0.15em;
+          margin-bottom: 24px;
+          line-height: 1.6;
+        }
+
+        .zen-message {
+          font-size: 18px;
+          color: rgba(247, 231, 206, 0.8);
+          letter-spacing: 0.1em;
+          line-height: 1.8;
+          margin-bottom: 50px;
+        }
+
+        .zen-footer {
+          padding-top: 40px;
+          border-top: 1px solid rgba(247, 231, 206, 0.2);
+        }
+
+        .zen-sparkle {
+          font-size: 40px;
+          margin-bottom: 16px;
+        }
+
+        .zen-brand {
+          font-size: 24px;
+          color: #F7E7CE;
+          letter-spacing: 0.25em;
+          font-weight: 300;
+          margin-bottom: 8px;
+        }
+
+        .zen-tagline {
+          font-size: 14px;
+          color: rgba(247, 231, 206, 0.6);
+          letter-spacing: 0.2em;
         }
       `}</style>
     </div>

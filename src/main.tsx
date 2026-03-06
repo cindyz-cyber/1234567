@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App.tsx';
 import ShareJournal from './components/ShareJournal.tsx';
+import ShareConfigAdmin from './components/ShareConfigAdmin.tsx';
 import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
 import { initializeVideoPreload } from './utils/videoPreloader';
@@ -86,6 +87,7 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/share/journal" element={<ShareJournal />} />
+        <Route path="/admin/share-config" element={<ShareConfigAdmin />} />
         <Route path="/*" element={<App />} />
       </Routes>
     </BrowserRouter>
