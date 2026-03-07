@@ -34,7 +34,14 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
   };
 
   const handleComplete = () => {
+    console.log('🎯 [BookOfAnswers] 生成卡片按钮被点击');
+    console.log('🔒 [BookOfAnswers] 当前 URL:', window.location.href);
+    console.log('📍 [BookOfAnswers] 调用 onComplete 回调...');
+
     onComplete();
+
+    console.log('✅ [BookOfAnswers] onComplete 回调已执行');
+
     setTimeout(() => {
       stopAllAudio();
     }, 100);

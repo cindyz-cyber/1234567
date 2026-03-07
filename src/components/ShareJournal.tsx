@@ -54,6 +54,20 @@ export default function ShareJournal() {
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // 🔒 防护：拦截任何路由跳转尝试
+  useEffect(() => {
+    const preventNavigation = (e: BeforeUnloadEvent) => {
+      if (currentStep === 'card' && generatedImage) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    window.addEventListener('beforeunload', preventNavigation);
+    return () => window.removeEventListener('beforeunload', preventNavigation);
+  }, [currentStep, generatedImage]);
+
   useEffect(() => {
     validateAccess();
   }, []);
@@ -188,8 +202,18 @@ export default function ShareJournal() {
   };
 
   const handleAnswerComplete = () => {
+    console.log('🎯 [ShareJournal] 答案之书完成，准备生成卡片');
+    console.log('🔒 [ShareJournal] 当前路由:', window.location.pathname);
+    console.log('🔄 [ShareJournal] 切换步骤: answer → card');
+
+    // 🔒 关键：先切换状态，确保页面停留在引流页
     setCurrentStep('card');
-    generateEnergyCard();
+
+    // 延迟执行生成，确保 DOM 已更新
+    setTimeout(() => {
+      console.log('⏰ [ShareJournal] 延迟执行 generateEnergyCard...');
+      generateEnergyCard();
+    }, 100);
 
     if (backgroundMusic) {
       setTimeout(() => {
@@ -211,19 +235,28 @@ export default function ShareJournal() {
   };
 
   const generateEnergyCard = async () => {
-    console.log('🎴 开始生成能量卡片...');
-    console.log('🖼️ 卡片背景图 URL:', config?.card_inner_bg_url);
+    console.log('🎴 [generateEnergyCard] 开始生成能量卡片...');
+    console.log('🖼️ [generateEnergyCard] 卡片背景图 URL:', config?.card_inner_bg_url);
+    console.log('🔒 [generateEnergyCard] 当前步骤:', currentStep);
+    console.log('🔒 [generateEnergyCard] 当前路由:', window.location.pathname);
 
     setIsGenerating(true);
     await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
       if (!cardRef.current) {
-        console.error('❌ cardRef.current 不存在');
+        console.error('❌ [generateEnergyCard] cardRef.current 不存在');
+        console.error('❌ [generateEnergyCard] 这不应该发生！DOM 元素应该已经渲染');
+        setIsGenerating(false);
         return;
       }
 
-      console.log('📸 准备捕获卡片 DOM...');
+      console.log('📸 [generateEnergyCard] cardRef.current 存在，准备捕获...');
+      console.log('📐 [generateEnergyCard] DOM 尺寸:', {
+        width: cardRef.current.offsetWidth,
+        height: cardRef.current.offsetHeight
+      });
+
       const canvas = await html2canvas(cardRef.current, {
         useCORS: true,
         allowTaint: true,
@@ -234,17 +267,29 @@ export default function ShareJournal() {
         height: 1334
       });
 
-      console.log('✅ 卡片生成成功');
+      console.log('✅ [generateEnergyCard] html2canvas 捕获成功');
+      console.log('📊 [generateEnergyCard] Canvas 尺寸:', {
+        width: canvas.width,
+        height: canvas.height
+      });
+
       const imageUrl = canvas.toDataURL('image/png', 1.0);
+      console.log('✅ [generateEnergyCard] 图片 Data URL 生成成功，长度:', imageUrl.length);
+
       setGeneratedImage(imageUrl);
       setIsGenerating(false);
+
+      console.log('✅ [generateEnergyCard] 状态更新完成，应显示全屏卡片');
     } catch (err) {
-      console.error('❌ 卡片生成失败:', err);
+      console.error('❌ [generateEnergyCard] 卡片生成失败:', err);
+      console.error('❌ [generateEnergyCard] 错误堆栈:', err instanceof Error ? err.stack : '无堆栈信息');
       setIsGenerating(false);
     }
   };
 
   const renderStep = () => {
+    console.log('🎬 [ShareJournal] renderStep 被调用, currentStep:', currentStep);
+
     if (isValidating) {
       return (
         <div className="validation-screen">
@@ -365,6 +410,7 @@ export default function ShareJournal() {
         );
 
       case 'card':
+        console.log('✅ [ShareJournal] 渲染卡片步骤, isGenerating:', isGenerating, 'generatedImage:', !!generatedImage);
         return (
           <div className="energy-card-display">
             {isGenerating && (
@@ -395,6 +441,7 @@ export default function ShareJournal() {
 
                   <button
                     onClick={() => {
+                      console.log('🔄 [ShareJournal] 用户点击重新开始');
                       setCurrentStep('naming');
                       setState({
                         userName: '',
@@ -412,6 +459,13 @@ export default function ShareJournal() {
                   </button>
                 </div>
               </>
+            )}
+
+            {!isGenerating && !generatedImage && (
+              <div className="generating-overlay">
+                <div className="generating-spinner" />
+                <p className="generating-text">准备生成卡片...</p>
+              </div>
             )}
 
             <div
