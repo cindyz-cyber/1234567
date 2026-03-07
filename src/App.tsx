@@ -28,7 +28,7 @@ interface JourneyData {
   emotions: string[];
   bodyStates: string[];
   journalContent: string;
-  higherSelfResponse: string; // 🔥 高我建议内容
+  higherSelfResponse: string;
 }
 
 interface UserNames {
@@ -49,7 +49,7 @@ function App() {
     emotions: [],
     bodyStates: [],
     journalContent: '',
-    higherSelfResponse: '', // 🔥 初始化高我建议
+    higherSelfResponse: '',
   });
 
   useEffect(() => {
@@ -62,7 +62,6 @@ function App() {
       setLoading(false);
     }, 5000);
 
-    // 立即启动背景资源预加载（并行不阻塞）
     preloadCoreBackgrounds().catch(err => {
       console.warn('Background preload failed (non-critical):', err);
     });
@@ -169,7 +168,6 @@ function App() {
     console.log('🔍 建议是否为空:', response.trim() === '');
     console.groupEnd();
 
-    // 🔥 防御性检查：确保建议不为空
     if (!response || response.trim() === '') {
       console.error('❌ [App.tsx] 致命错误：高我建议为空！');
       alert('高我建议生成失败，请重新输入');
@@ -177,7 +175,6 @@ function App() {
     }
 
     try {
-      // 🔥 关键修复：先存储到状态，再保存到数据库
       setJourneyData(prev => ({
         ...prev,
         higherSelfResponse: response
@@ -201,7 +198,6 @@ function App() {
       setCurrentStep('answers');
     } catch (error) {
       console.error('❌ [App.tsx] 数据库保存失败:', error);
-      // 即使数据库保存失败，也继续流程（数据已在状态中）
       setBackgroundAudio(audio);
       setCurrentStep('answers');
     }
@@ -212,14 +208,12 @@ function App() {
     console.log('🔒 当前路径:', window.location.pathname);
     console.log('🔍 检测是否在引流页...');
 
-    // 🚫 强制拦截：如果在引流页，禁止跳转到 home
     if (window.location.pathname.includes('share/journal')) {
       console.log('✅ 检测到引流页路径，拦截跳转');
       console.log('🔒 保持状态: currentStep 维持 "answers"');
       console.log('🎵 保持音频: 不停止背景音乐');
       console.log('💾 保持数据: 不清空 journeyData');
       console.groupEnd();
-      // 引流页不执行任何重置动作，保持在 answers 状态
       return;
     }
 
@@ -231,7 +225,7 @@ function App() {
       emotions: [],
       bodyStates: [],
       journalContent: '',
-      higherSelfResponse: '', // 🔥 重置高我建议
+      higherSelfResponse: '',
     });
     setBackgroundAudio(null);
     setCurrentStep('home');
@@ -243,7 +237,7 @@ function App() {
       emotions: [],
       bodyStates: [],
       journalContent: '',
-      higherSelfResponse: '', // 🔥 重置高我建议
+      higherSelfResponse: '',
     });
     setBackgroundAudio(null);
     setCurrentStep('home');
@@ -289,7 +283,6 @@ function App() {
     return <NamingRitual onComplete={handleNamingComplete} />;
   }
 
-  // 旅程步骤优先于标签页渲染
   console.log('🔍 App render, currentStep:', currentStep, 'currentTab:', currentTab);
 
   if (currentStep !== 'home') {
@@ -356,7 +349,6 @@ function App() {
       );
     }
 
-    // 如果步骤不匹配任何已知步骤，回到首页
     console.warn('⚠️ Unknown step, resetting to home:', currentStep);
     setCurrentStep('home');
   }
@@ -368,7 +360,7 @@ function App() {
       {currentTab !== 'person' && <VideoBackground />}
       <GoldenDust />
 
-      {false && userNames && (
+      {!isAdmin && userNames && (
         <button
           onClick={async () => {
             if (confirm('设置当前用户为管理员？')) {
@@ -395,18 +387,18 @@ function App() {
                       is_admin: true
                     });
                 }
-                alert('✅ 已设置为管理员！页面将刷新...');
+                alert('已设置为管理员，页面将刷新');
                 window.location.reload();
               } catch (error) {
                 console.error(error);
-                alert('❌ 设置失败');
+                alert('设置失败');
               }
             }
           }}
           className="fixed top-4 right-4 z-50 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 text-white rounded-lg text-sm backdrop-blur-lg transition-all"
           style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' }}
         >
-          ��️ 设为管理员
+          设为管理员
         </button>
       )}
 
