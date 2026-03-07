@@ -61,6 +61,9 @@ export default function ShareConfigAdmin() {
 
   const loadConfig = async () => {
     setLoading(true);
+    console.group('🔄 [ShareConfigAdmin] 加载配置');
+    console.log('📍 请求配置 ID:', CONFIG_ID);
+
     try {
       const { data, error } = await supabase
         .from('h5_share_config')
@@ -68,11 +71,22 @@ export default function ShareConfigAdmin() {
         .eq('id', CONFIG_ID)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase 查询错误:', error);
+        throw error;
+      }
 
       if (data) {
+        console.log('✅ 成功获取数据库配置:', data);
+        console.log('🔍 关键字段验证:');
+        console.log('  - card_inner_bg_url:', data.card_inner_bg_url || '(空)');
+        console.log('  - bg_video_url:', data.bg_video_url || '(空)');
+        console.log('  - bg_music_url:', data.bg_music_url || '(空)');
+        console.log('  - daily_token:', data.daily_token || '(空)');
+
         setConfig(data);
-        setFormData({
+
+        const newFormData = {
           is_active: data.is_active,
           daily_token: data.daily_token,
           bg_video_url: data.bg_video_url,
@@ -84,10 +98,20 @@ export default function ShareConfigAdmin() {
           bg_transition_url: data.bg_transition_url || '',
           bg_answer_book_url: data.bg_answer_book_url || '',
           card_inner_bg_url: data.card_inner_bg_url || ''
-        });
+        };
+
+        console.log('💾 设置表单数据:', newFormData);
+        setFormData(newFormData);
+
+        console.log('✅ 数据回显完成');
+        console.groupEnd();
+      } else {
+        console.warn('⚠️ 数据库中没有找到配置记录');
+        console.groupEnd();
       }
     } catch (error) {
-      console.error('加载配置失败:', error);
+      console.error('❌ 加载配置失败:', error);
+      console.groupEnd();
       setMessage('加载配置失败');
     } finally {
       setLoading(false);
@@ -121,6 +145,9 @@ export default function ShareConfigAdmin() {
     setSaving(true);
     setMessage('');
 
+    console.group('💾 [ShareConfigAdmin] 保存配置');
+    console.log('📊 当前表单数据:', formData);
+
     try {
       // 核心字段必须验证 WebP 格式
       const criticalImageFields = [
@@ -137,46 +164,68 @@ export default function ShareConfigAdmin() {
         { url: formData.bg_answer_book_url, name: '答案之书页背景', isRequired: false }
       ];
 
+      console.log('🔍 开始验证核心字段...');
       // 验证核心字段
       for (const field of criticalImageFields) {
+        console.log(`  - 验证 ${field.name}:`, field.url || '(空)');
         const error = validateImageFormat(field.url, field.name, field.isRequired);
         if (error) {
+          console.error(`  ❌ 验证失败: ${error}`);
           setMessage(`❌ ${error}`);
           setTimeout(() => setMessage(''), 5000);
           setSaving(false);
+          console.groupEnd();
           return;
         }
+        console.log(`  ✅ 验证通过`);
       }
 
+      console.log('🔍 验证可选字段（不阻止保存）...');
       // 验证可选字段（不阻止保存，只警告）
       for (const field of optionalFields) {
         validateImageFormat(field.url, field.name, field.isRequired);
       }
 
+      console.log('📤 向 Supabase 提交更新...');
+      const updatePayload = {
+        is_active: formData.is_active,
+        daily_token: formData.daily_token,
+        bg_video_url: formData.bg_video_url,
+        bg_music_url: formData.bg_music_url,
+        card_bg_image_url: formData.card_bg_image_url,
+        bg_naming_url: formData.bg_naming_url,
+        bg_emotion_url: formData.bg_emotion_url,
+        bg_journal_url: formData.bg_journal_url,
+        bg_transition_url: formData.bg_transition_url,
+        bg_answer_book_url: formData.bg_answer_book_url,
+        card_inner_bg_url: formData.card_inner_bg_url
+      };
+
+      console.log('📦 更新数据包:', updatePayload);
+      console.log('🔑 目标 ID:', CONFIG_ID);
+
       const { error } = await supabase
         .from('h5_share_config')
-        .update({
-          is_active: formData.is_active,
-          daily_token: formData.daily_token,
-          bg_video_url: formData.bg_video_url,
-          bg_music_url: formData.bg_music_url,
-          card_bg_image_url: formData.card_bg_image_url,
-          bg_naming_url: formData.bg_naming_url,
-          bg_emotion_url: formData.bg_emotion_url,
-          bg_journal_url: formData.bg_journal_url,
-          bg_transition_url: formData.bg_transition_url,
-          bg_answer_book_url: formData.bg_answer_book_url,
-          card_inner_bg_url: formData.card_inner_bg_url
-        })
+        .update(updatePayload)
         .eq('id', CONFIG_ID);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase 更新失败:', error);
+        throw error;
+      }
 
+      console.log('✅ Supabase 更新成功');
       setMessage('🌿 配置已同步至云端，前台已实时生效');
+
+      console.log('🔄 重新加载配置以确认保存...');
       await loadConfig();
+      console.log('✅ 配置保存流程完成');
+      console.groupEnd();
+
       setTimeout(() => setMessage(''), 5000);
     } catch (error) {
-      console.error('保存失败:', error);
+      console.error('❌ 保存失败:', error);
+      console.groupEnd();
       setMessage('❌ 保存失败，请稍后重试');
       setTimeout(() => setMessage(''), 5000);
     } finally {

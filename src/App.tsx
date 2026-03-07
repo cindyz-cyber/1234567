@@ -172,6 +172,24 @@ function App() {
   }
 
   function handleAnswersComplete() {
+    console.group('🚨 [App.tsx] handleAnswersComplete 被调用');
+    console.log('🔒 当前路径:', window.location.pathname);
+    console.log('🔍 检测是否在引流页...');
+
+    // 🚫 强制拦截：如果在引流页，禁止跳转到 home
+    if (window.location.pathname.includes('share/journal')) {
+      console.log('✅ 检测到引流页路径，拦截跳转');
+      console.log('🔒 保持状态: currentStep 维持 "answers"');
+      console.log('🎵 保持音频: 不停止背景音乐');
+      console.log('💾 保持数据: 不清空 journeyData');
+      console.groupEnd();
+      // 引流页不执行任何重置动作，保持在 answers 状态
+      return;
+    }
+
+    console.log('🏠 非引流页，执行正常返回主页逻辑');
+    console.groupEnd();
+
     stopAllAudio();
     setJourneyData({
       emotions: [],
