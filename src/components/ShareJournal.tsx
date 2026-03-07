@@ -515,44 +515,83 @@ export default function ShareJournal() {
                     }}
                   />
 
-                  <button
-                    onClick={() => {
-                      console.log('🔄 [ShareJournal] 用户点击重新开始');
-                      console.log('🚫 [ShareJournal] 拦截：不跳转到首页，直接重置流程');
-                      setCurrentStep('naming');
-                      setState({
-                        userName: '',
-                        birthDate: null,
-                        selectedEmotions: [],
-                        journalContent: '',
-                        higherSelfMessage: '',
-                        kinData: null
-                      });
-                      setGeneratedImage(null);
-                    }}
-                    className="fullscreen-restart-button"
-                    style={{
-                      position: 'absolute',
-                      bottom: '30px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      padding: '14px 32px',
-                      fontSize: '15px',
-                      fontWeight: '300',
-                      letterSpacing: '0.2em',
-                      background: 'rgba(200, 220, 255, 0.08)',
-                      backdropFilter: 'blur(40px)',
-                      border: '1px solid rgba(200, 220, 255, 0.25)',
-                      borderRadius: '8px',
-                      color: 'rgba(200, 220, 255, 0.9)',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(200, 220, 255, 0.1)',
-                      zIndex: 100000
-                    }}
-                  >
-                    开启新的觉察之旅
-                  </button>
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '30px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    display: 'flex',
+                    gap: '16px',
+                    zIndex: 100000
+                  }}>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.group('🔒 [ShareJournal] 用户点击关闭海报');
+                        console.log('🚫 拦截: 不跳转到首页');
+                        console.log('🔄 动作: 关闭海报，返回答案之书结果页');
+                        console.log('🔒 路由: 保持在 /share/journal');
+                        console.groupEnd();
+                        setGeneratedImage(null);
+                        setCurrentStep('answer');
+                      }}
+                      style={{
+                        padding: '14px 32px',
+                        fontSize: '15px',
+                        fontWeight: '300',
+                        letterSpacing: '0.2em',
+                        background: 'rgba(200, 220, 255, 0.08)',
+                        backdropFilter: 'blur(40px)',
+                        border: '1px solid rgba(200, 220, 255, 0.25)',
+                        borderRadius: '8px',
+                        color: 'rgba(200, 220, 255, 0.9)',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(200, 220, 255, 0.1)'
+                      }}
+                    >
+                      关闭
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.group('🔄 [ShareJournal] 用户点击重新开始');
+                        console.log('🚫 拦截: 不跳转到首页');
+                        console.log('🔄 动作: 重置所有状态，返回起名页');
+                        console.log('🔒 路由: 保持在 /share/journal');
+                        console.groupEnd();
+                        setCurrentStep('naming');
+                        setState({
+                          userName: '',
+                          birthDate: null,
+                          selectedEmotions: [],
+                          journalContent: '',
+                          higherSelfMessage: '',
+                          kinData: null
+                        });
+                        setGeneratedImage(null);
+                      }}
+                      style={{
+                        padding: '14px 32px',
+                        fontSize: '15px',
+                        fontWeight: '300',
+                        letterSpacing: '0.2em',
+                        background: 'rgba(200, 220, 255, 0.12)',
+                        backdropFilter: 'blur(40px)',
+                        border: '1px solid rgba(200, 220, 255, 0.3)',
+                        borderRadius: '8px',
+                        color: 'rgba(200, 220, 255, 0.95)',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(200, 220, 255, 0.15)'
+                      }}
+                    >
+                      开启新的觉察之旅
+                    </button>
+                  </div>
                 </div>
               </>
             )}

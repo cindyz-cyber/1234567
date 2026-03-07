@@ -33,18 +33,28 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
     }
   };
 
-  const handleComplete = () => {
-    console.log('🎯 [BookOfAnswers] 生成卡片按钮被点击');
-    console.log('🔒 [BookOfAnswers] 当前 URL:', window.location.href);
-    console.log('📍 [BookOfAnswers] 调用 onComplete 回调...');
+  const handleComplete = (e?: React.MouseEvent) => {
+    // 🚫 强制阻止任何默认行为和事件冒泡
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    console.group('🎯 [BookOfAnswers] 生成卡片按钮被点击 - 强制拦截跳转');
+    console.log('🚫 事件拦截: preventDefault + stopPropagation');
+    console.log('🔒 当前完整路径:', window.location.pathname + window.location.search);
+    console.log('🔒 当前完整 URL:', window.location.href);
+    console.log('🚫 路由锁定: 禁止任何跳转到 / 或主页的行为');
+    console.log('📍 即将调用 onComplete 回调...');
+    console.groupEnd();
 
     onComplete();
 
     console.log('✅ [BookOfAnswers] onComplete 回调已执行');
+    console.log('🔒 [BookOfAnswers] 回调后路径验证:', window.location.pathname);
 
-    setTimeout(() => {
-      stopAllAudio();
-    }, 100);
+    // 🚫 不再停止音频，让引流页自己控制
+    console.log('🎵 [BookOfAnswers] 保留音频播放，由父组件控制');
   };
 
   return (
@@ -194,7 +204,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
             </p>
             <button
               id="generate-poster-btn"
-              onClick={handleComplete}
+              onClick={(e) => handleComplete(e)}
               className="complete-button"
               style={{
                 padding: '14px 40px',
