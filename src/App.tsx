@@ -28,6 +28,7 @@ interface JourneyData {
   emotions: string[];
   bodyStates: string[];
   journalContent: string;
+  higherSelfResponse: string; // 🔥 高我建议内容
 }
 
 interface UserNames {
@@ -48,6 +49,7 @@ function App() {
     emotions: [],
     bodyStates: [],
     journalContent: '',
+    higherSelfResponse: '', // 🔥 初始化高我建议
   });
 
   useEffect(() => {
@@ -144,7 +146,14 @@ function App() {
     setCurrentStep('innerWhisper');
   }
 
-  function handleInnerWhisperComplete() {
+  function handleInnerWhisperComplete(journalText: string) {
+    console.log('📝 [App.tsx] 日记完成，内容长度:', journalText.length);
+
+    setJourneyData(prev => ({
+      ...prev,
+      journalContent: journalText
+    }));
+
     setCurrentStep('transition');
   }
 
@@ -154,7 +163,28 @@ function App() {
   }
 
   async function handleDialogueComplete(response: string, audio: HTMLAudioElement | null) {
+    console.group('📝 [App.tsx] 高我对话完成');
+    console.log('✅ 高我建议内容:', response);
+    console.log('📊 建议长度:', response.length, '字符');
+    console.log('🔍 建议是否为空:', response.trim() === '');
+    console.groupEnd();
+
+    // 🔥 防御性检查：确保建议不为空
+    if (!response || response.trim() === '') {
+      console.error('❌ [App.tsx] 致命错误：高我建议为空！');
+      alert('高我建议生成失败，请重新输入');
+      return;
+    }
+
     try {
+      // 🔥 关键修复：先存储到状态，再保存到数据库
+      setJourneyData(prev => ({
+        ...prev,
+        higherSelfResponse: response
+      }));
+
+      console.log('💾 [App.tsx] 正在保存到数据库...');
+
       await supabase
         .from('journal_entries')
         .insert({
@@ -164,10 +194,16 @@ function App() {
           higher_self_response: response,
         });
 
+      console.log('✅ [App.tsx] 数据库保存成功');
+      console.log('🔍 [App.tsx] journeyData.higherSelfResponse 已更新为:', response);
+
       setBackgroundAudio(audio);
       setCurrentStep('answers');
     } catch (error) {
-      console.error('Error saving journal entry:', error);
+      console.error('❌ [App.tsx] 数据库保存失败:', error);
+      // 即使数据库保存失败，也继续流程（数据已在状态中）
+      setBackgroundAudio(audio);
+      setCurrentStep('answers');
     }
   }
 
@@ -195,6 +231,7 @@ function App() {
       emotions: [],
       bodyStates: [],
       journalContent: '',
+      higherSelfResponse: '', // 🔥 重置高我建议
     });
     setBackgroundAudio(null);
     setCurrentStep('home');
@@ -206,6 +243,7 @@ function App() {
       emotions: [],
       bodyStates: [],
       journalContent: '',
+      higherSelfResponse: '', // 🔥 重置高我建议
     });
     setBackgroundAudio(null);
     setCurrentStep('home');
@@ -301,7 +339,21 @@ function App() {
     }
 
     if (currentStep === 'answers') {
-      return <BookOfAnswers onComplete={handleAnswersComplete} backgroundAudio={backgroundAudio} onBack={handleBackToDialogue} />;
+      console.group('📖 [App.tsx] 渲染答案之书');
+      console.log('✅ 传递给 BookOfAnswers 的 higherSelfAdvice:', journeyData.higherSelfResponse);
+      console.log('📊 长度:', journeyData.higherSelfResponse?.length || 0);
+      console.log('🔍 是否为空:', !journeyData.higherSelfResponse || journeyData.higherSelfResponse.trim() === '');
+      console.groupEnd();
+
+      return (
+        <BookOfAnswers
+          onComplete={handleAnswersComplete}
+          backgroundAudio={backgroundAudio}
+          onBack={handleBackToDialogue}
+          higherSelfAdvice={journeyData.higherSelfResponse}
+          userName={userNames?.userName}
+        />
+      );
     }
 
     // 如果步骤不匹配任何已知步骤，回到首页

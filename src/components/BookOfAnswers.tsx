@@ -203,6 +203,22 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
     console.log('🎴 海报背景 URL:', cardBgUrl);
     console.groupEnd();
 
+    // 🔥 关键校验：海报内容数据检查
+    console.group('🔍 [BookOfAnswers] 海报内容最终校验');
+    console.log('📝 higherSelfAdvice (海报将显示的内容):', higherSelfAdvice);
+    console.log('📊 内容长度:', higherSelfAdvice?.length || 0, '字符');
+    console.log('🔍 是否为空:', !higherSelfAdvice || higherSelfAdvice.trim() === '');
+    console.log('👤 用户名:', userName || '(未设置)');
+    console.log('✅ 确认：海报将显示此文案（而非随机 wisdom）');
+    console.groupEnd();
+
+    // 🔥 防御性检查：确保海报内容不为空
+    if (!higherSelfAdvice || higherSelfAdvice.trim() === '') {
+      console.error('❌ [BookOfAnswers] 致命错误：海报内容为空，无法生成！');
+      alert('海报内容为空，请返回重新生成高我建议');
+      return;
+    }
+
     // 🔥 第一步：先显示遮罩层和加载状态
     setShowPoster(true);
     setGeneratingPoster(true);

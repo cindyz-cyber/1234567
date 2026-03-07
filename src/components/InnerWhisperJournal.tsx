@@ -117,24 +117,10 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
 
     setIsSaving(true);
     try {
-      const userName = localStorage.getItem('userName');
-      const higherSelfName = localStorage.getItem('higherSelfName');
+      // 🔥 移除中间保存步骤，最终数据由 App.tsx 在高我对话完成时保存
+      // 这样避免数据库字段不匹配错误，并确保数据完整性
 
-      if (userName && higherSelfName) {
-        const { error } = await supabase
-          .from('journal_entries')
-          .insert({
-            user_name: userName,
-            higher_self_name: higherSelfName,
-            journal_content: journalText,
-            emotions: emotions,
-            body_states: bodyStates
-          });
-
-        if (error) {
-          console.error('Database error:', error);
-        }
-      }
+      console.log('📝 [InnerWhisperJournal] 日记内容已完成，长度:', journalText.length);
 
       if (onNext) {
         onNext(journalText);
