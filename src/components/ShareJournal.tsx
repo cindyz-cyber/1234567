@@ -220,10 +220,22 @@ export default function ShareJournal() {
     console.group('📝 [ShareJournal] 高我建议已完成');
     console.log('✅ 建议内容:', advice);
     console.log('📊 建议长度:', advice.length, '字符');
+    console.log('🔍 建议是否为空:', advice.trim() === '');
     console.groupEnd();
+
+    // 🔥 防御性检查：确保建议不为空
+    if (!advice || advice.trim() === '') {
+      console.error('❌ [ShareJournal] 致命错误：高我建议为空！');
+      alert('高我建议生成失败，请重新输入');
+      return;
+    }
 
     // 🔥 正确存储高我建议到 higherSelfAdvice 字段
     updateState({ higherSelfAdvice: advice });
+
+    // 验证存储
+    console.log('🔍 [ShareJournal] 验证存储: state.higherSelfAdvice 即将更新为:', advice);
+
     setCurrentStep('answer');
   };
 
@@ -465,6 +477,12 @@ export default function ShareJournal() {
         );
 
       case 'answer':
+        console.group('📖 [ShareJournal] 渲染答案之书');
+        console.log('✅ 传递给 BookOfAnswers 的 higherSelfAdvice:', state.higherSelfAdvice);
+        console.log('📊 长度:', state.higherSelfAdvice?.length || 0);
+        console.log('🔍 是否为空:', !state.higherSelfAdvice || state.higherSelfAdvice.trim() === '');
+        console.groupEnd();
+
         return (
           <DynamicStepBackground
             backgroundUrl={config?.bg_answer_book_url}
