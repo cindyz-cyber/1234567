@@ -222,11 +222,13 @@ export default function ShareJournal() {
     // 🔒 关键：先切换状态，确保页面停留在引流页
     setCurrentStep('card');
 
-    // 延迟执行生成，确保 DOM 已更新
+    // 延迟执行生成，确保 DOM 已完全渲染（增加到 500ms）
     setTimeout(() => {
       console.log('⏰ [ShareJournal] 延迟执行 generateEnergyCard...');
+      console.log('🔒 [ShareJournal] 二次确认路由:', window.location.pathname);
+      console.log('🔒 [ShareJournal] 当前步骤状态:', currentStep);
       generateEnergyCard();
-    }, 100);
+    }, 500);
 
     if (backgroundMusic) {
       setTimeout(() => {

@@ -43,11 +43,16 @@ export default function ShareConfigAdmin() {
     card_inner_bg_url: ''
   });
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadConfig();
+    }
+  }, [isAuthenticated]);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
-      loadConfig();
     } else {
       setMessage('密码错误');
       setTimeout(() => setMessage(''), 3000);
