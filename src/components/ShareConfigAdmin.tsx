@@ -89,10 +89,65 @@ export default function ShareConfigAdmin() {
     }
   };
 
+  const validateImageFormat = (url: string, fieldName: string, isRequired: boolean = false): string | null => {
+    if (!url || url.trim() === '') return null;
+
+    const lowerUrl = url.toLowerCase();
+
+    // 允许视频格式（.mp4）
+    if (lowerUrl.includes('.mp4')) return null;
+
+    // 图片必须是 WebP 格式
+    const hasWebpExtension = lowerUrl.endsWith('.webp');
+    const hasWebpParam = lowerUrl.includes('.webp?') || lowerUrl.includes('.webp&');
+
+    if (!hasWebpExtension && !hasWebpParam) {
+      if (isRequired) {
+        return `${fieldName} 必须使用 WebP 格式图片（.webp 后缀）`;
+      }
+      // 非必需字段只警告，不阻止保存
+      return null;
+    }
+
+    return null;
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setMessage('');
+
     try {
+      // 核心字段必须验证 WebP 格式
+      const criticalImageFields = [
+        { url: formData.card_inner_bg_url, name: '能量卡片分享背景图（Card Poster BG）', isRequired: true }
+      ];
+
+      // 可选字段允许视频或图片
+      const optionalFields = [
+        { url: formData.card_bg_image_url, name: '卡片背景图', isRequired: false },
+        { url: formData.bg_naming_url, name: '起名页背景', isRequired: false },
+        { url: formData.bg_emotion_url, name: '情绪扫描页背景', isRequired: false },
+        { url: formData.bg_journal_url, name: '日记页背景', isRequired: false },
+        { url: formData.bg_transition_url, name: '过渡页背景', isRequired: false },
+        { url: formData.bg_answer_book_url, name: '答案之书页背景', isRequired: false }
+      ];
+
+      // 验证核心字段
+      for (const field of criticalImageFields) {
+        const error = validateImageFormat(field.url, field.name, field.isRequired);
+        if (error) {
+          setMessage(`❌ ${error}`);
+          setTimeout(() => setMessage(''), 5000);
+          setSaving(false);
+          return;
+        }
+      }
+
+      // 验证可选字段（不阻止保存，只警告）
+      for (const field of optionalFields) {
+        validateImageFormat(field.url, field.name, field.isRequired);
+      }
+
       const { error } = await supabase
         .from('h5_share_config')
         .update({
@@ -283,81 +338,96 @@ export default function ShareConfigAdmin() {
 
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">
-                  起名页面背景
+                  起名页面背景（视频 .mp4 或图片 .webp）
                 </label>
                 <input
                   type="text"
                   value={formData.bg_naming_url}
                   onChange={(e) => setFormData({ ...formData, bg_naming_url: e.target.value })}
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder="https://cdn.com/naming-bg.mp4"
+                  placeholder="https://cdn.com/naming-bg.webp"
                 />
                 {formData.bg_naming_url && (
                   <p className="text-xs text-emerald-400 mt-2 break-all">✓ 当前值: {formData.bg_naming_url}</p>
+                )}
+                {formData.bg_naming_url && !formData.bg_naming_url.toLowerCase().includes('.webp') && !formData.bg_naming_url.toLowerCase().includes('.mp4') && (
+                  <p className="text-xs text-yellow-400 mt-2">⚠️ 建议使用 .webp 格式图片或 .mp4 视频</p>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">
-                  情绪选择页面背景
+                  情绪选择页面背景（视频 .mp4 或图片 .webp）
                 </label>
                 <input
                   type="text"
                   value={formData.bg_emotion_url}
                   onChange={(e) => setFormData({ ...formData, bg_emotion_url: e.target.value })}
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder="https://cdn.com/emotion-bg.mp4"
+                  placeholder="https://cdn.com/emotion-bg.webp"
                 />
                 {formData.bg_emotion_url && (
                   <p className="text-xs text-emerald-400 mt-2 break-all">✓ 当前值: {formData.bg_emotion_url}</p>
+                )}
+                {formData.bg_emotion_url && !formData.bg_emotion_url.toLowerCase().includes('.webp') && !formData.bg_emotion_url.toLowerCase().includes('.mp4') && (
+                  <p className="text-xs text-yellow-400 mt-2">⚠️ 建议使用 .webp 格式图片或 .mp4 视频</p>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">
-                  觉察日记书写页背景
+                  觉察日记书写页背景（视频 .mp4 或图片 .webp）
                 </label>
                 <input
                   type="text"
                   value={formData.bg_journal_url}
                   onChange={(e) => setFormData({ ...formData, bg_journal_url: e.target.value })}
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder="https://cdn.com/journal-bg.mp4"
+                  placeholder="https://cdn.com/journal-bg.webp"
                 />
                 {formData.bg_journal_url && (
                   <p className="text-xs text-emerald-400 mt-2 break-all">✓ 当前值: {formData.bg_journal_url}</p>
+                )}
+                {formData.bg_journal_url && !formData.bg_journal_url.toLowerCase().includes('.webp') && !formData.bg_journal_url.toLowerCase().includes('.mp4') && (
+                  <p className="text-xs text-yellow-400 mt-2">⚠️ 建议使用 .webp 格式图片或 .mp4 视频</p>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">
-                  黄金过渡页背景
+                  黄金过渡页背景（视频 .mp4 或图片 .webp）
                 </label>
                 <input
                   type="text"
                   value={formData.bg_transition_url}
                   onChange={(e) => setFormData({ ...formData, bg_transition_url: e.target.value })}
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder="https://cdn.com/transition-bg.mp4"
+                  placeholder="https://cdn.com/transition-bg.webp"
                 />
                 {formData.bg_transition_url && (
                   <p className="text-xs text-emerald-400 mt-2 break-all">✓ 当前值: {formData.bg_transition_url}</p>
+                )}
+                {formData.bg_transition_url && !formData.bg_transition_url.toLowerCase().includes('.webp') && !formData.bg_transition_url.toLowerCase().includes('.mp4') && (
+                  <p className="text-xs text-yellow-400 mt-2">⚠️ 建议使用 .webp 格式图片或 .mp4 视频</p>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">
-                  答案之书结果页全屏背景
+                  答案之书结果页全屏背景（视频 .mp4 或图片 .webp）
                 </label>
                 <input
                   type="text"
                   value={formData.bg_answer_book_url}
                   onChange={(e) => setFormData({ ...formData, bg_answer_book_url: e.target.value })}
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder="https://cdn.com/answer-bg.mp4"
+                  placeholder="https://cdn.com/answer-bg.webp"
                 />
                 {formData.bg_answer_book_url && (
                   <p className="text-xs text-emerald-400 mt-2 break-all">✓ 当前值: {formData.bg_answer_book_url}</p>
+                )}
+                {formData.bg_answer_book_url && !formData.bg_answer_book_url.toLowerCase().includes('.webp') && !formData.bg_answer_book_url.toLowerCase().includes('.mp4') && (
+                  <p className="text-xs text-yellow-400 mt-2">⚠️ 建议使用 .webp 格式图片或 .mp4 视频</p>
                 )}
               </div>
             </div>
@@ -375,26 +445,41 @@ export default function ShareConfigAdmin() {
 
               <div>
                 <label className="block text-sm font-medium text-amber-200 mb-2">
-                  能量卡片分享背景图（Card Poster BG）
+                  能量卡片分享背景图（Card Poster BG）⚡ 必须使用 .webp 格式
                 </label>
                 <input
                   type="text"
                   value={formData.card_inner_bg_url}
                   onChange={(e) => setFormData({ ...formData, card_inner_bg_url: e.target.value })}
                   className="w-full px-4 py-3 bg-white/5 border border-amber-400/30 rounded-lg text-white placeholder-amber-200/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder="https://cdn.com/card-inner-bg.jpg"
+                  placeholder="https://cdn.com/card-inner-bg.webp"
                 />
                 <div className="mt-3 space-y-2">
                   {formData.card_inner_bg_url ? (
-                    <div className="p-3 bg-emerald-500/20 border border-emerald-400/30 rounded-lg">
-                      <p className="text-xs text-emerald-300 font-medium mb-1">✓ 当前配置（此链接将直接替换 0_0_640_N.webp）:</p>
-                      <p className="text-xs text-emerald-200 break-all">{formData.card_inner_bg_url}</p>
-                    </div>
+                    <>
+                      {formData.card_inner_bg_url.toLowerCase().includes('.webp') ? (
+                        <div className="p-3 bg-emerald-500/20 border border-emerald-400/30 rounded-lg">
+                          <p className="text-xs text-emerald-300 font-medium mb-1">✓ 当前配置（此链接将直接替换 0_0_640_N.webp）:</p>
+                          <p className="text-xs text-emerald-200 break-all">{formData.card_inner_bg_url}</p>
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-red-500/30 border border-red-400/50 rounded-lg">
+                          <p className="text-xs text-red-300 font-bold mb-1">❌ 格式错误！必须使用 .webp 格式图片</p>
+                          <p className="text-xs text-red-200 break-all">当前链接: {formData.card_inner_bg_url}</p>
+                          <p className="text-xs text-red-200 mt-2">请确保链接以 .webp 结尾（例如：https://cdn.com/image.webp）</p>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="p-3 bg-orange-500/20 border border-orange-400/30 rounded-lg">
                       <p className="text-xs text-orange-200">⚠️ 未配置，将使用默认图片 /0_0_640_N.webp</p>
                     </div>
                   )}
+                  <div className="p-3 bg-purple-500/10 border border-purple-400/20 rounded-lg">
+                    <p className="text-xs text-purple-200">
+                      <strong>格式要求：</strong>必须使用 WebP 格式图片（.webp 后缀），推荐尺寸 750×1334px
+                    </p>
+                  </div>
                   <div className="p-3 bg-blue-500/10 border border-blue-400/20 rounded-lg">
                     <p className="text-xs text-blue-200">
                       <strong>技术说明：</strong>此字段对应数据库 h5_share_config.card_inner_bg_url，
