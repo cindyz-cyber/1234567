@@ -91,6 +91,7 @@ export default function ShareConfigAdmin() {
 
   const handleSave = async () => {
     setSaving(true);
+    setMessage('');
     try {
       const { error } = await supabase
         .from('h5_share_config')
@@ -111,12 +112,13 @@ export default function ShareConfigAdmin() {
 
       if (error) throw error;
 
-      setMessage('保存成功');
-      loadConfig();
-      setTimeout(() => setMessage(''), 3000);
+      setMessage('🌿 配置已同步至云端，前台已实时生效');
+      await loadConfig();
+      setTimeout(() => setMessage(''), 5000);
     } catch (error) {
       console.error('保存失败:', error);
-      setMessage('保存失败');
+      setMessage('❌ 保存失败，请稍后重试');
+      setTimeout(() => setMessage(''), 5000);
     } finally {
       setSaving(false);
     }
@@ -238,6 +240,9 @@ export default function ShareConfigAdmin() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   placeholder="https://your-cdn.com/video.mp4"
                 />
+                {formData.bg_video_url && (
+                  <p className="text-xs text-emerald-400 mt-2">✓ 当前值: {formData.bg_video_url}</p>
+                )}
               </div>
 
               <div>
@@ -251,11 +256,14 @@ export default function ShareConfigAdmin() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   placeholder="https://your-cdn.com/music.mp3"
                 />
+                {formData.bg_music_url && (
+                  <p className="text-xs text-emerald-400 mt-2">✓ 当前值: {formData.bg_music_url}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">
-                  分享卡片背景图URL（已废弃，请使用下方新字段）
+                  分享卡片背景图URL（已废弃，请使用下方"能量卡片分享背景图"字段）
                 </label>
                 <input
                   type="text"
@@ -263,8 +271,9 @@ export default function ShareConfigAdmin() {
                   onChange={(e) => setFormData({ ...formData, card_bg_image_url: e.target.value })}
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white/50 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   placeholder="/0_0_640_N.webp 或云端图片链接"
+                  disabled
                 />
-                <p className="text-xs text-white/40 mt-1">建议使用下方"流程背景配置"中的新字段</p>
+                <p className="text-xs text-white/40 mt-1">此字段已废弃，请使用下方"卡片视觉配置"区域的新字段</p>
               </div>
             </div>
 
@@ -283,6 +292,9 @@ export default function ShareConfigAdmin() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   placeholder="https://cdn.com/naming-bg.mp4"
                 />
+                {formData.bg_naming_url && (
+                  <p className="text-xs text-emerald-400 mt-2 break-all">✓ 当前值: {formData.bg_naming_url}</p>
+                )}
               </div>
 
               <div>
@@ -296,6 +308,9 @@ export default function ShareConfigAdmin() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   placeholder="https://cdn.com/emotion-bg.mp4"
                 />
+                {formData.bg_emotion_url && (
+                  <p className="text-xs text-emerald-400 mt-2 break-all">✓ 当前值: {formData.bg_emotion_url}</p>
+                )}
               </div>
 
               <div>
@@ -309,6 +324,9 @@ export default function ShareConfigAdmin() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   placeholder="https://cdn.com/journal-bg.mp4"
                 />
+                {formData.bg_journal_url && (
+                  <p className="text-xs text-emerald-400 mt-2 break-all">✓ 当前值: {formData.bg_journal_url}</p>
+                )}
               </div>
 
               <div>
@@ -322,6 +340,9 @@ export default function ShareConfigAdmin() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   placeholder="https://cdn.com/transition-bg.mp4"
                 />
+                {formData.bg_transition_url && (
+                  <p className="text-xs text-emerald-400 mt-2 break-all">✓ 当前值: {formData.bg_transition_url}</p>
+                )}
               </div>
 
               <div>
@@ -335,16 +356,26 @@ export default function ShareConfigAdmin() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   placeholder="https://cdn.com/answer-bg.mp4"
                 />
+                {formData.bg_answer_book_url && (
+                  <p className="text-xs text-emerald-400 mt-2 break-all">✓ 当前值: {formData.bg_answer_book_url}</p>
+                )}
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 p-6 rounded-xl border border-amber-400/50 space-y-4">
-              <h2 className="text-lg font-semibold text-amber-300 mb-4">卡片视觉配置</h2>
-              <p className="text-xs text-amber-200/80 mb-4">精细控制分享卡片内部的视觉元素</p>
+            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 p-6 rounded-xl border-2 border-amber-400/60 space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-amber-300">能量卡片分享背景图（Card Poster BG）</h2>
+                  <p className="text-xs text-amber-200/80 mt-1">此字段控制 html2canvas 生成海报时的底层背景图</p>
+                </div>
+                <div className="bg-amber-400/20 rounded-full px-3 py-1 border border-amber-400/40">
+                  <span className="text-amber-200 text-xs font-medium">核心配置</span>
+                </div>
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-amber-200 mb-2">
-                  答案之书卡片内部背景图
+                  能量卡片分享背景图（Card Poster BG）
                 </label>
                 <input
                   type="text"
@@ -353,9 +384,24 @@ export default function ShareConfigAdmin() {
                   className="w-full px-4 py-3 bg-white/5 border border-amber-400/30 rounded-lg text-white placeholder-amber-200/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   placeholder="https://cdn.com/card-inner-bg.jpg"
                 />
-                <p className="text-xs text-amber-200/60 mt-2">
-                  此背景将显示在截图卡片内部（html2canvas 捕获区域）
-                </p>
+                <div className="mt-3 space-y-2">
+                  {formData.card_inner_bg_url ? (
+                    <div className="p-3 bg-emerald-500/20 border border-emerald-400/30 rounded-lg">
+                      <p className="text-xs text-emerald-300 font-medium mb-1">✓ 当前配置（此链接将直接替换 0_0_640_N.webp）:</p>
+                      <p className="text-xs text-emerald-200 break-all">{formData.card_inner_bg_url}</p>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-orange-500/20 border border-orange-400/30 rounded-lg">
+                      <p className="text-xs text-orange-200">⚠️ 未配置，将使用默认图片 /0_0_640_N.webp</p>
+                    </div>
+                  )}
+                  <div className="p-3 bg-blue-500/10 border border-blue-400/20 rounded-lg">
+                    <p className="text-xs text-blue-200">
+                      <strong>技术说明：</strong>此字段对应数据库 h5_share_config.card_inner_bg_url，
+                      用于 ShareJournal 组件生成能量卡时的 html2canvas 截图背景
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
