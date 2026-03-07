@@ -211,27 +211,35 @@ export default function ShareJournal() {
   };
 
   const generateEnergyCard = async () => {
+    console.log('🎴 开始生成能量卡片...');
+    console.log('🖼️ 卡片背景图 URL:', config?.card_inner_bg_url);
+
     setIsGenerating(true);
     await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
-      if (!cardRef.current) return;
+      if (!cardRef.current) {
+        console.error('❌ cardRef.current 不存在');
+        return;
+      }
 
+      console.log('📸 准备捕获卡片 DOM...');
       const canvas = await html2canvas(cardRef.current, {
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
         scale: 2,
-        logging: false,
+        logging: true,
         width: 750,
         height: 1334
       });
 
+      console.log('✅ 卡片生成成功');
       const imageUrl = canvas.toDataURL('image/png', 1.0);
       setGeneratedImage(imageUrl);
       setIsGenerating(false);
     } catch (err) {
-      console.error('Card generation failed:', err);
+      console.error('❌ 卡片生成失败:', err);
       setIsGenerating(false);
     }
   };
@@ -367,37 +375,43 @@ export default function ShareJournal() {
             )}
 
             {generatedImage && (
-              <div className="card-result">
-                <div className="card-hint">
-                  <span className="pulse-dot" />
-                  <p className="hint-text">✨ 能量卡已生成，长按图片发送给朋友</p>
+              <>
+                <div className="fullscreen-card-overlay">
+                  <div className="fullscreen-hint">
+                    <span className="pulse-dot-large" />
+                    <p className="fullscreen-hint-text">✨ 能量卡已生成，长按图片发送给朋友</p>
+                  </div>
+
+                  <img
+                    src={generatedImage}
+                    alt="专属能量卡"
+                    className="fullscreen-card-image"
+                    style={{
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      WebkitTouchCallout: 'default'
+                    }}
+                  />
+
+                  <button
+                    onClick={() => {
+                      setCurrentStep('naming');
+                      setState({
+                        userName: '',
+                        birthDate: null,
+                        selectedEmotions: [],
+                        journalContent: '',
+                        higherSelfMessage: '',
+                        kinData: null
+                      });
+                      setGeneratedImage(null);
+                    }}
+                    className="fullscreen-restart-button"
+                  >
+                    开启新的觉察之旅
+                  </button>
                 </div>
-
-                <img
-                  src={generatedImage}
-                  alt="专属能量卡"
-                  className="energy-card-image"
-                  style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-                />
-
-                <button
-                  onClick={() => {
-                    setCurrentStep('naming');
-                    setState({
-                      userName: '',
-                      birthDate: null,
-                      selectedEmotions: [],
-                      journalContent: '',
-                      higherSelfMessage: '',
-                      kinData: null
-                    });
-                    setGeneratedImage(null);
-                  }}
-                  className="restart-button"
-                >
-                  开启新的觉察之旅
-                </button>
-              </div>
+              </>
             )}
 
             <div
@@ -564,7 +578,7 @@ export default function ShareJournal() {
               .generating-overlay {
                 position: fixed;
                 inset: 0;
-                background: rgba(0, 0, 0, 0.8);
+                background: rgba(0, 0, 0, 0.95);
                 backdrop-filter: blur(10px);
                 display: flex;
                 flex-direction: column;
@@ -593,68 +607,142 @@ export default function ShareJournal() {
                 letter-spacing: 0.15em;
               }
 
-              .card-result {
-                width: 100%;
-                max-width: 500px;
-                text-align: center;
+              /* 全屏覆盖层样式 */
+              .fullscreen-card-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 10000;
+                background: linear-gradient(180deg, #0a0e27 0%, #1a1a2e 100%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                overflow-y: auto;
               }
 
-              .card-hint {
+              .fullscreen-hint {
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 gap: 12px;
                 margin-bottom: 24px;
-                padding: 16px 24px;
-                background: rgba(247, 231, 206, 0.1);
-                border: 1px solid rgba(247, 231, 206, 0.3);
-                border-radius: 12px;
+                padding: 20px 32px;
+                background: linear-gradient(135deg, rgba(247, 231, 206, 0.15) 0%, rgba(235, 200, 98, 0.15) 100%);
+                border: 1px solid rgba(247, 231, 206, 0.4);
+                border-radius: 16px;
+                backdrop-filter: blur(20px);
+                animation: fadeInDown 0.6s ease-out;
               }
 
-              .pulse-dot {
-                width: 10px;
-                height: 10px;
+              @keyframes fadeInDown {
+                from {
+                  opacity: 0;
+                  transform: translateY(-30px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+
+              .pulse-dot-large {
+                width: 14px;
+                height: 14px;
                 background: #EBC862;
                 border-radius: 50%;
-                animation: pulse 2s ease-in-out infinite;
+                animation: pulseLarge 2s ease-in-out infinite;
+                box-shadow: 0 0 20px rgba(235, 200, 98, 0.6);
               }
 
-              @keyframes pulse {
-                0%, 100% { opacity: 1; transform: scale(1); }
-                50% { opacity: 0.6; transform: scale(1.2); }
+              @keyframes pulseLarge {
+                0%, 100% {
+                  opacity: 1;
+                  transform: scale(1);
+                  box-shadow: 0 0 20px rgba(235, 200, 98, 0.6);
+                }
+                50% {
+                  opacity: 0.7;
+                  transform: scale(1.3);
+                  box-shadow: 0 0 30px rgba(235, 200, 98, 0.8);
+                }
               }
 
-              .hint-text {
-                font-size: 16px;
+              .fullscreen-hint-text {
+                font-size: 17px;
                 color: #F7E7CE;
                 letter-spacing: 0.15em;
+                font-weight: 400;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
               }
 
-              .energy-card-image {
+              .fullscreen-card-image {
                 width: 100%;
-                max-width: 375px;
+                max-width: 420px;
                 height: auto;
-                border-radius: 16px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-                margin-bottom: 32px;
-              }
-
-              .restart-button {
-                padding: 16px 40px;
-                background: linear-gradient(135deg, rgba(247, 231, 206, 0.15) 0%, rgba(235, 200, 98, 0.15) 100%);
-                border: 1px solid rgba(247, 231, 206, 0.3);
-                border-radius: 12px;
-                color: #F7E7CE;
-                font-size: 16px;
-                letter-spacing: 0.2em;
+                border-radius: 20px;
+                box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+                margin-bottom: 40px;
+                animation: scaleIn 0.8s ease-out 0.3s both;
                 cursor: pointer;
-                transition: all 0.3s ease;
+                -webkit-user-select: none;
+                user-select: none;
+                -webkit-touch-callout: default;
               }
 
-              .restart-button:hover {
-                background: linear-gradient(135deg, rgba(247, 231, 206, 0.25) 0%, rgba(235, 200, 98, 0.25) 100%);
-                box-shadow: 0 4px 20px rgba(247, 231, 206, 0.3);
-                transform: translateY(-2px);
+              @keyframes scaleIn {
+                from {
+                  opacity: 0;
+                  transform: scale(0.9);
+                }
+                to {
+                  opacity: 1;
+                  transform: scale(1);
+                }
+              }
+
+              .fullscreen-restart-button {
+                padding: 18px 48px;
+                background: linear-gradient(135deg, rgba(247, 231, 206, 0.2) 0%, rgba(235, 200, 98, 0.2) 100%);
+                border: 1.5px solid rgba(247, 231, 206, 0.4);
+                border-radius: 14px;
+                color: #F7E7CE;
+                font-size: 17px;
+                letter-spacing: 0.25em;
+                cursor: pointer;
+                transition: all 0.4s ease;
+                backdrop-filter: blur(20px);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                animation: fadeInUp 0.8s ease-out 0.6s both;
+              }
+
+              @keyframes fadeInUp {
+                from {
+                  opacity: 0;
+                  transform: translateY(30px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+
+              .fullscreen-restart-button:hover {
+                background: linear-gradient(135deg, rgba(247, 231, 206, 0.3) 0%, rgba(235, 200, 98, 0.3) 100%);
+                border-color: rgba(247, 231, 206, 0.6);
+                box-shadow: 0 6px 30px rgba(247, 231, 206, 0.4);
+                transform: translateY(-3px);
+              }
+
+              .fullscreen-restart-button:active {
+                transform: translateY(-1px);
+              }
+
+              /* 支持移动端长按保存图片 */
+              @media (max-width: 768px) {
+                .fullscreen-card-image {
+                  max-width: 90%;
+                }
               }
             `}</style>
           </div>

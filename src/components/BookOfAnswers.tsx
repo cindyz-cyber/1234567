@@ -182,6 +182,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
               ✨ 接收完成，生成你的专属能量卡片
             </p>
             <button
+              id="generate-poster-btn"
               onClick={handleComplete}
               className="complete-button"
             >
