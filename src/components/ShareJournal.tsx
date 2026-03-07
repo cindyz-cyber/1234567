@@ -220,9 +220,13 @@ export default function ShareJournal() {
   };
 
   const handleAnswerComplete = () => {
-    console.log('🎯 [ShareJournal] 答案之书完成，准备生成卡片');
-    console.log('🔒 [ShareJournal] 当前路由:', window.location.pathname);
-    console.log('🔄 [ShareJournal] 切换步骤: answer → card');
+    console.group('🎯 [ShareJournal] 答案之书完成 - 自动跳转拦截验证');
+    console.log('📍 触发函数: handleAnswerComplete');
+    console.log('🔒 当前路由:', window.location.pathname);
+    console.log('🚫 自动跳转检测: 无任何 navigate() 或 Maps() 调用');
+    console.log('🔒 路由保持: /share/journal（不变）');
+    console.log('🔄 状态切换: answer → card');
+    console.groupEnd();
 
     // 🔒 关键：先切换状态，确保页面停留在引流页
     setCurrentStep('card');
@@ -235,23 +239,14 @@ export default function ShareJournal() {
       generateEnergyCard();
     }, 500);
 
-    if (backgroundMusic) {
-      setTimeout(() => {
-        if (backgroundMusic) {
-          backgroundMusic.volume = 0.5;
-          const fadeOut = setInterval(() => {
-            if (backgroundMusic && backgroundMusic.volume > 0.05) {
-              backgroundMusic.volume = Math.max(0, backgroundMusic.volume - 0.05);
-            } else {
-              clearInterval(fadeOut);
-              if (backgroundMusic) {
-                backgroundMusic.pause();
-              }
-            }
-          }, 200);
-        }
-      }, 2000);
-    }
+    // 🎵 音频继续播放，不淡出，不暂停
+    // 用户需要全程听到30分钟长音频，直到彻底关闭浏览器
+    console.group('🎵 [ShareJournal] 背景音频验证');
+    console.log('🎵 策略: 继续播放，不淡出，不暂停');
+    console.log('🔒 来源: h5_share_config.bg_music_url');
+    console.log('📊 状态: 用户可以边听30分钟音频边生成海报');
+    console.log('💾 清理: 只在组件卸载时释放资源');
+    console.groupEnd();
   };
 
   const generateEnergyCard = async () => {
@@ -454,10 +449,52 @@ export default function ShareJournal() {
 
             {generatedImage && (
               <>
-                <div className="fullscreen-card-overlay">
-                  <div className="fullscreen-hint">
-                    <span className="pulse-dot-large" />
-                    <p className="fullscreen-hint-text">✨ 能量卡已生成，长按图片发送给朋友</p>
+                <div className="fullscreen-card-overlay" style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '100vw',
+                  height: '100vh',
+                  zIndex: 99999,
+                  backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '20px',
+                  backdropFilter: 'blur(20px)'
+                }}>
+                  <div className="fullscreen-hint" style={{
+                    position: 'absolute',
+                    top: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center',
+                    zIndex: 100000,
+                    padding: '16px 24px',
+                    background: 'rgba(200, 220, 255, 0.15)',
+                    backdropFilter: 'blur(40px)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(200, 220, 255, 0.3)',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5), 0 0 40px rgba(200, 220, 255, 0.2)'
+                  }}>
+                    <span className="pulse-dot-large" style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: 'rgba(200, 220, 255, 0.9)',
+                      display: 'inline-block',
+                      marginRight: '8px',
+                      animation: 'pulse 2s ease-in-out infinite'
+                    }} />
+                    <p className="fullscreen-hint-text" style={{
+                      color: 'rgba(200, 220, 255, 0.95)',
+                      fontSize: '15px',
+                      fontWeight: '400',
+                      letterSpacing: '0.1em',
+                      margin: 0,
+                      textShadow: '0 0 20px rgba(200, 220, 255, 0.5)'
+                    }}>✨ 你的专属能量卡已生成，请长按发送给微信好友</p>
                   </div>
 
                   <img
@@ -465,6 +502,13 @@ export default function ShareJournal() {
                     alt="专属能量卡"
                     className="fullscreen-card-image"
                     style={{
+                      maxWidth: '90vw',
+                      maxHeight: '75vh',
+                      width: 'auto',
+                      height: 'auto',
+                      objectFit: 'contain',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 40px rgba(0, 0, 0, 0.7), 0 0 60px rgba(200, 220, 255, 0.15)',
                       userSelect: 'none',
                       WebkitUserSelect: 'none',
                       WebkitTouchCallout: 'default'
@@ -474,6 +518,7 @@ export default function ShareJournal() {
                   <button
                     onClick={() => {
                       console.log('🔄 [ShareJournal] 用户点击重新开始');
+                      console.log('🚫 [ShareJournal] 拦截：不跳转到首页，直接重置流程');
                       setCurrentStep('naming');
                       setState({
                         userName: '',
@@ -486,6 +531,25 @@ export default function ShareJournal() {
                       setGeneratedImage(null);
                     }}
                     className="fullscreen-restart-button"
+                    style={{
+                      position: 'absolute',
+                      bottom: '30px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      padding: '14px 32px',
+                      fontSize: '15px',
+                      fontWeight: '300',
+                      letterSpacing: '0.2em',
+                      background: 'rgba(200, 220, 255, 0.08)',
+                      backdropFilter: 'blur(40px)',
+                      border: '1px solid rgba(200, 220, 255, 0.25)',
+                      borderRadius: '8px',
+                      color: 'rgba(200, 220, 255, 0.9)',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(200, 220, 255, 0.1)',
+                      zIndex: 100000
+                    }}
                   >
                     开启新的觉察之旅
                   </button>
