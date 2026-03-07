@@ -102,6 +102,8 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
   const [cardBgUrl, setCardBgUrl] = useState<string>('');
   const [selectedWisdom, setSelectedWisdom] = useState<string>(''); // 🔥 翻牌时的随机文案
   const posterCardRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoBgUrl] = useState('https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/kh6mvlniog-1772856285046.mp4');
 
   // 🔥 验证传入的高我建议
   useEffect(() => {
@@ -237,22 +239,26 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
 
       console.log('📸 [BookOfAnswers] 开始捕获海报 DOM...');
 
-      // 🔥 第三步：预加载背景图
-      await new Promise<void>((resolve) => {
-        const img = new Image();
-        if (cardBgUrl.startsWith('http')) {
-          img.crossOrigin = 'anonymous';
+      // 🔥 第三步：捕获视频帧并设置为背景
+      if (videoRef.current && posterCardRef.current) {
+        const video = videoRef.current;
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 1920;
+        canvas.height = video.videoHeight || 1080;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const videoFrame = canvas.toDataURL('image/jpeg', 0.9);
+          const posterDiv = posterCardRef.current.querySelector('div') as HTMLDivElement;
+          if (posterDiv) {
+            posterDiv.style.backgroundImage = `url(${videoFrame})`;
+            console.log('✅ [BookOfAnswers] 视频帧捕获成功并设为背景');
+          }
         }
-        img.onload = () => {
-          console.log('✅ [BookOfAnswers] 背景图预加载成功');
-          resolve();
-        };
-        img.onerror = () => {
-          console.warn('⚠️ [BookOfAnswers] 背景图加载失败，继续生成');
-          resolve();
-        };
-        img.src = cardBgUrl;
-      });
+      }
+
+      // 等待背景更新
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       // 🔥 第四步：使用 html2canvas 生成海报
       const canvas = await html2canvas(posterCardRef.current, {
@@ -792,13 +798,33 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
         }
       `}</style>
 
+      {/* 🎬 隐藏的视频元素（用于捕获视频帧） */}
+      <video
+        ref={videoRef}
+        src={videoBgUrl}
+        autoPlay
+        loop
+        muted
+        playsInline
+        crossOrigin="anonymous"
+        style={{
+          position: 'fixed',
+          top: '-9999px',
+          left: '-9999px',
+          width: '1px',
+          height: '1px',
+          opacity: 0,
+          pointerEvents: 'none'
+        }}
+      />
+
       {/* 🔥 隐藏的海报卡片（用于 html2canvas 捕获） */}
       <div ref={posterCardRef} className="poster-card-hidden">
         <div
           style={{
             width: '750px',
             height: '1334px',
-            backgroundImage: `url(${cardBgUrl})`,
+            background: '#000000',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             display: 'flex',
@@ -828,24 +854,36 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
             </h1>
 
             <div style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(20px)',
+              backgroundImage: 'url(/0_0_640_N.webp)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
               padding: '60px 50px',
               borderRadius: '24px',
               border: '2px solid rgba(235, 200, 98, 0.4)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 40px rgba(235, 200, 98, 0.1)',
-              marginBottom: '60px'
+              marginBottom: '60px',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'rgba(255, 255, 255, 0.75)',
+                zIndex: 1
+              }} />
               <p style={{
                 fontSize: '42px',
                 fontWeight: '300',
                 lineHeight: '1.8',
                 letterSpacing: '0.15em',
-                textShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+                textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
                 fontFamily: "'Noto Serif SC', serif",
                 wordWrap: 'break-word',
                 wordBreak: 'break-word',
-                overflowWrap: 'break-word'
+                overflowWrap: 'break-word',
+                position: 'relative',
+                zIndex: 2,
+                color: '#2c3e50'
               }}>
                 {/* 🔥 海报卡片：必须显示真实的高我建议，而非随机文案 */}
                 {higherSelfAdvice}
