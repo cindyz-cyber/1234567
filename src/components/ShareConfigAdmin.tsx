@@ -128,13 +128,11 @@ export default function ShareConfigAdmin() {
 
     const trimmedUrl = url.trim();
 
-    // 🔥 宽松校验：只要是 https:// 或 http:// 或本地路径，就允许
     if (trimmedUrl.startsWith('https://') || trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('/')) {
-      console.log(`✅ [validateImageFormat] ${fieldName} 通过校验:`, trimmedUrl);
+      console.log(`✅ [validateImageFormat] ${fieldName} 通过校验 (支持 .jpg/.jpeg/.png/.webp/.gif 及带参数的 CDN 链接):`, trimmedUrl);
       return null;
     }
 
-    // 如果不是有效的 URL 格式，返回错误
     return `${fieldName} 必须是有效的 URL 地址（以 https:// 或 http:// 开头）或本地路径（以 / 开头）`;
   };
 

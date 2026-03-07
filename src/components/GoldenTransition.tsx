@@ -21,34 +21,12 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     const transitionDuration = 10000;
 
     const initializeAudio = async () => {
-      if (backgroundMusicUrl) {
-        console.group('🎵 音频播放 - 强制从配置台读取');
-        console.log('✅ 数据源：h5_share_config.bg_music_url');
-        console.log('🎵 音频 URL:', backgroundMusicUrl);
-        console.log('🔒 状态：已斩断主 App 依赖，不读取 audio_files 表');
-        console.groupEnd();
-        backgroundMusic = playShareBackgroundMusic(backgroundMusicUrl);
-      } else {
-        console.group('⚠️ 背景音乐未配置');
-        console.warn('❌ 后台配置中 bg_music_url 为空');
-        console.warn('💡 解决方案：');
-        console.warn('   1. 访问 /admin/share-config 管理后台');
-        console.warn('   2. 在"背景音乐URL"字段填入音频链接（支持腾讯云 .mp3/.mp4 等格式）');
-        console.warn('   3. 点击保存即可生效');
-        console.warn('🔒 已禁用降级逻辑，确保引流页完全独立');
-        console.groupEnd();
-        // 🔒 强制斩断主 App 依赖：严禁降级到 playBackgroundMusicLoop()
-        // 以下代码已永久禁用，确保引流页完全独立
-        // const bgMusic = await playBackgroundMusicLoop();
-        // if (bgMusic) {
-        //   backgroundMusic = bgMusic;
-        // }
-      }
+      backgroundMusic = await playShareBackgroundMusic(backgroundMusicUrl, true);
 
       if (backgroundMusic) {
         console.log('✅ Background music started successfully');
       } else {
-        console.warn('⚠️ No background music playing (config not set)');
+        console.warn('⚠️ No background music playing - all fallback methods failed');
       }
 
       fadeOutTimer = window.setTimeout(() => {

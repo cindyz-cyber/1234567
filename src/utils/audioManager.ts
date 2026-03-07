@@ -140,17 +140,50 @@ export const fadeOutAudio = (audio: HTMLAudioElement, duration: number = 2000): 
   });
 };
 
-export const playShareBackgroundMusic = (musicUrl: string | null | undefined): HTMLAudioElement | null => {
-  if (!musicUrl || musicUrl.trim() === '') {
-    console.warn('⚠️ No background music URL provided');
+export const playShareBackgroundMusic = async (
+  shareConfigUrl: string | null | undefined,
+  fallbackToMainApp: boolean = true
+): Promise<HTMLAudioElement | null> => {
+  let finalMusicUrl: string | null = null;
+
+  console.group('🎵 音频加载策略 - 三级优先级');
+
+  if (shareConfigUrl && shareConfigUrl.trim() !== '') {
+    console.log('✅ 优先级 1: h5_share_config.bg_music_url 已配置');
+    console.log('🎵 URL:', shareConfigUrl);
+    finalMusicUrl = shareConfigUrl;
+  } else if (fallbackToMainApp) {
+    console.log('⚠️ 优先级 1 未配置，尝试优先级 2: 主 App 全局音频资源');
+    try {
+      const mainAppAudio = await playBackgroundMusicLoop();
+      if (mainAppAudio) {
+        console.log('✅ 优先级 2 成功: 已从主 App audio_files 表获取音频');
+        console.groupEnd();
+        return mainAppAudio;
+      }
+      console.warn('⚠️ 优先级 2 失败: 主 App 无可用音频资源');
+    } catch (err) {
+      console.error('❌ 优先级 2 异常:', err);
+    }
+
+    console.warn('⚠️ 优先级 3: 本地静态资源（未实现）');
+    console.warn('💡 建议: 请在 /admin/share-config 配置 bg_music_url');
+  } else {
+    console.error('❌ 所有优先级均未配置，音频加载失败');
+  }
+
+  console.groupEnd();
+
+  if (!finalMusicUrl) {
+    console.error('❌ 无可用音频 URL，终止播放');
     return null;
   }
 
   const cacheBuster = `?t=${Date.now()}`;
-  const finalAudioUrl = musicUrl + cacheBuster;
+  const finalAudioUrl = finalMusicUrl + cacheBuster;
 
   console.group('🎵 长音频流式播放优化');
-  console.log('🎵 Original Music URL:', musicUrl);
+  console.log('🎵 Original Music URL:', finalMusicUrl);
   console.log('🎵 Final Audio URL:', finalAudioUrl);
   console.log('📊 Preload策略: metadata (流式播放，边缓冲边播放)');
   console.log('💾 内存管理: 已注册自动销毁机制');
@@ -160,9 +193,7 @@ export const playShareBackgroundMusic = (musicUrl: string | null | undefined): H
   audio.volume = 0.3;
   audio.loop = true;
   audio.crossOrigin = 'anonymous';
-
-  // 🚀 针对30分钟长音频优化：设置流式播放
-  audio.preload = 'metadata'; // 只预加载元数据，边缓冲边播放，不等待全部下载
+  audio.preload = 'metadata';
 
   registerAudio(audio);
 

@@ -114,9 +114,9 @@ export default function ShareJournal() {
       console.log('✅ 数据源：h5_share_config 表（唯一权威）');
       console.log('📊 完整配置对象:', data);
       console.log('');
-      console.log('🎵 背景音乐 URL (bg_music_url):', data.bg_music_url || '❌ 未配置');
-      console.log('🎬 通用背景视频 URL (bg_video_url):', data.bg_video_url || '❌ 未配置');
-      console.log('🖼️ 卡片内部背景 URL (card_inner_bg_url):', data.card_inner_bg_url || '❌ 未配置');
+      console.log('🎵 背景音乐 URL (bg_music_url):', data.bg_music_url || '⏩ 将尝试主 App 资源');
+      console.log('🎬 通用背景视频 URL (bg_video_url):', data.bg_video_url || '⏩ 使用默认视频');
+      console.log('🖼️ 卡片内部背景 URL (card_inner_bg_url):', data.card_inner_bg_url || '⏩ 使用默认背景');
       console.log('');
       console.log('📄 各步骤专属背景（中国区加速）:');
       console.log('  - 起名页 (bg_naming_url):', data.bg_naming_url || '⏩ 降级到 bg_video_url');
@@ -125,7 +125,7 @@ export default function ShareJournal() {
       console.log('  - 过渡页 (bg_transition_url):', data.bg_transition_url || '⏩ 降级到 bg_video_url');
       console.log('  - 答案之书 (bg_answer_book_url):', data.bg_answer_book_url || '⏩ 降级到 bg_video_url');
       console.log('');
-      console.log('🔒 状态：与主 App 完全解耦，不读取全局 settings 或 audio_files 表');
+      console.log('🔄 音频策略：优先 h5_share_config → 主 App audio_files → 本地静态资源');
       console.groupEnd();
 
       setConfig(data);
@@ -175,9 +175,7 @@ export default function ShareJournal() {
 
   const handleHomeStart = async () => {
     console.log('🎯 User started journey from home page');
-    if (config?.bg_music_url) {
-      console.log('🎵 Background music will start at GoldenTransition:', config.bg_music_url);
-    }
+    console.log('🎵 音频将在 GoldenTransition 阶段加载（三级优先级策略）');
     setCurrentStep('emotion');
   };
 
