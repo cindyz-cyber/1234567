@@ -146,12 +146,12 @@ export default function ShareConfigAdmin() {
     console.log('📊 当前表单数据:', formData);
 
     try {
-      // 核心字段必须验证 WebP 格式
+      // 核心字段必须验证（必填且必须是有效 URL）
       const criticalImageFields = [
         { url: formData.card_inner_bg_url, name: '能量卡片分享背景图（Card Poster BG）', isRequired: true }
       ];
 
-      // 可选字段允许视频或图片
+      // 可选字段（允许任何有效的 https:// 或 http:// URL）
       const optionalFields = [
         { url: formData.card_bg_image_url, name: '卡片背景图', isRequired: false },
         { url: formData.bg_naming_url, name: '起名页背景', isRequired: false },

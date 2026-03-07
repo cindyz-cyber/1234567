@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { stopAllAudio } from '../utils/audioManager';
+import html2canvas from 'html2canvas';
+import { supabase } from '../lib/supabase';
 
 interface BookOfAnswersProps {
   onComplete: () => void;
   backgroundAudio?: HTMLAudioElement | null;
   onBack?: () => void;
   isGenerating?: boolean;
+  userName?: string;
+  kinData?: any;
 }
 
 const WISDOMS = [
@@ -24,9 +28,42 @@ const WISDOMS = [
   '坚持到底，最后一刻见分晓',
 ];
 
-export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isGenerating = false }: BookOfAnswersProps) {
+export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isGenerating = false, userName, kinData }: BookOfAnswersProps) {
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
   const [selectedWisdom] = useState(WISDOMS[Math.floor(Math.random() * WISDOMS.length)]);
+  const [showPoster, setShowPoster] = useState(false);
+  const [posterImage, setPosterImage] = useState<string | null>(null);
+  const [generatingPoster, setGeneratingPoster] = useState(false);
+  const [cardBgUrl, setCardBgUrl] = useState<string>('');
+  const posterCardRef = useRef<HTMLDivElement>(null);
+
+  // 🔥 加载海报背景配置
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('h5_share_config')
+          .select('card_inner_bg_url')
+          .eq('id', '00000000-0000-0000-0000-000000000001')
+          .maybeSingle();
+
+        if (error) {
+          console.error('❌ [BookOfAnswers] 配置加载失败:', error);
+          setCardBgUrl('/src/assets/Gemini_Generated_Image_yz2xltyz2xltyz2x.png');
+          return;
+        }
+
+        const finalBgUrl = data?.card_inner_bg_url || '/src/assets/Gemini_Generated_Image_yz2xltyz2xltyz2x.png';
+        console.log('✅ [BookOfAnswers] 海报背景加载成功:', finalBgUrl);
+        setCardBgUrl(finalBgUrl);
+      } catch (err) {
+        console.error('❌ [BookOfAnswers] 配置加载异常:', err);
+        setCardBgUrl('/src/assets/Gemini_Generated_Image_yz2xltyz2xltyz2x.png');
+      }
+    };
+
+    loadConfig();
+  }, []);
 
   const handleCardClick = (index: number) => {
     if (flippedCard === null) {
@@ -34,27 +71,84 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
     }
   };
 
-  const handleComplete = (e?: React.MouseEvent) => {
+  const handleComplete = async (e?: React.MouseEvent) => {
     // 🚫 强制阻止任何默认行为和事件冒泡
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
 
-    console.group('🎯 [BookOfAnswers] 生成卡片按钮被点击 - 强制拦截跳转');
+    console.group('🎯 [BookOfAnswers] 生成卡片按钮被点击 - 启动海报生成');
     console.log('🚫 事件拦截: preventDefault + stopPropagation');
     console.log('🔒 当前完整路径:', window.location.pathname + window.location.search);
     console.log('🔒 当前完整 URL:', window.location.href);
     console.log('🚫 路由锁定: 禁止任何跳转到 / 或主页的行为');
-    console.log('📍 即将调用 onComplete 回调...');
+    console.log('🎴 海报背景 URL:', cardBgUrl);
     console.groupEnd();
 
-    onComplete();
+    // 🔥 第一步：先显示遮罩层和加载状态
+    setShowPoster(true);
+    setGeneratingPoster(true);
 
-    console.log('✅ [BookOfAnswers] onComplete 回调已执行');
-    console.log('🔒 [BookOfAnswers] 回调后路径验证:', window.location.pathname);
+    try {
+      // 🔥 第二步：等待 DOM 渲染
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-    // 🚫 不再停止音频，让引流页自己控制
+      if (!posterCardRef.current) {
+        console.error('❌ [BookOfAnswers] posterCardRef 不存在');
+        alert('海报生成失败：DOM 未准备好');
+        setGeneratingPoster(false);
+        setShowPoster(false);
+        return;
+      }
+
+      console.log('📸 [BookOfAnswers] 开始捕获海报 DOM...');
+
+      // 🔥 第三步：预加载背景图
+      await new Promise<void>((resolve) => {
+        const img = new Image();
+        if (cardBgUrl.startsWith('http')) {
+          img.crossOrigin = 'anonymous';
+        }
+        img.onload = () => {
+          console.log('✅ [BookOfAnswers] 背景图预加载成功');
+          resolve();
+        };
+        img.onerror = () => {
+          console.warn('⚠️ [BookOfAnswers] 背景图加载失败，继续生成');
+          resolve();
+        };
+        img.src = cardBgUrl;
+      });
+
+      // 🔥 第四步：使用 html2canvas 生成海报
+      const canvas = await html2canvas(posterCardRef.current, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        scale: 2,
+        logging: true,
+        width: 750,
+        height: 1334
+      });
+
+      console.log('✅ [BookOfAnswers] html2canvas 捕获成功');
+
+      const imageUrl = canvas.toDataURL('image/png', 1.0);
+      console.log('✅ [BookOfAnswers] 海报生成成功，长度:', imageUrl.length);
+
+      setPosterImage(imageUrl);
+      setGeneratingPoster(false);
+
+      console.log('✅ [BookOfAnswers] 海报遮罩层已显示');
+    } catch (err) {
+      console.error('❌ [BookOfAnswers] 海报生成失败:', err);
+      alert('海报生成失败，请重试或联系管理员');
+      setGeneratingPoster(false);
+      setShowPoster(false);
+    }
+
+    // 🎵 保留音频播放，由父组件控制
     console.log('🎵 [BookOfAnswers] 保留音频播放，由父组件控制');
   };
 
@@ -206,24 +300,24 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
             <button
               id="generate-poster-btn"
               onClick={(e) => handleComplete(e)}
-              disabled={isGenerating}
+              disabled={generatingPoster}
               className="complete-button"
               style={{
                 padding: '14px 40px',
                 fontSize: '16px',
                 fontWeight: '400',
-                background: isGenerating
+                background: generatingPoster
                   ? 'linear-gradient(135deg, rgba(200, 220, 255, 0.04) 0%, rgba(180, 200, 255, 0.06) 100%)'
                   : 'linear-gradient(135deg, rgba(200, 220, 255, 0.08) 0%, rgba(180, 200, 255, 0.12) 100%)',
                 borderWidth: '1px',
-                borderColor: isGenerating ? 'rgba(200, 220, 255, 0.15)' : 'rgba(200, 220, 255, 0.3)',
+                borderColor: generatingPoster ? 'rgba(200, 220, 255, 0.15)' : 'rgba(200, 220, 255, 0.3)',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(200, 220, 255, 0.2), inset 0 1px 20px rgba(255, 255, 255, 0.1)',
-                opacity: isGenerating ? 0.6 : 1,
-                cursor: isGenerating ? 'not-allowed' : 'pointer',
+                opacity: generatingPoster ? 0.6 : 1,
+                cursor: generatingPoster ? 'not-allowed' : 'pointer',
                 transition: 'all 0.3s ease'
               }}
             >
-              {isGenerating ? (
+              {generatingPoster ? (
                 <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <span style={{
                     display: 'inline-block',
@@ -447,7 +541,204 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
             text-shadow: 0 0 30px rgba(200, 220, 255, 0.7), 0 0 45px rgba(180, 200, 240, 0.4);
           }
         }
+
+        .poster-card-hidden {
+          position: fixed;
+          top: -9999px;
+          left: -9999px;
+          width: 750px;
+          height: 1334px;
+          z-index: -1;
+          pointer-events: none;
+        }
+
+        .poster-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          background: rgba(0, 0, 0, 0.95);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+
+        .poster-image {
+          max-width: 90%;
+          max-height: 70vh;
+          border-radius: 12px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .poster-actions {
+          display: flex;
+          gap: 16px;
+          margin-top: 24px;
+        }
+
+        .poster-button {
+          padding: 12px 32px;
+          font-size: 16px;
+          font-weight: 400;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          border: 1px solid rgba(200, 220, 255, 0.3);
+          background: linear-gradient(135deg, rgba(200, 220, 255, 0.08) 0%, rgba(180, 200, 255, 0.12) 100%);
+          color: rgba(200, 220, 255, 0.95);
+        }
+
+        .poster-button:hover {
+          transform: scale(1.05);
+          box-shadow: 0 4px 20px rgba(200, 220, 255, 0.2);
+        }
+
+        .poster-generating {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 20px;
+          color: rgba(200, 220, 255, 0.95);
+        }
+
+        .poster-spinner {
+          width: 48px;
+          height: 48px;
+          border: 4px solid rgba(200, 220, 255, 0.2);
+          border-top-color: rgba(200, 220, 255, 0.9);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
       `}</style>
+
+      {/* 🔥 隐藏的海报卡片（用于 html2canvas 捕获） */}
+      <div ref={posterCardRef} className="poster-card-hidden">
+        <div
+          style={{
+            width: '750px',
+            height: '1334px',
+            backgroundImage: `url(${cardBgUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '60px 40px',
+            position: 'relative'
+          }}
+        >
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.3) 100%)',
+            zIndex: 1
+          }} />
+
+          <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', color: '#fff' }}>
+            <h1 style={{
+              fontSize: '56px',
+              fontWeight: '300',
+              letterSpacing: '0.2em',
+              marginBottom: '40px',
+              textShadow: '0 4px 20px rgba(0, 0, 0, 0.6)'
+            }}>
+              答案之书
+            </h1>
+
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(20px)',
+              padding: '60px 50px',
+              borderRadius: '24px',
+              border: '2px solid rgba(235, 200, 98, 0.4)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 40px rgba(235, 200, 98, 0.1)',
+              marginBottom: '60px'
+            }}>
+              <p style={{
+                fontSize: '42px',
+                fontWeight: '300',
+                lineHeight: '1.8',
+                letterSpacing: '0.15em',
+                textShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+                fontFamily: "'Noto Serif SC', serif"
+              }}>
+                {selectedWisdom}
+              </p>
+            </div>
+
+            {userName && (
+              <p style={{
+                fontSize: '32px',
+                fontWeight: '200',
+                letterSpacing: '0.1em',
+                opacity: 0.9,
+                textShadow: '0 2px 8px rgba(0, 0, 0, 0.5)'
+              }}>
+                {userName}
+              </p>
+            )}
+
+            <p style={{
+              fontSize: '24px',
+              fontWeight: '200',
+              letterSpacing: '0.15em',
+              opacity: 0.7,
+              marginTop: '40px',
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.5)'
+            }}>
+              扫码开启你的觉察之旅
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 🔥 海报遮罩层（用于显示结果） */}
+      {showPoster && (
+        <div className="poster-overlay">
+          {generatingPoster ? (
+            <div className="poster-generating">
+              <div className="poster-spinner" />
+              <p style={{ fontSize: '18px', letterSpacing: '0.1em' }}>正在生成海报...</p>
+            </div>
+          ) : posterImage ? (
+            <>
+              <img src={posterImage} alt="能量卡片" className="poster-image" />
+              <div className="poster-actions">
+                <button
+                  className="poster-button"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.download = `能量卡片_${new Date().getTime()}.png`;
+                    link.href = posterImage;
+                    link.click();
+                  }}
+                >
+                  下载海报
+                </button>
+                <button
+                  className="poster-button"
+                  onClick={() => {
+                    setShowPoster(false);
+                    setPosterImage(null);
+                  }}
+                >
+                  关闭
+                </button>
+              </div>
+              <p style={{
+                marginTop: '16px',
+                fontSize: '14px',
+                color: 'rgba(200, 220, 255, 0.6)',
+                letterSpacing: '0.05em'
+              }}>
+                长按图片可保存到相册
+              </p>
+            </>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

@@ -29,10 +29,13 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
         console.groupEnd();
         backgroundMusic = playShareBackgroundMusic(backgroundMusicUrl);
       } else {
-        console.group('⚠️ 音频播放警告');
-        console.warn('❌ 配置台未设置 bg_music_url');
-        console.warn('🔒 已禁用降级到主数据库逻辑');
-        console.warn('💡 解决方案：请在 /admin/share-config 后台填入音频链接');
+        console.group('⚠️ 背景音乐未配置');
+        console.warn('❌ 后台配置中 bg_music_url 为空');
+        console.warn('💡 解决方案：');
+        console.warn('   1. 访问 /admin/share-config 管理后台');
+        console.warn('   2. 在"背景音乐URL"字段填入音频链接（支持腾讯云 .mp3/.mp4 等格式）');
+        console.warn('   3. 点击保存即可生效');
+        console.warn('🔒 已禁用降级逻辑，确保引流页完全独立');
         console.groupEnd();
         // 🔒 强制斩断主 App 依赖：严禁降级到 playBackgroundMusicLoop()
         // 以下代码已永久禁用，确保引流页完全独立

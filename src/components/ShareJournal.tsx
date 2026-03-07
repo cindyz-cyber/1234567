@@ -466,6 +466,8 @@ export default function ShareJournal() {
               backgroundAudio={backgroundMusic}
               onComplete={handleAnswerComplete}
               isGenerating={isGenerating}
+              userName={state.userName}
+              kinData={state.kinData}
             />
           </DynamicStepBackground>
         );
