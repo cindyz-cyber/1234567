@@ -261,6 +261,8 @@ export default function ShareJournal() {
     console.log('  2️⃣ card_bg_image_url (已废弃):', config?.card_bg_image_url || '❌ 未配置');
     console.log('  3️⃣ 本地降级:', '/0_0_640_N.webp');
     console.log('');
+
+    // 🛡️ 强制保底逻辑：如果有后台链接用后台的，没有就用本地默认的
     const finalBgUrl = config?.card_inner_bg_url || config?.card_bg_image_url || '/0_0_640_N.webp';
     console.log('✅ 最终使用背景图:', finalBgUrl);
     console.log('🚀 图片来源:', finalBgUrl.includes('supabase') ? 'Supabase Storage（中国区加速）' : '本地静态资源');
@@ -268,9 +270,39 @@ export default function ShareJournal() {
     console.groupEnd();
 
     setIsGenerating(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
+      // 🔥 强制预加载背景图并处理跨域问题
+      console.log('🔄 [generateEnergyCard] 预加载背景图...');
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+
+        // 🚨 必须添加 crossOrigin 处理，防止跨域导致截图失败
+        if (finalBgUrl.startsWith('http')) {
+          img.crossOrigin = 'anonymous';
+          console.log('🔐 [generateEnergyCard] 启用跨域模式 (crossOrigin=anonymous)');
+        }
+
+        img.onload = () => {
+          console.log('✅ [generateEnergyCard] 背景图预加载成功');
+          console.log('📐 [generateEnergyCard] 图片尺寸:', img.width, 'x', img.height);
+          resolve();
+        };
+
+        img.onerror = (err) => {
+          console.error('❌ [generateEnergyCard] 背景图加载失败，使用本地降级');
+          console.error('❌ 错误详情:', err);
+          // 即使失败也继续，html2canvas 会使用本地降级
+          resolve();
+        };
+
+        img.src = finalBgUrl;
+        console.log('🔗 [generateEnergyCard] 开始加载:', finalBgUrl);
+      });
+
+      // 等待 DOM 稳定
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       if (!cardRef.current) {
         console.error('❌ [generateEnergyCard] cardRef.current 不存在');
         console.error('❌ [generateEnergyCard] 这不应该发生！DOM 元素应该已经渲染');
@@ -311,6 +343,7 @@ export default function ShareJournal() {
       console.error('❌ [generateEnergyCard] 卡片生成失败:', err);
       console.error('❌ [generateEnergyCard] 错误堆栈:', err instanceof Error ? err.stack : '无堆栈信息');
       setIsGenerating(false);
+      alert('海报生成失败，请重试或联系管理员');
     }
   };
 
@@ -432,6 +465,7 @@ export default function ShareJournal() {
             <BookOfAnswers
               backgroundAudio={backgroundMusic}
               onComplete={handleAnswerComplete}
+              isGenerating={isGenerating}
             />
           </DynamicStepBackground>
         );

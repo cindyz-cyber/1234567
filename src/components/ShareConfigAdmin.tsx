@@ -119,26 +119,23 @@ export default function ShareConfigAdmin() {
   };
 
   const validateImageFormat = (url: string, fieldName: string, isRequired: boolean = false): string | null => {
-    if (!url || url.trim() === '') return null;
-
-    const lowerUrl = url.toLowerCase();
-
-    // 允许视频格式（.mp4）
-    if (lowerUrl.includes('.mp4')) return null;
-
-    // 图片必须是 WebP 格式
-    const hasWebpExtension = lowerUrl.endsWith('.webp');
-    const hasWebpParam = lowerUrl.includes('.webp?') || lowerUrl.includes('.webp&');
-
-    if (!hasWebpExtension && !hasWebpParam) {
+    if (!url || url.trim() === '') {
       if (isRequired) {
-        return `${fieldName} 必须使用 WebP 格式图片（.webp 后缀）`;
+        return `${fieldName} 不能为空`;
       }
-      // 非必需字段只警告，不阻止保存
       return null;
     }
 
-    return null;
+    const trimmedUrl = url.trim();
+
+    // 🔥 宽松校验：只要是 https:// 或 http:// 或本地路径，就允许
+    if (trimmedUrl.startsWith('https://') || trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('/')) {
+      console.log(`✅ [validateImageFormat] ${fieldName} 通过校验:`, trimmedUrl);
+      return null;
+    }
+
+    // 如果不是有效的 URL 格式，返回错误
+    return `${fieldName} 必须是有效的 URL 地址（以 https:// 或 http:// 开头）或本地路径（以 / 开头）`;
   };
 
   const handleSave = async () => {

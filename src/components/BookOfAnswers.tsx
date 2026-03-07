@@ -6,6 +6,7 @@ interface BookOfAnswersProps {
   onComplete: () => void;
   backgroundAudio?: HTMLAudioElement | null;
   onBack?: () => void;
+  isGenerating?: boolean;
 }
 
 const WISDOMS = [
@@ -23,7 +24,7 @@ const WISDOMS = [
   '坚持到底，最后一刻见分晓',
 ];
 
-export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: BookOfAnswersProps) {
+export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isGenerating = false }: BookOfAnswersProps) {
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
   const [selectedWisdom] = useState(WISDOMS[Math.floor(Math.random() * WISDOMS.length)]);
 
@@ -205,18 +206,37 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
             <button
               id="generate-poster-btn"
               onClick={(e) => handleComplete(e)}
+              disabled={isGenerating}
               className="complete-button"
               style={{
                 padding: '14px 40px',
                 fontSize: '16px',
                 fontWeight: '400',
-                background: 'linear-gradient(135deg, rgba(200, 220, 255, 0.08) 0%, rgba(180, 200, 255, 0.12) 100%)',
+                background: isGenerating
+                  ? 'linear-gradient(135deg, rgba(200, 220, 255, 0.04) 0%, rgba(180, 200, 255, 0.06) 100%)'
+                  : 'linear-gradient(135deg, rgba(200, 220, 255, 0.08) 0%, rgba(180, 200, 255, 0.12) 100%)',
                 borderWidth: '1px',
-                borderColor: 'rgba(200, 220, 255, 0.3)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(200, 220, 255, 0.2), inset 0 1px 20px rgba(255, 255, 255, 0.1)'
+                borderColor: isGenerating ? 'rgba(200, 220, 255, 0.15)' : 'rgba(200, 220, 255, 0.3)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(200, 220, 255, 0.2), inset 0 1px 20px rgba(255, 255, 255, 0.1)',
+                opacity: isGenerating ? 0.6 : 1,
+                cursor: isGenerating ? 'not-allowed' : 'pointer',
+                transition: 'all 0.3s ease'
               }}
             >
-              生成能量卡片
+              {isGenerating ? (
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <span style={{
+                    display: 'inline-block',
+                    width: '14px',
+                    height: '14px',
+                    border: '2px solid rgba(200, 220, 255, 0.3)',
+                    borderTopColor: 'rgba(200, 220, 255, 0.9)',
+                    borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite'
+                  }} />
+                  正在生成能量卡片...
+                </span>
+              ) : '生成能量卡片'}
             </button>
           </div>
         )}
@@ -292,6 +312,15 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
           }
           50% {
             opacity: 1;
+          }
+        }
+
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
           }
         }
 
