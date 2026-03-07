@@ -17,6 +17,7 @@ interface AudioFile {
 export default function AdminPanel() {
   const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [activeView, setActiveView] = useState<'audio' | 'knowledge'>('audio');
@@ -63,28 +64,82 @@ export default function AdminPanel() {
     }
 
     setUploading(true);
+    setUploadProgress(0);
 
     try {
       let successCount = 0;
       let failCount = 0;
+      const totalFiles = audioFiles.length;
 
-      for (const file of audioFiles) {
+      for (let i = 0; i < audioFiles.length; i++) {
+        const file = audioFiles[i];
         try {
           const fileExt = file.name.split('.').pop();
           const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
           const filePath = `guidance/${fileName}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from('audio-files')
-            .upload(filePath, file, {
-              cacheControl: '3600',
-              upsert: false
-            });
+          console.group(`📤 分片上传 - ${file.name}`);
+          console.log('📊 文件大小:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+          console.log('🔢 总文件数:', totalFiles, '当前:', i + 1);
 
-          if (uploadError) {
-            console.error('Upload error:', uploadError);
-            throw uploadError;
+          const CHUNK_SIZE = 5 * 1024 * 1024;
+          const isLargeFile = file.size > CHUNK_SIZE;
+
+          if (isLargeFile) {
+            console.log('🚀 启用分片上传模式 (Chunk Size: 5MB)');
+            const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+            for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+              const start = chunkIndex * CHUNK_SIZE;
+              const end = Math.min(start + CHUNK_SIZE, file.size);
+              const chunk = file.slice(start, end);
+
+              const chunkProgress = (chunkIndex + 1) / totalChunks;
+              const fileProgress = (i + chunkProgress) / totalFiles;
+              setUploadProgress(Math.round(fileProgress * 100));
+
+              console.log(`📦 上传分片 ${chunkIndex + 1}/${totalChunks} (${Math.round(chunkProgress * 100)}%)`);
+
+              if (chunkIndex === 0) {
+                const { error: uploadError } = await supabase.storage
+                  .from('audio-files')
+                  .upload(filePath, chunk, {
+                    cacheControl: '3600',
+                    upsert: false
+                  });
+
+                if (uploadError) throw uploadError;
+              } else {
+                const { error: updateError } = await supabase.storage
+                  .from('audio-files')
+                  .update(filePath, chunk, {
+                    cacheControl: '3600',
+                    upsert: true
+                  });
+
+                if (updateError) throw updateError;
+              }
+            }
+            console.log('✅ 分片上传完成');
+          } else {
+            console.log('📤 使用标准上传模式');
+            const { error: uploadError } = await supabase.storage
+              .from('audio-files')
+              .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+              });
+
+            if (uploadError) {
+              console.error('Upload error:', uploadError);
+              throw uploadError;
+            }
+
+            const fileProgress = (i + 1) / totalFiles;
+            setUploadProgress(Math.round(fileProgress * 100));
           }
+
+          console.groupEnd();
 
           const audio = new Audio();
           audio.src = URL.createObjectURL(file);
@@ -142,6 +197,7 @@ export default function AdminPanel() {
       }
 
       await loadAudioFiles();
+      setUploadProgress(100);
 
       if (failCount === 0) {
         setToast({ message: `成功上传 ${successCount} 个音频文件！`, type: 'success' });
@@ -155,6 +211,7 @@ export default function AdminPanel() {
       setTimeout(() => setToast(null), 3000);
     } finally {
       setUploading(false);
+      setUploadProgress(0);
       event.target.value = '';
     }
   };
@@ -288,8 +345,27 @@ export default function AdminPanel() {
               className="hidden"
             />
           </label>
+
+          {uploading && uploadProgress > 0 && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-sm text-slate-300 mb-2">
+                <span>上传进度</span>
+                <span className="font-semibold text-amber-400">{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-amber-500 to-yellow-500 transition-all duration-300 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-400 mt-2 text-center">
+                大文件自动启用分片上传模式（5MB/片）
+              </p>
+            </div>
+          )}
+
           <p className="text-sm text-slate-400 mt-3 text-center">
-            支持批量上传（可选择多个文件），格式：MP3、WAV、OGG、M4A、MP4，建议时长35秒-1分钟
+            支持批量上传（可选择多个文件），格式：MP3、WAV、OGG、M4A、MP4，最大支持 30 分钟长音频
           </p>
         </div>
 

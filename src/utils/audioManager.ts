@@ -189,13 +189,39 @@ export const playShareBackgroundMusic = async (
   console.log('💾 内存管理: 已注册自动销毁机制');
   console.groupEnd();
 
-  const audio = new Audio(finalAudioUrl);
+  const audio = new Audio();
+  audio.src = finalAudioUrl;
   audio.volume = 0.3;
   audio.loop = true;
   audio.crossOrigin = 'anonymous';
   audio.preload = 'metadata';
 
   registerAudio(audio);
+
+  console.group('🚀 流式播放优化配置');
+  console.log('📊 Preload: metadata（只预加载元数据，边缓冲边播放）');
+  console.log('🔄 Loop: true（自动循环）');
+  console.log('🔊 Volume: 0.3（30% 音量）');
+  console.log('🌐 CORS: anonymous（支持跨域）');
+  console.log('📡 Range Requests: 由服务器自动支持（HTTP 206 Partial Content）');
+  console.log('💡 优势: 30分钟大文件无需等待完整下载，秒开播放');
+  console.groupEnd();
+
+  audio.addEventListener('loadstart', () => {
+    console.log('🎵 音频开始加载（流式）');
+  });
+
+  audio.addEventListener('canplay', () => {
+    console.log('✅ 音频已可播放（缓冲足够）');
+  });
+
+  audio.addEventListener('error', (e) => {
+    console.error('❌ 音频加载错误:', e);
+    console.error('📊 错误详情:', {
+      code: audio.error?.code,
+      message: audio.error?.message
+    });
+  });
 
   audio.play()
     .then(() => {

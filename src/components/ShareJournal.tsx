@@ -48,12 +48,13 @@ export default function ShareJournal() {
     selectedEmotions: [],
     journalContent: '',
     higherSelfMessage: '',
-    higherSelfAdvice: '', // 🔥 初始化真正的高我建议
+    higherSelfAdvice: '',
     kinData: null
   });
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
+  const [preloadedAudio, setPreloadedAudio] = useState<HTMLAudioElement | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // 🔒 防护：拦截任何路由跳转尝试
@@ -80,13 +81,20 @@ export default function ShareJournal() {
         console.log('🧹 [ShareJournal] 组件卸载，强制清理长音频资源');
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0;
-        // 🚀 针对长音频优化：强制释放音频源，防止30分钟大文件占用手机内存和流量
         backgroundMusic.src = '';
         backgroundMusic.load();
-        console.log('✅ [ShareJournal] 音频资源已完全释放');
+        console.log('✅ [ShareJournal] 背景音频资源已完全释放');
+      }
+
+      if (preloadedAudio) {
+        console.log('🧹 [ShareJournal] 清理预加载音频资源');
+        preloadedAudio.pause();
+        preloadedAudio.src = '';
+        preloadedAudio.load();
+        console.log('✅ [ShareJournal] 预加载音频资源已完全释放');
       }
     };
-  }, [backgroundMusic]);
+  }, [backgroundMusic, preloadedAudio]);
 
   const validateAccess = async () => {
     try {
@@ -168,8 +176,41 @@ export default function ShareJournal() {
     setState(prev => ({ ...prev, ...updates }));
   };
 
-  const handleNamingComplete = (higherSelfName: string, userName: string) => {
+  const handleNamingComplete = async (higherSelfName: string, userName: string) => {
     updateState({ userName, higherSelfMessage: higherSelfName });
+
+    console.group('🎵 起名环节完成 - 启动音频预热');
+    console.log('💡 策略: 在用户浏览首页时，后台静默预加载音频');
+    console.log('🎯 目标: 到达呼吸环节时，音频已缓冲完毕，即点即响');
+
+    try {
+      if (config?.bg_music_url) {
+        console.log('📡 开始预加载音频:', config.bg_music_url);
+        const audio = new Audio();
+        audio.src = config.bg_music_url;
+        audio.preload = 'auto';
+        audio.volume = 0;
+        audio.crossOrigin = 'anonymous';
+
+        audio.addEventListener('canplaythrough', () => {
+          console.log('✅ 音频预加载完成，已缓冲足够数据');
+        });
+
+        audio.addEventListener('error', (e) => {
+          console.warn('⚠️ 音频预加载失败:', e);
+        });
+
+        audio.load();
+        setPreloadedAudio(audio);
+        console.log('🚀 预加载任务已启动（后台进行）');
+      } else {
+        console.log('⏩ bg_music_url 未配置，将使用主 App 资源');
+      }
+    } catch (err) {
+      console.error('❌ 预加载异常:', err);
+    }
+
+    console.groupEnd();
     setCurrentStep('home');
   };
 

@@ -129,7 +129,7 @@ export default function ShareConfigAdmin() {
     const trimmedUrl = url.trim();
 
     if (trimmedUrl.startsWith('https://') || trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('/')) {
-      console.log(`✅ [validateImageFormat] ${fieldName} 通过校验 (支持 .jpg/.jpeg/.png/.webp/.gif 及带参数的 CDN 链接):`, trimmedUrl);
+      console.log(`✅ [validateImageFormat] ${fieldName} 通过校验 (支持所有格式: .jpg/.jpeg/.png/.webp/.gif/.mp4 及带参数的 CDN 链接):`, trimmedUrl);
       return null;
     }
 
