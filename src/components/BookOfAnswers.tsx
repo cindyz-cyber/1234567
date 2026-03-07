@@ -322,7 +322,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
       <div className="w-full max-w-md flex flex-col" style={{ height: '100vh', justifyContent: 'space-between', paddingTop: '80px', paddingBottom: '40px', position: 'relative', zIndex: 10 }}>
         <div className="space-y-4 text-center">
           <h2 className="book-title">
-            答案之书
+            植本能量
           </h2>
           <p className="book-subtitle">
             {flippedCard === null ? '选择一张卡片，接收指引' : '这是你的方向'}
@@ -824,7 +824,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
               marginBottom: '40px',
               textShadow: '0 4px 20px rgba(0, 0, 0, 0.6)'
             }}>
-              答案之书
+              植本能量
             </h1>
 
             <div style={{
@@ -864,16 +864,6 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
               </p>
             )}
 
-            <p style={{
-              fontSize: '24px',
-              fontWeight: '200',
-              letterSpacing: '0.15em',
-              opacity: 0.7,
-              marginTop: '40px',
-              textShadow: '0 2px 8px rgba(0, 0, 0, 0.5)'
-            }}>
-              扫码开启你的觉察之旅
-            </p>
           </div>
         </div>
       </div>
@@ -904,12 +894,6 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
                 }}
               />
 
-              {/* 🌿 底部引导提示条 */}
-              <div className="poster-guide-bar">
-                <p className="poster-guide-text">
-                  🌿 能量已注入卡片，长按图片发送给好友或分享朋友圈
-                </p>
-              </div>
 
               {/* 🔥 关闭按钮：移到底部中央，不遮挡图片核心区域 */}
               <button
