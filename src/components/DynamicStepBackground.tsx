@@ -14,6 +14,14 @@ export default function DynamicStepBackground({
 }: DynamicStepBackgroundProps) {
   const effectiveUrl = backgroundUrl && backgroundUrl.trim() !== '' ? backgroundUrl : fallbackUrl;
 
+  console.group('🎬 动态背景加载');
+  console.log('📍 组件: DynamicStepBackground');
+  console.log('🔗 专属背景 URL (backgroundUrl):', backgroundUrl || '❌ 未配置');
+  console.log('🔗 降级背景 URL (fallbackUrl):', fallbackUrl || '❌ 未配置');
+  console.log('✅ 最终使用 URL:', effectiveUrl || '❌ 无背景');
+  console.log('🚀 资源来源:', effectiveUrl?.includes('supabase') ? 'Supabase Storage（中国区加速）' : '本地或默认');
+  console.groupEnd();
+
   if (!effectiveUrl) {
     return <>{children}</>;
   }

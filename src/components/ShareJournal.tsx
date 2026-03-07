@@ -103,10 +103,23 @@ export default function ShareJournal() {
         return;
       }
 
-      console.log('✅ Current Config from DB:', data);
-      console.log('🎵 Background Music URL:', data.bg_music_url);
-      console.log('🎬 Background Video URL:', data.bg_video_url);
-      console.log('🖼️ Card Inner BG URL:', data.card_inner_bg_url);
+      console.group('🚀 H5 Config Active - 配置台数据已接通');
+      console.log('✅ 数据源：h5_share_config 表（唯一权威）');
+      console.log('📊 完整配置对象:', data);
+      console.log('');
+      console.log('🎵 背景音乐 URL (bg_music_url):', data.bg_music_url || '❌ 未配置');
+      console.log('🎬 通用背景视频 URL (bg_video_url):', data.bg_video_url || '❌ 未配置');
+      console.log('🖼️ 卡片内部背景 URL (card_inner_bg_url):', data.card_inner_bg_url || '❌ 未配置');
+      console.log('');
+      console.log('📄 各步骤专属背景（中国区加速）:');
+      console.log('  - 起名页 (bg_naming_url):', data.bg_naming_url || '⏩ 降级到 bg_video_url');
+      console.log('  - 情绪页 (bg_emotion_url):', data.bg_emotion_url || '⏩ 降级到 bg_video_url');
+      console.log('  - 日记页 (bg_journal_url):', data.bg_journal_url || '⏩ 降级到 bg_video_url');
+      console.log('  - 过渡页 (bg_transition_url):', data.bg_transition_url || '⏩ 降级到 bg_video_url');
+      console.log('  - 答案之书 (bg_answer_book_url):', data.bg_answer_book_url || '⏩ 降级到 bg_video_url');
+      console.log('');
+      console.log('🔒 状态：与主 App 完全解耦，不读取全局 settings 或 audio_files 表');
+      console.groupEnd();
 
       setConfig(data);
 
@@ -235,10 +248,20 @@ export default function ShareJournal() {
   };
 
   const generateEnergyCard = async () => {
-    console.log('🎴 [generateEnergyCard] 开始生成能量卡片...');
-    console.log('🖼️ [generateEnergyCard] 卡片背景图 URL:', config?.card_inner_bg_url);
-    console.log('🔒 [generateEnergyCard] 当前步骤:', currentStep);
-    console.log('🔒 [generateEnergyCard] 当前路由:', window.location.pathname);
+    console.group('🎴 海报生成启动 - 背景图动态化验证');
+    console.log('📍 执行函数: generateEnergyCard');
+    console.log('🔒 当前步骤:', currentStep);
+    console.log('🔒 当前路由:', window.location.pathname);
+    console.log('');
+    console.log('🖼️ 背景图优先级链（从配置台读取）:');
+    console.log('  1️⃣ card_inner_bg_url:', config?.card_inner_bg_url || '❌ 未配置');
+    console.log('  2️⃣ card_bg_image_url:', config?.card_bg_image_url || '❌ 未配置');
+    console.log('  3️⃣ 本地降级:', '/0_0_640_N.webp');
+    console.log('');
+    const finalBgUrl = config?.card_inner_bg_url || config?.card_bg_image_url || '/0_0_640_N.webp';
+    console.log('✅ 最终使用背景图:', finalBgUrl);
+    console.log('🚀 图片来源:', finalBgUrl.includes('supabase') ? 'Supabase Storage（中国区加速）' : '本地静态资源');
+    console.groupEnd();
 
     setIsGenerating(true);
     await new Promise(resolve => setTimeout(resolve, 500));

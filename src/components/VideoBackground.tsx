@@ -15,6 +15,14 @@ export default function VideoBackground({ videoUrl }: VideoBackgroundProps = {})
   const asset = BACKGROUND_ASSETS.golden_flow;
   const finalVideoUrl = videoUrl || asset?.sources?.[0]?.url;
 
+  console.group('🎥 视频背景加载');
+  console.log('📍 组件: VideoBackground');
+  console.log('🔗 配置台传入 URL (videoUrl):', videoUrl || '❌ 未传入');
+  console.log('🔗 本地默认 URL (fallback):', asset?.sources?.[0]?.url || '❌ 未定义');
+  console.log('✅ 最终使用 URL:', finalVideoUrl);
+  console.log('🚀 资源来源:', videoUrl ? 'Supabase Storage（配置台）' : '本地静态资源（降级）');
+  console.groupEnd();
+
   if (!asset) {
     console.error('❌ golden_flow 背景资源未定义');
     return <div className="fixed inset-0" style={{ backgroundColor: BRAND_COLORS.primary, zIndex: -3 }} />;
