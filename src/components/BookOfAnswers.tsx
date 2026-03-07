@@ -328,7 +328,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
       <div className="w-full max-w-md flex flex-col" style={{ height: '100vh', justifyContent: 'space-between', paddingTop: '80px', paddingBottom: '40px', position: 'relative', zIndex: 10 }}>
         <div className="space-y-4 text-center">
           <h2 className="book-title">
-            植本能量
+            植本觉察
           </h2>
           <p className="book-subtitle">
             {flippedCard === null ? '选择一张卡片，接收指引' : '这是你的方向'}
@@ -844,13 +844,16 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
 
           <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', color: '#fff' }}>
             <h1 style={{
+              fontFamily: 'Georgia, "Times New Roman", serif',
               fontSize: '56px',
               fontWeight: '300',
-              letterSpacing: '0.2em',
+              letterSpacing: '0.6em',
               marginBottom: '40px',
-              textShadow: '0 4px 20px rgba(0, 0, 0, 0.6)'
+              textShadow: '0 4px 20px rgba(0, 0, 0, 0.6)',
+              color: '#F7E7CE',
+              paddingLeft: '0.6em'
             }}>
-              植本能量
+              植本觉察
             </h1>
 
             <div style={{
@@ -890,17 +893,18 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
               </p>
             </div>
 
-            {userName && (
-              <p style={{
-                fontSize: '32px',
-                fontWeight: '200',
-                letterSpacing: '0.1em',
-                opacity: 0.9,
-                textShadow: '0 2px 8px rgba(0, 0, 0, 0.5)'
-              }}>
-                {userName}
-              </p>
-            )}
+            <p style={{
+              fontFamily: 'Georgia, "Times New Roman", serif',
+              fontSize: '28px',
+              fontWeight: '200',
+              letterSpacing: '0.15em',
+              opacity: 0.85,
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.5)',
+              color: '#F7E7CE',
+              marginTop: '20px'
+            }}>
+              长按分享觉察智慧
+            </p>
 
           </div>
         </div>
