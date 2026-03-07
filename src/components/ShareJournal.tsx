@@ -34,6 +34,7 @@ interface JournalState {
   selectedEmotions: string[];
   journalContent: string;
   higherSelfMessage: string;
+  higherSelfAdvice: string; // 🔥 真正的高我建议内容
   kinData: any;
 }
 
@@ -47,6 +48,7 @@ export default function ShareJournal() {
     selectedEmotions: [],
     journalContent: '',
     higherSelfMessage: '',
+    higherSelfAdvice: '', // 🔥 初始化真正的高我建议
     kinData: null
   });
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -214,8 +216,14 @@ export default function ShareJournal() {
     setCurrentStep('dialogue');
   };
 
-  const handleDialogueComplete = (message: string, audio: HTMLAudioElement | null) => {
-    updateState({ higherSelfMessage: message });
+  const handleDialogueComplete = (advice: string, audio: HTMLAudioElement | null) => {
+    console.group('📝 [ShareJournal] 高我建议已完成');
+    console.log('✅ 建议内容:', advice);
+    console.log('📊 建议长度:', advice.length, '字符');
+    console.groupEnd();
+
+    // 🔥 正确存储高我建议到 higherSelfAdvice 字段
+    updateState({ higherSelfAdvice: advice });
     setCurrentStep('answer');
   };
 
@@ -468,6 +476,7 @@ export default function ShareJournal() {
               isGenerating={isGenerating}
               userName={state.userName}
               kinData={state.kinData}
+              higherSelfAdvice={state.higherSelfAdvice}
             />
           </DynamicStepBackground>
         );

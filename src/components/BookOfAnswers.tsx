@@ -11,31 +11,31 @@ interface BookOfAnswersProps {
   isGenerating?: boolean;
   userName?: string;
   kinData?: any;
+  higherSelfAdvice: string; // 🔥 必填：真实的高我建议
 }
 
-const WISDOMS = [
-  '向东，在黎明前启程',
-  '停止，当下即是转折点',
-  '继续前行，答案在第三次尝试中',
-  '向左转，你忽略的选项才是正解',
-  '等待七天，时机未至',
-  '立即行动，犹豫会错失良机',
-  '回到起点，重新审视第一步',
-  '寻找水的方向，流动带来答案',
-  '在静默中决策，喧嚣会误导你',
-  '选择困难的路，它通往你要去的地方',
-  '放弃当前方案，另辟蹊径',
-  '坚持到底，最后一刻见分晓',
-];
-
-export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isGenerating = false, userName, kinData }: BookOfAnswersProps) {
+export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isGenerating = false, userName, kinData, higherSelfAdvice }: BookOfAnswersProps) {
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
-  const [selectedWisdom] = useState(WISDOMS[Math.floor(Math.random() * WISDOMS.length)]);
   const [showPoster, setShowPoster] = useState(false);
   const [posterImage, setPosterImage] = useState<string | null>(null);
   const [generatingPoster, setGeneratingPoster] = useState(false);
   const [cardBgUrl, setCardBgUrl] = useState<string>('');
   const posterCardRef = useRef<HTMLDivElement>(null);
+
+  // 🔥 验证传入的高我建议
+  useEffect(() => {
+    console.group('📖 [BookOfAnswers] 组件初始化');
+    console.log('✅ 用户名:', userName || '(未设置)');
+    console.log('📝 高我建议:', higherSelfAdvice || '❌ 未传递');
+    console.log('📊 建议长度:', higherSelfAdvice?.length || 0, '字符');
+    console.log('🎯 Kin 数据:', kinData ? '已加载' : '未加载');
+    console.groupEnd();
+
+    if (!higherSelfAdvice || higherSelfAdvice.trim() === '') {
+      console.error('❌ [BookOfAnswers] 致命错误：higherSelfAdvice 为空！');
+      console.error('💡 这意味着数据流中断，请检查 ShareJournal 是否正确传递 state.higherSelfAdvice');
+    }
+  }, [higherSelfAdvice, userName, kinData]);
 
   // 🔥 加载海报背景配置
   useEffect(() => {
@@ -53,8 +53,17 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
           return;
         }
 
-        const finalBgUrl = data?.card_inner_bg_url || '/src/assets/Gemini_Generated_Image_yz2xltyz2xltyz2x.png';
-        console.log('✅ [BookOfAnswers] 海报背景加载成功:', finalBgUrl);
+        let finalBgUrl = data?.card_inner_bg_url || '/src/assets/Gemini_Generated_Image_yz2xltyz2xltyz2x.png';
+
+        // 🔥 为外部 URL 添加时间戳防缓存
+        if (finalBgUrl.startsWith('http://') || finalBgUrl.startsWith('https://')) {
+          const separator = finalBgUrl.includes('?') ? '&' : '?';
+          finalBgUrl = `${finalBgUrl}${separator}t=${Date.now()}`;
+          console.log('✅ [BookOfAnswers] 海报背景已添加防缓存时间戳:', finalBgUrl);
+        } else {
+          console.log('✅ [BookOfAnswers] 海报背景加载成功（本地资源）:', finalBgUrl);
+        }
+
         setCardBgUrl(finalBgUrl);
       } catch (err) {
         console.error('❌ [BookOfAnswers] 配置加载异常:', err);
@@ -280,7 +289,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
                   <p
                     className="wisdom-text"
                   >
-                    {selectedWisdom}
+                    {higherSelfAdvice}
                   </p>
                 </div>
               </div>
@@ -664,7 +673,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
                 textShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
                 fontFamily: "'Noto Serif SC', serif"
               }}>
-                {selectedWisdom}
+                {higherSelfAdvice}
               </p>
             </div>
 
