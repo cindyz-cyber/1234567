@@ -321,20 +321,6 @@ export default function ShareConfigAdmin() {
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  分享卡片背景图URL（已废弃，请使用下方"能量卡片分享背景图"字段）
-                </label>
-                <input
-                  type="text"
-                  value={formData.card_bg_image_url}
-                  onChange={(e) => setFormData({ ...formData, card_bg_image_url: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white/50 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder="/0_0_640_N.webp 或云端图片链接"
-                  disabled
-                />
-                <p className="text-xs text-white/40 mt-1">此字段已废弃，请使用下方"卡片视觉配置"区域的新字段</p>
-              </div>
             </div>
 
             <div className="bg-white/5 p-6 rounded-xl border border-amber-400/30 space-y-4">

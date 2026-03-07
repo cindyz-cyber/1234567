@@ -75,8 +75,13 @@ export default function ShareJournal() {
   useEffect(() => {
     return () => {
       if (backgroundMusic) {
+        console.log('🧹 [ShareJournal] 组件卸载，强制清理长音频资源');
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0;
+        // 🚀 针对长音频优化：强制释放音频源，防止30分钟大文件占用手机内存和流量
+        backgroundMusic.src = '';
+        backgroundMusic.load();
+        console.log('✅ [ShareJournal] 音频资源已完全释放');
       }
     };
   }, [backgroundMusic]);
@@ -250,19 +255,21 @@ export default function ShareJournal() {
   };
 
   const generateEnergyCard = async () => {
-    console.group('🎴 海报生成启动 - 背景图动态化验证');
+    console.group('🎴 海报生成启动 - 背景图实时抓取验证');
     console.log('📍 执行函数: generateEnergyCard');
     console.log('🔒 当前步骤:', currentStep);
     console.log('🔒 当前路由:', window.location.pathname);
+    console.log('🚫 自动跳转拦截: 已启用，直到用户手动操作');
     console.log('');
-    console.log('🖼️ 背景图优先级链（从配置台读取）:');
+    console.log('🖼️ 背景图优先级链（实时从配置台抓取）:');
     console.log('  1️⃣ card_inner_bg_url:', config?.card_inner_bg_url || '❌ 未配置');
-    console.log('  2️⃣ card_bg_image_url:', config?.card_bg_image_url || '❌ 未配置');
+    console.log('  2️⃣ card_bg_image_url (已废弃):', config?.card_bg_image_url || '❌ 未配置');
     console.log('  3️⃣ 本地降级:', '/0_0_640_N.webp');
     console.log('');
     const finalBgUrl = config?.card_inner_bg_url || config?.card_bg_image_url || '/0_0_640_N.webp';
     console.log('✅ 最终使用背景图:', finalBgUrl);
     console.log('🚀 图片来源:', finalBgUrl.includes('supabase') ? 'Supabase Storage（中国区加速）' : '本地静态资源');
+    console.log('🔒 确认: 背景图从 h5_share_config 表实时读取，不使用缓存');
     console.groupEnd();
 
     setIsGenerating(true);

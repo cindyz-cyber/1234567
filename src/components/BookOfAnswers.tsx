@@ -184,14 +184,27 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack }: B
         </div>
 
         {flippedCard !== null && (
-          <div className="text-center space-y-3">
-            <p className="card-hint-text">
+          <div className="text-center space-y-4" style={{ paddingBottom: '20px' }}>
+            <p className="card-hint-text" style={{
+              fontSize: '15px',
+              marginBottom: '12px',
+              textShadow: '0 0 25px rgba(200, 220, 255, 0.5)'
+            }}>
               ✨ 接收完成，生成你的专属能量卡片
             </p>
             <button
               id="generate-poster-btn"
               onClick={handleComplete}
               className="complete-button"
+              style={{
+                padding: '14px 40px',
+                fontSize: '16px',
+                fontWeight: '400',
+                background: 'linear-gradient(135deg, rgba(200, 220, 255, 0.08) 0%, rgba(180, 200, 255, 0.12) 100%)',
+                borderWidth: '1px',
+                borderColor: 'rgba(200, 220, 255, 0.3)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(200, 220, 255, 0.2), inset 0 1px 20px rgba(255, 255, 255, 0.1)'
+              }}
             >
               生成能量卡片
             </button>
