@@ -565,42 +565,81 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
           position: fixed;
           inset: 0;
           z-index: 99999;
-          background: rgba(0, 0, 0, 0.95);
+          background: rgba(0, 0, 0, 0.98);
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 20px;
         }
 
-        .poster-image {
-          max-width: 90%;
-          max-height: 70vh;
-          border-radius: 12px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        /* 🔥 铺满全屏的图片，可直接长按 */
+        .poster-image-fullscreen {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 1;
+          pointer-events: auto;
         }
 
-        .poster-actions {
+        /* 🌿 底部引导提示条 */
+        .poster-guide-bar {
+          position: fixed;
+          bottom: 80px;
+          left: 0;
+          right: 0;
+          z-index: 2;
           display: flex;
-          gap: 16px;
-          margin-top: 24px;
+          justify-content: center;
+          padding: 0 20px;
+          pointer-events: none;
         }
 
-        .poster-button {
-          padding: 12px 32px;
+        .poster-guide-text {
+          background: rgba(235, 200, 98, 0.15);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(235, 200, 98, 0.3);
+          padding: 14px 24px;
+          border-radius: 24px;
+          font-size: 14px;
+          font-weight: 400;
+          letter-spacing: 0.05em;
+          color: rgba(255, 255, 255, 0.9);
+          text-align: center;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 🔥 关闭按钮：底部中央，不遮挡图片核心区域 */
+        .poster-close-button {
+          position: fixed;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 3;
+          padding: 12px 40px;
           font-size: 16px;
           font-weight: 400;
-          border-radius: 8px;
+          border-radius: 24px;
           cursor: pointer;
           transition: all 0.3s ease;
-          border: 1px solid rgba(200, 220, 255, 0.3);
-          background: linear-gradient(135deg, rgba(200, 220, 255, 0.08) 0%, rgba(180, 200, 255, 0.12) 100%);
-          color: rgba(200, 220, 255, 0.95);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          color: rgba(255, 255, 255, 0.9);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
         }
 
-        .poster-button:hover {
-          transform: scale(1.05);
-          box-shadow: 0 4px 20px rgba(200, 220, 255, 0.2);
+        .poster-close-button:hover {
+          transform: translateX(-50%) scale(1.05);
+          background: rgba(0, 0, 0, 0.8);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .poster-close-button:active {
+          transform: translateX(-50%) scale(0.95);
         }
 
         .poster-generating {
@@ -703,7 +742,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
         </div>
       </div>
 
-      {/* 🔥 海报遮罩层（用于显示结果） */}
+      {/* 🔥 海报遮罩层（微信长按分享优化） */}
       {showPoster && (
         <div className="poster-overlay">
           {generatingPoster ? (
@@ -713,37 +752,39 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
             </div>
           ) : posterImage ? (
             <>
-              <img src={posterImage} alt="能量卡片" className="poster-image" />
-              <div className="poster-actions">
-                <button
-                  className="poster-button"
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.download = `能量卡片_${new Date().getTime()}.png`;
-                    link.href = posterImage;
-                    link.click();
-                  }}
-                >
-                  下载海报
-                </button>
-                <button
-                  className="poster-button"
-                  onClick={() => {
-                    setShowPoster(false);
-                    setPosterImage(null);
-                  }}
-                >
-                  关闭
-                </button>
+              {/* 🔥 核心图片：铺满屏幕，可直接长按 */}
+              <img
+                src={posterImage}
+                alt="能量卡片"
+                className="poster-image-fullscreen"
+                style={{
+                  width: '100vw',
+                  height: '100vh',
+                  objectFit: 'contain',
+                  backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                  touchAction: 'auto',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none'
+                }}
+              />
+
+              {/* 🌿 底部引导提示条 */}
+              <div className="poster-guide-bar">
+                <p className="poster-guide-text">
+                  🌿 能量已注入卡片，长按图片发送给好友或分享朋友圈
+                </p>
               </div>
-              <p style={{
-                marginTop: '16px',
-                fontSize: '14px',
-                color: 'rgba(200, 220, 255, 0.6)',
-                letterSpacing: '0.05em'
-              }}>
-                长按图片可保存到相册
-              </p>
+
+              {/* 🔥 关闭按钮：移到底部中央，不遮挡图片核心区域 */}
+              <button
+                className="poster-close-button"
+                onClick={() => {
+                  setShowPoster(false);
+                  setPosterImage(null);
+                }}
+              >
+                关闭
+              </button>
             </>
           ) : null}
         </div>
