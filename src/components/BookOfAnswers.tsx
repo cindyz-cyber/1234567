@@ -14,12 +14,93 @@ interface BookOfAnswersProps {
   higherSelfAdvice: string; // 🔥 必填：真实的高我建议
 }
 
+// 🔥 智慧文库：50+ 条植本逻辑深度文案
+interface WisdomEntry {
+  text: string;
+  weight: number; // 权重：1=常见，3=稀有，5=极稀有
+}
+
+const WISDOMS: WisdomEntry[] = [
+  // === 行动类 (Action-oriented) ===
+  { text: '在下一个满月前，完成那件拖延已久的事', weight: 1 },
+  { text: '去见一个许久未见的老友，答案在对话中', weight: 1 },
+  { text: '身体在呼唤你，去跑步或跳舞吧', weight: 1 },
+  { text: '写一封信给三年后的自己', weight: 2 },
+  { text: '今天就开始，不必等到完美的时机', weight: 1 },
+  { text: '向那个人道歉，时机已经成熟', weight: 2 },
+  { text: '删掉三个不再使用的 App，腾出空间', weight: 1 },
+  { text: '在日出前醒来，观察光的到来', weight: 3 },
+  { text: '为陌生人做一件善事，不留名字', weight: 2 },
+  { text: '整理你的书架，答案藏在某本书里', weight: 1 },
+
+  // === 觉察类 (Self-awareness) ===
+  { text: '你现在的困惑，源于对完美的过度执着', weight: 1 },
+  { text: '试着呼吸，在呼气中放下那份掌控欲', weight: 1 },
+  { text: '你并非卡住了，只是在积蓄能量', weight: 2 },
+  { text: '停止证明自己，开始表达自己', weight: 2 },
+  { text: '你害怕的不是失败，而是失去控制', weight: 3 },
+  { text: '那个让你不舒服的人，映照着你内心的阴影', weight: 2 },
+  { text: '你的疲惫来自抗拒，而非行动本身', weight: 2 },
+  { text: '允许自己不知道答案', weight: 1 },
+  { text: '你的愤怒是未被看见的悲伤', weight: 3 },
+  { text: '放下对未来的焦虑，回到此刻的呼吸', weight: 1 },
+  { text: '你不需要更多，你需要的是减法', weight: 2 },
+  { text: '内疚是你对过去的执念，放手吧', weight: 2 },
+
+  // === 场域类 (Context & Environment) ===
+  { text: '向自然借力，在绿意中你会听见指引', weight: 1 },
+  { text: '换个视角，你眼中的阻碍其实是护城河', weight: 2 },
+  { text: '离开熟悉的环境，去一个从未去过的地方', weight: 1 },
+  { text: '这个问题的答案，在水边', weight: 3 },
+  { text: '你需要的不是建议，而是独处的时间', weight: 1 },
+  { text: '回到童年常去的地方，找回遗失的碎片', weight: 3 },
+  { text: '换一条回家的路，新的路径带来新的思考', weight: 2 },
+  { text: '在人群中独处，在独处时连接自己', weight: 2 },
+  { text: '清理你的空间，能量会随之流动', weight: 1 },
+
+  // === 关系类 (Relationships) ===
+  { text: '你在等待的人，也在等待你的主动', weight: 2 },
+  { text: '说出那句话，即使声音会颤抖', weight: 2 },
+  { text: '真正的连接，始于脆弱的袒露', weight: 2 },
+  { text: '有些关系已经完成了它的使命', weight: 3 },
+  { text: '你无法拯救任何人，除非他们想被拯救', weight: 3 },
+  { text: '爱意需要表达，不要让遗憾积累', weight: 1 },
+  { text: '设立边界不是冷漠，是对彼此的尊重', weight: 2 },
+  { text: '那个人的离开，是为更好的相遇腾出空间', weight: 2 },
+
+  // === 直觉与智慧类 (Intuition & Wisdom) ===
+  { text: '你的第一反应往往是对的', weight: 1 },
+  { text: '身体的信号比大脑更诚实', weight: 2 },
+  { text: '梦境在告诉你某些事，记录下来', weight: 3 },
+  { text: '巧合是宇宙的语言', weight: 3 },
+  { text: '你一直知道答案，只是不敢相信', weight: 2 },
+  { text: '停止分析，听听心的声音', weight: 1 },
+  { text: '那个反复出现的念头，值得你认真对待', weight: 2 },
+  { text: '直觉在耳语，理性在咆哮，选择前者', weight: 3 },
+
+  // === 时间与耐心类 (Time & Patience) ===
+  { text: '种子已经种下，现在需要的是耐心', weight: 1 },
+  { text: '时机未到，不是你不够好', weight: 1 },
+  { text: '慢下来，快不是答案', weight: 1 },
+  { text: '这段等待是必要的准备', weight: 2 },
+  { text: '信任过程，即使看不见结果', weight: 2 },
+
+  // === 极稀有金句 (Ultra-rare) ===
+  { text: '你以为的终点，其实是起点', weight: 5 },
+  { text: '在黑暗中行走的人，身上自带光', weight: 5 },
+  { text: '放下你的"为什么"，接受"就是这样"', weight: 5 },
+  { text: '你的伤口，将成为光照进来的地方', weight: 5 },
+  { text: '当你不再寻找，答案会自己到来', weight: 5 },
+  { text: '觉醒的痛苦，好过沉睡的安逸', weight: 5 },
+];
+
 export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isGenerating = false, userName, kinData, higherSelfAdvice }: BookOfAnswersProps) {
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
   const [showPoster, setShowPoster] = useState(false);
   const [posterImage, setPosterImage] = useState<string | null>(null);
   const [generatingPoster, setGeneratingPoster] = useState(false);
   const [cardBgUrl, setCardBgUrl] = useState<string>('');
+  const [selectedWisdom, setSelectedWisdom] = useState<string>(''); // 🔥 翻牌时的随机文案
   const posterCardRef = useRef<HTMLDivElement>(null);
 
   // 🔥 验证传入的高我建议
@@ -74,9 +155,36 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
     loadConfig();
   }, []);
 
+  // 🔥 带权重的随机选择算法
+  const selectWeightedWisdom = (): string => {
+    // 计算总权重（权重越高=越稀有=概率越低，因此需要反转）
+    const totalWeight = WISDOMS.reduce((sum, w) => sum + (1 / w.weight), 0);
+    let random = Math.random() * totalWeight;
+
+    for (const wisdom of WISDOMS) {
+      const adjustedWeight = 1 / wisdom.weight;
+      random -= adjustedWeight;
+      if (random <= 0) {
+        return wisdom.text;
+      }
+    }
+
+    // 兜底：返回第一条
+    return WISDOMS[0].text;
+  };
+
   const handleCardClick = (index: number) => {
     if (flippedCard === null) {
       setFlippedCard(index);
+      // 🔥 翻牌时选择一条随机文案
+      const wisdom = selectWeightedWisdom();
+      setSelectedWisdom(wisdom);
+
+      console.group('🎴 [BookOfAnswers] 双轨逻辑验证');
+      console.log('📱 翻牌卡片显示（随机文案）:', wisdom);
+      console.log('📸 海报卡片显示（真实建议）:', higherSelfAdvice);
+      console.log('✅ 确认：翻牌用趣味文案，海报用高我真实建议');
+      console.groupEnd();
     }
   };
 
@@ -289,7 +397,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
                   <p
                     className="wisdom-text"
                   >
-                    {higherSelfAdvice}
+                    {selectedWisdom || '静心，答案即将显现'}
                   </p>
                 </div>
               </div>
@@ -529,17 +637,25 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
         .wisdom-text {
           color: rgba(200, 220, 255, 0.95);
           font-size: 13px;
-          font-weight: 200;
-          line-height: 1.8;
+          font-weight: 300;
+          line-height: 2;
           text-align: center;
-          letter-spacing: 0.15em;
+          letter-spacing: 0.1em;
           font-family: 'Noto Serif SC', serif;
-          text-shadow: 0 0 20px rgba(200, 220, 255, 0.5);
+          text-shadow:
+            0 2px 8px rgba(0, 0, 0, 0.8),
+            0 0 20px rgba(200, 220, 255, 0.4);
           position: relative;
           z-index: 1;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
           animation: wisdomGlow 3s ease-in-out infinite;
+          word-wrap: break-word;
+          word-break: break-word;
+          overflow-wrap: break-word;
+          white-space: normal;
+          max-width: 100%;
+          padding: 0 4px;
         }
 
         @keyframes wisdomGlow {
@@ -710,8 +826,12 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
                 lineHeight: '1.8',
                 letterSpacing: '0.15em',
                 textShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
-                fontFamily: "'Noto Serif SC', serif"
+                fontFamily: "'Noto Serif SC', serif",
+                wordWrap: 'break-word',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word'
               }}>
+                {/* 🔥 海报卡片：必须显示真实的高我建议，而非随机文案 */}
                 {higherSelfAdvice}
               </p>
             </div>
