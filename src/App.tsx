@@ -395,10 +395,13 @@ function App() {
               }
             }
           }}
-          className="fixed top-4 right-4 z-50 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 text-white rounded-lg text-sm backdrop-blur-lg transition-all"
-          style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' }}
+          className="fixed top-20 right-4 z-[999] px-6 py-3 bg-gradient-to-r from-green-500/30 to-emerald-500/30 hover:from-green-500/50 hover:to-emerald-500/50 border-2 border-green-400/60 text-white rounded-xl text-base font-medium backdrop-blur-xl transition-all duration-300 shadow-2xl hover:scale-105 hover:shadow-green-500/50"
+          style={{
+            boxShadow: '0 8px 24px rgba(34, 197, 94, 0.4), 0 0 40px rgba(16, 185, 129, 0.3)',
+            letterSpacing: '0.05em'
+          }}
         >
-          设为管理员
+          🔐 设为管理员
         </button>
       )}
 
