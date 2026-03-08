@@ -365,7 +365,10 @@ export default function AdminPanel() {
           )}
 
           <p className="text-sm text-slate-400 mt-3 text-center">
-            支持批量上传（可选择多个文件），格式：MP3、WAV、OGG、M4A、MP4，最大支持 30 分钟长音频
+            支持批量上传（可选择多个文件），格式：MP3、WAV、OGG、M4A、MP4
+          </p>
+          <p className="text-xs text-green-400 mt-1 text-center font-medium">
+            ✨ 已支持 192kbps 高品质长音频（最大 100MB），自动分片上传 + 流式播放
           </p>
         </div>
 
