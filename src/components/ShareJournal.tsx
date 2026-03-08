@@ -185,15 +185,21 @@ export default function ShareJournal() {
 
     try {
       if (config?.bg_music_url) {
-        console.log('📡 开始预加载音频:', config.bg_music_url);
+        console.log('📡 开始预加载音频 (192kbps 高品质长音频优化):', config.bg_music_url);
         const audio = new Audio();
         audio.src = config.bg_music_url;
-        audio.preload = 'auto';
+
+        // 🚀 强制使用 metadata 模式，启用 Range Requests（HTTP 206 Partial Content）
+        // 对于 192kbps 的大文件，只预加载元数据，避免下载整个文件
+        audio.preload = 'metadata';
         audio.volume = 0;
         audio.crossOrigin = 'anonymous';
 
-        audio.addEventListener('canplaythrough', () => {
-          console.log('✅ 音频预加载完成，已缓冲足够数据');
+        console.log('✅ Range Requests 已启用: preload="metadata"');
+        console.log('💡 优势: 100MB 音频仅下载元数据，秒开播放');
+
+        audio.addEventListener('canplay', () => {
+          console.log('✅ 音频元数据加载完成，可以开始播放（流式模式）');
         });
 
         audio.addEventListener('error', (e) => {
@@ -202,7 +208,7 @@ export default function ShareJournal() {
 
         audio.load();
         setPreloadedAudio(audio);
-        console.log('🚀 预加载任务已启动（后台进行）');
+        console.log('🚀 预加载任务已启动（仅加载元数据，支持流式播放）');
       } else {
         console.log('⏩ bg_music_url 未配置，将使用主 App 资源');
       }

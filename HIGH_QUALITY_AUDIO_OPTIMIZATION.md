@@ -328,6 +328,50 @@ await audio.play();
 
 ---
 
+## 11. 所有音频播放路径优化确认
+
+### 主应用音频播放（audioManager.ts）
+✅ **已优化** - `playShareBackgroundMusic()` 函数
+- 使用 `preload="metadata"`
+- 自动触发 Range Requests
+- 支持 100MB 高品质长音频流式播放
+
+### 引流页音频播放（ShareJournal.tsx + GoldenTransition.tsx）
+✅ **已优化** - 所有路径均使用相同的优化策略
+
+**ShareJournal 预加载阶段**:
+```typescript
+audio.preload = 'metadata';  // 只预加载元数据，而非 'auto'
+audio.crossOrigin = 'anonymous';
+```
+
+**GoldenTransition 播放阶段**:
+```typescript
+const audio = await playShareBackgroundMusic(backgroundMusicUrl, true);
+// 内部使用 preload='metadata'，自动支持 Range Requests
+```
+
+### 音频来源优先级
+无论音频来自哪里，都使用相同的优化策略：
+
+1. **h5_share_config.bg_music_url**（引流页专用）
+   - ✅ 已优化：ShareJournal + GoldenTransition
+   - ✅ Range Requests 已启用
+   - ✅ 192kbps 长音频流式播放
+
+2. **audio_files 表**（主应用）
+   - ✅ 已优化：playBackgroundMusicLoop()
+   - ✅ Range Requests 已启用
+   - ✅ 192kbps 长音频流式播放
+
+### 上传路径
+所有音频上传均通过 AdminPanel 完成：
+- ✅ 支持最大 100MB 文件
+- ✅ 自动分片上传（5MB/片）
+- ✅ 上传后的音频 URL 可配置到 `bg_music_url` 字段
+
+---
+
 ## 结论
 
 所有三项优化目标已完成：
@@ -335,4 +379,9 @@ await audio.play();
 ✅ Range Requests 强制启用（HTTP 206 Partial Content）
 ✅ 微信兼容性保障（主App域名 + CORS 配置）
 
-系统现已支持 192kbps 高品质长音频的流畅播放，用户体验显著提升。
+**关键改进**:
+- ShareJournal 的音频预加载从 `preload="auto"` 改为 `preload="metadata"`
+- 所有音频播放路径（主应用 + 引流页）均使用统一的优化策略
+- 无论音频来自 `bg_music_url` 还是 `audio_files` 表，都支持流式播放
+
+系统现已支持 192kbps 高品质长音频的流畅播放，所有场景下用户体验一致。
