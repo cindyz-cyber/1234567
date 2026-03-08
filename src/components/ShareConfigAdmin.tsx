@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Lock, Unlock, Save, RefreshCw } from 'lucide-react';
+import AudioUploader from './AudioUploader';
 
 const ADMIN_PASSWORD = 'plantlogic2026';
 const CONFIG_ID = '00000000-0000-0000-0000-000000000001';
@@ -351,18 +352,29 @@ export default function ShareConfigAdmin() {
 
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">
-                  背景音乐URL
+                  背景音乐 URL（支持 192kbps 高品质长音频）
                 </label>
-                <input
-                  type="text"
-                  value={formData.bg_music_url}
-                  onChange={(e) => setFormData({ ...formData, bg_music_url: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder="https://your-cdn.com/music.mp3"
+
+                <AudioUploader
+                  currentUrl={formData.bg_music_url}
+                  onUploadComplete={(url) => {
+                    console.log('🎵 音频上传完成，自动填充 URL:', url);
+                    setFormData({ ...formData, bg_music_url: url });
+                  }}
                 />
-                {formData.bg_music_url && (
-                  <p className="text-xs text-emerald-400 mt-2">✓ 当前值: {formData.bg_music_url}</p>
-                )}
+
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-white/60 mb-2">
+                    或手动输入 URL:
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.bg_music_url}
+                    onChange={(e) => setFormData({ ...formData, bg_music_url: e.target.value })}
+                    className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
+                    placeholder="https://your-cdn.com/music.mp3"
+                  />
+                </div>
               </div>
 
             </div>
