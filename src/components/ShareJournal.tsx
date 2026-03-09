@@ -17,6 +17,9 @@ type JournalStep = 'blocked' | 'naming' | 'home' | 'emotion' | 'journal' | 'dial
 interface H5ShareConfig {
   is_active: boolean;
   daily_token: string;
+  scene_token: string;
+  scene_name: string;
+  description: string;
   bg_video_url: string;
   bg_music_url: string;
   card_bg_image_url: string;
@@ -98,28 +101,55 @@ export default function ShareJournal() {
 
   const validateAccess = async () => {
     try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sceneToken = urlParams.get('scene') || 'default';
+
+      console.log('🎬 场景参数:', sceneToken);
+
       const { data, error } = await supabase
         .from('h5_share_config')
         .select('*')
-        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .eq('scene_token', sceneToken)
         .maybeSingle();
 
       if (error) {
         console.error('❌ Config fetch error:', error);
+
+        if (sceneToken !== 'default') {
+          console.warn('⚠️ 场景不存在，尝试加载默认场景...');
+          const { data: defaultData, error: defaultError } = await supabase
+            .from('h5_share_config')
+            .select('*')
+            .eq('scene_token', 'default')
+            .maybeSingle();
+
+          if (!defaultError && defaultData) {
+            console.log('✅ 已加载默认场景');
+            setConfig(defaultData);
+            await shareBackgroundPreloader.preloadAllAssets(defaultData);
+            setIsValidating(false);
+            return;
+          }
+        }
+
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
       if (!data) {
-        console.warn('⚠️ No config found in database');
+        console.warn('⚠️ No config found for scene:', sceneToken);
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
-      console.group('🚀 H5 Config Active - 配置台数据已接通');
-      console.log('✅ 数据源：h5_share_config 表（唯一权威）');
+      console.group('🚀 H5 场景配置已加载');
+      console.log('✅ 数据源：h5_share_config 表（场景化配置）');
+      console.log('🎭 场景标识 (scene_token):', data.scene_token);
+      console.log('📝 场景名称 (scene_name):', data.scene_name);
+      console.log('📄 场景描述:', data.description || '无');
+      console.log('');
       console.log('📊 完整配置对象:', data);
       console.log('');
       console.log('🎵 背景音乐 URL (bg_music_url):', data.bg_music_url || '⏩ 将尝试主 App 资源');
@@ -145,7 +175,6 @@ export default function ShareJournal() {
         return;
       }
 
-      const urlParams = new URLSearchParams(window.location.search);
       const pathSegments = window.location.pathname.split('/').filter(s => s);
       const queryToken = urlParams.get('token');
       const pathToken = pathSegments[pathSegments.length - 1];
