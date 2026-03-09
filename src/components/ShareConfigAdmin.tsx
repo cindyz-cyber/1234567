@@ -15,6 +15,7 @@ interface H5ShareConfig {
   bg_video_url: string;
   bg_music_url: string;
   card_bg_image_url: string;
+  bg_home_url: string;
   bg_naming_url: string;
   bg_emotion_url: string;
   bg_journal_url: string;
@@ -33,6 +34,7 @@ interface SceneFormData {
   bg_video_url: string;
   bg_music_url: string;
   card_bg_image_url: string;
+  bg_home_url: string;
   bg_naming_url: string;
   bg_emotion_url: string;
   bg_journal_url: string;
@@ -61,6 +63,7 @@ export default function ShareConfigAdmin() {
     bg_video_url: '',
     bg_music_url: '',
     card_bg_image_url: '',
+    bg_home_url: '',
     bg_naming_url: '',
     bg_emotion_url: '',
     bg_journal_url: '',
@@ -143,6 +146,7 @@ export default function ShareConfigAdmin() {
       bg_video_url: scene.bg_video_url || '',
       bg_music_url: scene.bg_music_url || '',
       card_bg_image_url: scene.card_bg_image_url || '',
+      bg_home_url: scene.bg_home_url || '',
       bg_naming_url: scene.bg_naming_url || '',
       bg_emotion_url: scene.bg_emotion_url || '',
       bg_journal_url: scene.bg_journal_url || '',
@@ -165,6 +169,7 @@ export default function ShareConfigAdmin() {
       bg_video_url: '',
       bg_music_url: '',
       card_bg_image_url: '/0_0_640_N.webp',
+      bg_home_url: '',
       bg_naming_url: '',
       bg_emotion_url: '',
       bg_journal_url: '',
@@ -217,6 +222,7 @@ export default function ShareConfigAdmin() {
           bg_video_url: data.bg_video_url || '',
           bg_music_url: data.bg_music_url || '',
           card_bg_image_url: data.card_bg_image_url || '',
+          bg_home_url: data.bg_home_url || '',
           bg_naming_url: data.bg_naming_url || '',
           bg_emotion_url: data.bg_emotion_url || '',
           bg_journal_url: data.bg_journal_url || '',
@@ -520,6 +526,14 @@ export default function ShareConfigAdmin() {
                           高级配置：各步骤专属背景（可选）
                         </summary>
                         <div className="space-y-6 mt-4">
+                          <MediaUploader
+                            label="首页背景（支持 JPG/MP4）"
+                            currentValue={formData.bg_home_url}
+                            onUploadComplete={(url) => setFormData({ ...formData, bg_home_url: url })}
+                            accept=".jpg,.jpeg,.png,.mp4,.webm"
+                            maxSizeMB={100}
+                            folder="background-music"
+                          />
                           <MediaUploader
                             label="起名页背景（支持 JPG/MP4）"
                             currentValue={formData.bg_naming_url}

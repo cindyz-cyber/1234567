@@ -23,6 +23,7 @@ interface H5ShareConfig {
   bg_video_url: string;
   bg_music_url: string;
   card_bg_image_url: string;
+  bg_home_url: string;
   bg_naming_url: string;
   bg_emotion_url: string;
   bg_journal_url: string;
@@ -160,6 +161,7 @@ export default function ShareJournal() {
       console.log('🖼️ 卡片内部背景 URL (card_inner_bg_url):', data.card_inner_bg_url || '❌ 未配置');
       console.log('');
       console.log('📄 各步骤专属背景（引流后台专属）:');
+      console.log('  - 首页 (bg_home_url):', data.bg_home_url || '→ 回退到 bg_video_url');
       console.log('  - 起名页 (bg_naming_url):', data.bg_naming_url || '→ 回退到 bg_video_url');
       console.log('  - 情绪页 (bg_emotion_url):', data.bg_emotion_url || '→ 回退到 bg_video_url');
       console.log('  - 日记页 (bg_journal_url):', data.bg_journal_url || '→ 回退到 bg_video_url');
@@ -548,7 +550,8 @@ export default function ShareJournal() {
       case 'home':
         return (
           <DynamicStepBackground
-            backgroundUrl={config?.bg_video_url}
+            backgroundUrl={config?.bg_home_url}
+            fallbackUrl={config?.bg_video_url}
           >
             <HomePage
               userName={state.userName}
