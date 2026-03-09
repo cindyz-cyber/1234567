@@ -21,6 +21,27 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
 
   const handleSecondSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 🔥 强制解锁浏览器音频权限（用户交互触发）
+    console.group('🔓 [NamingRitual] 解锁浏览器音频权限');
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContext) {
+        const audioContext = new AudioContext();
+        if (audioContext.state === 'suspended') {
+          console.log('🔓 AudioContext 处于 suspended 状态，正在恢复...');
+          audioContext.resume().then(() => {
+            console.log('✅ AudioContext 已恢复为 running 状态');
+          });
+        } else {
+          console.log('✅ AudioContext 已处于', audioContext.state, '状态');
+        }
+      }
+    } catch (err) {
+      console.warn('⚠️ AudioContext 初始化失败:', err);
+    }
+    console.groupEnd();
+
     if (userName.trim()) {
       onComplete(higherSelfName.trim(), userName.trim());
     }

@@ -307,7 +307,33 @@ export const playShareBackgroundMusic = async (
 
   return audio;
 };
-// 新增：只停止不销毁，给切换场景留余地
+/**
+ * 🔥 新增：暂停所有音频但保持实例存活
+ * 用于场景切换时，确保预加载的音频对象在进入 GoldenTransition 时依然存活
+ * 与 stopAllAudio 的区别：
+ * - pauseAllAudio: 只执行 pause()，保持音频实例和 src，适合临时暂停
+ * - stopAllAudio: 销毁音频实例，清空 src，释放内存，适合组件卸载
+ */
 export const pauseAllAudio = () => {
-  activeAudioInstances.forEach(audio => audio.pause());
+  console.group('⏸️ 暂停所有音频（保持实例存活）');
+  console.log('📊 当前活跃音频实例数:', activeAudioInstances.size);
+  console.log('💡 策略: 只执行 pause()，不销毁实例');
+  console.log('🎯 目的: 确保预加载的音频对象在后续步骤中可以继续使用');
+
+  activeAudioInstances.forEach((audio, index) => {
+    try {
+      if (!audio.paused) {
+        audio.pause();
+        console.log(`⏸️ 音频实例 ${index + 1} 已暂停 (URL: ${audio.src.substring(0, 50)}...)`);
+      } else {
+        console.log(`⏭️ 音频实例 ${index + 1} 已处于暂停状态`);
+      }
+    } catch (error) {
+      console.error('Error pausing audio:', error);
+    }
+  });
+
+  console.log('✅ 所有音频已暂停，实例保持存活');
+  console.log('🔄 音频可在后续步骤中通过 play() 恢复播放');
+  console.groupEnd();
 };

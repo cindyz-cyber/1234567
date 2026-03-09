@@ -28,6 +28,8 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     console.log('🎵 背景音乐 URL:', backgroundMusicUrl);
     console.log('🎥 背景视频 URL:', backgroundVideoUrl);
     console.log('🎵 全局音频对象:', globalAudio ? '有效' : '无');
+    console.log('🎬 媒体类型判断: isMediaUrlVideo =', isMediaUrlVideo);
+    console.log('🔊 视频声音策略:', isMediaUrlVideo ? '✅ 开启声音 (muted=false, volume=0.3)' : '🔇 静音播放 (muted=true)');
 
     let backgroundMusic: HTMLAudioElement | null = null;
     let fadeOutTimer: number | undefined;
@@ -143,7 +145,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
         <video
           autoPlay
           loop
-          muted
+          muted={!isMediaUrlVideo}
           playsInline
           preload="auto"
           crossOrigin="anonymous"
@@ -153,6 +155,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
             WebkitTransform: 'translate3d(0,0,0)',
             transform: 'translate3d(0,0,0)'
           }}
+          {...(isMediaUrlVideo ? { volume: 0.3 } : {})}
         >
           <source src={effectiveVideoUrl} type="video/mp4" />
         </video>
