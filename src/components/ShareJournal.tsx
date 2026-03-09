@@ -61,6 +61,32 @@ export default function ShareJournal() {
   const [preloadedAudio, setPreloadedAudio] = useState<HTMLAudioElement | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // 🔍 调试：监听 backgroundMusic 状态变化
+  useEffect(() => {
+    console.group('🔍 [ShareJournal] backgroundMusic 状态变化');
+    console.log('🎵 backgroundMusic:', backgroundMusic ? '已设置' : 'null');
+    if (backgroundMusic) {
+      console.log('📊 音频源:', backgroundMusic.src);
+      console.log('📊 播放状态:', backgroundMusic.paused ? '暂停' : '播放中');
+      console.log('📊 当前时间:', backgroundMusic.currentTime);
+      console.log('📊 音量:', backgroundMusic.volume);
+    }
+    console.groupEnd();
+  }, [backgroundMusic]);
+
+  // 🔍 调试：监听 preloadedAudio 状态变化
+  useEffect(() => {
+    console.group('🔍 [ShareJournal] preloadedAudio 状态变化');
+    console.log('🎵 preloadedAudio:', preloadedAudio ? '已设置' : 'null');
+    if (preloadedAudio) {
+      console.log('📊 音频源:', preloadedAudio.src);
+      console.log('📊 播放状态:', preloadedAudio.paused ? '暂停' : '播放中');
+      console.log('📊 当前时间:', preloadedAudio.currentTime);
+      console.log('📊 音量:', preloadedAudio.volume);
+    }
+    console.groupEnd();
+  }, [preloadedAudio]);
+
   // 🔒 防护：拦截任何路由跳转尝试
   useEffect(() => {
     const preventNavigation = (e: BeforeUnloadEvent) => {
@@ -247,8 +273,25 @@ export default function ShareJournal() {
 
             // 🔥 修复 1: 同时赋值给 backgroundMusic 和 preloadedAudio，解决状态更新延迟
             console.log('🔄 同时更新 backgroundMusic 和 preloadedAudio 状态');
+            console.log('🔍 调用前 - backgroundMusic:', backgroundMusic);
+            console.log('🔍 调用前 - preloadedAudio:', preloadedAudio);
+            console.log('🔍 即将设置的 audio 对象:', audio);
+            console.log('🔍 audio.src:', audio.src);
+            console.log('🔍 audio.paused:', audio.paused);
+            console.log('🔍 audio.currentTime:', audio.currentTime);
+
             setBackgroundMusic(audio);
             setPreloadedAudio(audio);
+
+            // 验证设置是否被调用（下一帧检查）
+            setTimeout(() => {
+              console.group('🔍 [validateAccess] 状态设置后验证（50ms后）');
+              console.log('📊 当前 backgroundMusic ref:', backgroundMusic);
+              console.log('📊 当前 preloadedAudio ref:', preloadedAudio);
+              console.log('💡 注意：由于 React 状态更新机制，这里可能还是旧值');
+              console.log('💡 真正的状态会在 useEffect 中反映出来');
+              console.groupEnd();
+            }, 50);
           } else {
             console.error('❌ 场景音频加载失败');
             console.error('💡 请检查 bg_music_url 是否可访问');
@@ -280,13 +323,36 @@ export default function ShareJournal() {
   const handleNamingComplete = async (higherSelfName: string, userName: string) => {
     updateState({ userName, higherSelfMessage: higherSelfName });
 
-    console.group('🎵 起名环节完成 - 启动音频预热');
+    console.group('🎵 起名环节完成 - 检查音频预热状态');
+    console.log('🔍 当前 backgroundMusic:', backgroundMusic ? '已有实例' : 'null');
+    console.log('🔍 当前 preloadedAudio:', preloadedAudio ? '已有实例' : 'null');
+
+    // 🔥 关键修复：检查是否已经在 validateAccess 中预加载了音频
+    if (backgroundMusic || preloadedAudio) {
+      console.log('✅ 音频已在 validateAccess 中预加载完成，无需重复创建');
+      console.log('💡 直接使用现有实例，避免创建重复的 Audio 对象');
+      console.groupEnd();
+      setCurrentStep('home');
+      return;
+    }
+
+    console.log('⚠️ 未检测到预加载音频，尝试降级加载');
     console.log('💡 策略: 在用户浏览首页时，后台静默预加载音频');
     console.log('🎯 目标: 到达呼吸环节时，音频已缓冲完毕，即点即响');
 
     try {
       if (config?.bg_music_url) {
         console.log('📡 开始预加载音频 (192kbps 高品质长音频优化):', config.bg_music_url);
+
+        // 检测是否为视频格式，视频格式不需要预加载 Audio 对象
+        if (isVideoUrl(config.bg_music_url)) {
+          console.log('🎬 检测到 MP4 视频格式，跳过 Audio 对象创建');
+          console.log('💡 视频将在 GoldenTransition 中直接播放');
+          console.groupEnd();
+          setCurrentStep('home');
+          return;
+        }
+
         const audio = new Audio();
         audio.src = config.bg_music_url;
 
@@ -308,6 +374,10 @@ export default function ShareJournal() {
         });
 
         audio.load();
+
+        // 🔥 同时设置两个状态，保持一致性
+        console.log('🔄 同步设置 backgroundMusic 和 preloadedAudio');
+        setBackgroundMusic(audio);
         setPreloadedAudio(audio);
         console.log('🚀 预加载任务已启动（仅加载元数据，支持流式播放）');
       } else {
@@ -614,6 +684,15 @@ export default function ShareJournal() {
         );
 
       case 'dialogue':
+        console.group('💬 [ShareJournal] 渲染 HigherSelfDialogue');
+        console.log('🎵 backgroundMusic 状态:', backgroundMusic ? '已加载' : 'null');
+        console.log('🎵 preloadedAudio 状态:', preloadedAudio ? '已加载' : 'null');
+        if (backgroundMusic) {
+          console.log('📊 backgroundMusic.src:', backgroundMusic.src);
+          console.log('📊 backgroundMusic.paused:', backgroundMusic.paused);
+        }
+        console.groupEnd();
+
         return (
           <DynamicStepBackground
             backgroundUrl={config?.bg_video_url}
