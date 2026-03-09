@@ -44,6 +44,15 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
       // 优先使用全局音频对象（在 validateAccess 中提前创建）
       if (globalAudio) {
         console.log('✅ 使用全局音频对象（已在 validateAccess 中初始化）');
+
+        // 🚀 性能优化：首次触发音频加载（从 preload="none" 切换到实际加载）
+        if (globalAudio.preload === 'none') {
+          console.log('🚀 首次触发音频加载（preload="none" -> "metadata"）');
+          globalAudio.preload = 'metadata'; // 启用流式加载
+          globalAudio.load(); // 触发加载
+          console.log('⏳ 音频开始流式加载...');
+        }
+
         console.log('🔄 第一次强制重置: currentTime = 0');
         globalAudio.currentTime = 0;
 
@@ -149,8 +158,9 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           loop
           muted={!isMusicVideo}
           playsInline
-          preload="auto"
+          preload="metadata"
           crossOrigin="anonymous"
+          poster="/0_0_640_N.webp"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',

@@ -1,16 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import NamingRitual from './components/NamingRitual';
 import HomePage from './components/HomePage';
-import EmotionScan from './components/EmotionScan';
-import InnerWhisperJournal from './components/InnerWhisperJournal';
-import GoldenTransition from './components/GoldenTransition';
-import HigherSelfDialogue from './components/HigherSelfDialogue';
 import Navigation from './components/Navigation';
 import EnergyCenter from './components/EnergyCenter';
 import EnergyPerson from './components/EnergyPerson';
 import Profile from './components/Profile';
-import BookOfAnswers from './components/BookOfAnswers';
 import PremiumModal from './components/PremiumModal';
 import AdminPanel from './components/AdminPanel';
 import SampleUploadPanel from './components/SampleUploadPanel';
@@ -20,6 +15,13 @@ import VideoBackground from './components/VideoBackground';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 import { preloadCoreBackgrounds } from './utils/backgroundAssets';
+
+// 🚀 代码分割：懒加载非首屏组件
+const EmotionScan = lazy(() => import('./components/EmotionScan'));
+const InnerWhisperJournal = lazy(() => import('./components/InnerWhisperJournal'));
+const GoldenTransition = lazy(() => import('./components/GoldenTransition'));
+const HigherSelfDialogue = lazy(() => import('./components/HigherSelfDialogue'));
+const BookOfAnswers = lazy(() => import('./components/BookOfAnswers'));
 
 type FlowStep = 'home' | 'emotion' | 'energy' | 'innerWhisper' | 'transition' | 'dialogue' | 'answers';
 type TabType = 'breath' | 'person' | 'profile' | 'admin' | 'samples' | 'uploader';
@@ -290,7 +292,11 @@ function App() {
 
     if (currentStep === 'emotion') {
       console.log('✅ Rendering EmotionScan');
-      return <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />;
+      return (
+        <Suspense fallback={<div className="loading-screen">加载中...</div>}>
+          <EmotionScan onNext={handleEmotionComplete} onBack={handleBackToHome} />
+        </Suspense>
+      );
     }
 
     if (currentStep === 'energy') {
@@ -299,35 +305,41 @@ function App() {
 
     if (currentStep === 'innerWhisper') {
       return (
-        <InnerWhisperJournal
-          emotions={journeyData.emotions}
-          bodyStates={journeyData.bodyStates}
-          onBack={handleBackToEmotion}
-          onNext={handleInnerWhisperComplete}
-        />
+        <Suspense fallback={<div className="loading-screen">加载中...</div>}>
+          <InnerWhisperJournal
+            emotions={journeyData.emotions}
+            bodyStates={journeyData.bodyStates}
+            onBack={handleBackToEmotion}
+            onNext={handleInnerWhisperComplete}
+          />
+        </Suspense>
       );
     }
 
     if (currentStep === 'transition') {
       return (
-        <GoldenTransition
-          userName={userNames.userName}
-          higherSelfName={userNames.higherSelfName}
-          onComplete={handleTransitionComplete}
-        />
+        <Suspense fallback={<div className="loading-screen">加载中...</div>}>
+          <GoldenTransition
+            userName={userNames.userName}
+            higherSelfName={userNames.higherSelfName}
+            onComplete={handleTransitionComplete}
+          />
+        </Suspense>
       );
     }
 
     if (currentStep === 'dialogue') {
       return (
-        <HigherSelfDialogue
-          userName={userNames.userName}
-          higherSelfName={userNames.higherSelfName}
-          journalContent={journeyData.journalContent}
-          backgroundMusic={backgroundAudio}
-          onComplete={handleDialogueComplete}
-          onBack={handleBackToInnerWhisper}
-        />
+        <Suspense fallback={<div className="loading-screen">加载中...</div>}>
+          <HigherSelfDialogue
+            userName={userNames.userName}
+            higherSelfName={userNames.higherSelfName}
+            journalContent={journeyData.journalContent}
+            backgroundMusic={backgroundAudio}
+            onComplete={handleDialogueComplete}
+            onBack={handleBackToInnerWhisper}
+          />
+        </Suspense>
       );
     }
 
@@ -339,13 +351,15 @@ function App() {
       console.groupEnd();
 
       return (
-        <BookOfAnswers
-          onComplete={handleAnswersComplete}
-          backgroundAudio={backgroundAudio}
-          onBack={handleBackToDialogue}
-          higherSelfAdvice={journeyData.higherSelfResponse}
-          userName={userNames?.userName}
-        />
+        <Suspense fallback={<div className="loading-screen">加载中...</div>}>
+          <BookOfAnswers
+            onComplete={handleAnswersComplete}
+            backgroundAudio={backgroundAudio}
+            onBack={handleBackToDialogue}
+            higherSelfAdvice={journeyData.higherSelfResponse}
+            userName={userNames?.userName}
+          />
+        </Suspense>
       );
     }
 

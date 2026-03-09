@@ -82,7 +82,11 @@ export default function DynamicStepBackground({
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          zIndex: 0
+          zIndex: 0,
+          opacity: 1,
+          transition: 'opacity 0.5s ease-in-out',
+          willChange: 'opacity',
+          transform: 'translate3d(0, 0, 0)'
         }}
       />
       <div style={{ position: 'relative', zIndex: 1 }}>

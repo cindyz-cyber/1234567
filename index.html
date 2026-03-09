@@ -9,17 +9,8 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://bolt.new/static/og_default.png" />
 
-    <!-- 首屏静默预加载：核心视频资源 -->
-    <link rel="preload" as="video" href="/assets/videos/golden-flow.mp4" type="video/mp4" crossorigin="anonymous" />
-    <link rel="preload" as="video" href="/assets/videos/energy-field.mp4" type="video/mp4" crossorigin="anonymous" />
-    <link rel="preload" as="video" href="/assets/videos/resonance-wave.mp4" type="video/mp4" crossorigin="anonymous" />
-    <link rel="preload" as="video" href="/assets/videos/zen-vortex.mp4" type="video/mp4" crossorigin="anonymous" />
-
-    <!-- 预加载 Poster 封面图（第二级兜底） -->
-    <link rel="preload" as="image" href="/assets/videos/golden-flow-poster.jpg" />
-    <link rel="preload" as="image" href="/assets/videos/energy-field-poster.jpg" />
-    <link rel="preload" as="image" href="/assets/videos/resonance-wave-poster.jpg" />
-    <link rel="preload" as="image" href="/assets/videos/zen-vortex-poster.jpg" />
+    <!-- 首屏关键资源：仅预加载封面图，视频按需加载 -->
+    <link rel="preload" as="image" href="/0_0_640_N.webp" />
   </head>
   <body style="background: transparent !important;">
     <div id="root" style="background: transparent !important;"></div>
