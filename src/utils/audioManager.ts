@@ -307,3 +307,7 @@ export const playShareBackgroundMusic = async (
 
   return audio;
 };
+// 新增：只停止不销毁，给切换场景留余地
+export const pauseAllAudio = () => {
+  activeAudioInstances.forEach(audio => audio.pause());
+};
