@@ -40,8 +40,14 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
       // 优先使用全局音频对象（在 validateAccess 中提前创建）
       if (globalAudio) {
         console.log('✅ 使用全局音频对象（已在 validateAccess 中初始化）');
-        console.log('🔄 强制重置播放进度: currentTime = 0');
+        console.log('🔄 第一次强制重置: currentTime = 0');
         globalAudio.currentTime = 0;
+
+        // 🔥 双重确保：等待一帧后再次重置
+        await new Promise(resolve => setTimeout(resolve, 50));
+        console.log('🔄 第二次强制重置: currentTime = 0');
+        globalAudio.currentTime = 0;
+
         console.log('▶️ 开始播放音频');
 
         try {
@@ -49,6 +55,13 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           console.log('✅ [GoldenTransition] 全局音频播放成功');
           console.log('⏱️ 当前播放位置:', globalAudio.currentTime, '秒');
           console.log('🔊 音量:', globalAudio.volume);
+
+          // 🔥 三重确保：播放后再检查一次
+          if (globalAudio.currentTime > 0.5) {
+            console.warn('⚠️ 检测到播放位置异常，强制归零');
+            globalAudio.currentTime = 0;
+          }
+
           backgroundMusic = globalAudio;
         } catch (err) {
           console.error('❌ 全局音频播放失败:', err);

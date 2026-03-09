@@ -102,10 +102,26 @@ export default function ShareJournal() {
   const validateAccess = async () => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      const sceneToken = urlParams.get('scene') || 'default';
+      const rawSceneToken = urlParams.get('scene');
 
-      console.log('🎬 场景参数:', sceneToken);
+      // 🔥 强制处理 URL 参数空格
+      const sceneToken = rawSceneToken ? rawSceneToken.trim() : null;
 
+      console.group('🎬 场景匹配验证');
+      console.log('📡 原始参数:', rawSceneToken);
+      console.log('🧹 处理后参数:', sceneToken);
+      console.log('💡 URL 格式要求: ?scene=xxx&token=yyy');
+      console.groupEnd();
+
+      if (!sceneToken) {
+        console.error('❌ 缺少 scene 参数！');
+        console.error('💡 正确 URL 格式: ?scene=xxx&token=yyy');
+        setCurrentStep('blocked');
+        setIsValidating(false);
+        return;
+      }
+
+      // 🔥 强制精准匹配场景，取消默认降级
       const { data, error } = await supabase
         .from('h5_share_config')
         .select('*')
@@ -113,32 +129,19 @@ export default function ShareJournal() {
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Config fetch error:', error);
-
-        if (sceneToken !== 'default') {
-          console.warn('⚠️ 场景不存在，尝试加载默认场景...');
-          const { data: defaultData, error: defaultError } = await supabase
-            .from('h5_share_config')
-            .select('*')
-            .eq('scene_token', 'default')
-            .maybeSingle();
-
-          if (!defaultError && defaultData) {
-            console.log('✅ 已加载默认场景');
-            setConfig(defaultData);
-            await shareBackgroundPreloader.preloadAllAssets(defaultData);
-            setIsValidating(false);
-            return;
-          }
-        }
-
+        console.error('❌ 数据库查询失败:', error);
+        console.error('🔍 查询的 scene_token:', sceneToken);
+        console.error('💡 请检查后台是否已配置该场景');
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
       if (!data) {
-        console.warn('⚠️ No config found for scene:', sceneToken);
+        console.error('❌ 场景不存在！');
+        console.error('🔍 查询的 scene_token:', sceneToken);
+        console.error('💡 请到后台 /admin/share-config 创建该场景配置');
+        console.error('🚫 已禁用默认降级，确保配置生效可见');
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
@@ -199,10 +202,11 @@ export default function ShareJournal() {
       console.log('✅ Token validated successfully');
       console.log('🎵 开始预加载场景资源...');
 
-      // 🎵 提前初始化音频对象（确保从头播放）
+      // 🔥 强制使用场景配置，严禁降级到主 App
       if (data.bg_music_url) {
-        console.group('🎵 提前初始化音频对象');
+        console.group('🎵 提前初始化音频对象（场景专属）');
         console.log('📡 媒体 URL:', data.bg_music_url);
+        console.log('🚫 已禁用主 App 音频降级');
 
         // 检测是否为 MP4 视频
         if (isVideoUrl(data.bg_music_url)) {
@@ -213,18 +217,27 @@ export default function ShareJournal() {
           console.log('🎵 检测到音频文件（MP3）');
           console.log('💡 策略: 提前创建 Audio 对象，设置 preload="metadata"');
 
-          const audio = await playShareBackgroundMusic(data.bg_music_url, true);
+          // 🔥 禁用主 App 降级，只加载场景音频
+          const audio = await playShareBackgroundMusic(data.bg_music_url, false);
 
           if (audio) {
             console.log('✅ 音频对象初始化成功');
             console.log('⏸️ 暂停播放，等待用户到达 GoldenTransition 页面');
+            console.log('🔄 强制重置: currentTime = 0');
             audio.pause();
             audio.currentTime = 0;
             setBackgroundMusic(audio);
+          } else {
+            console.error('❌ 场景音频加载失败');
+            console.error('💡 请检查 bg_music_url 是否可访问');
           }
         }
 
         console.groupEnd();
+      } else {
+        console.warn('⚠️ 当前场景未配置 bg_music_url');
+        console.warn('💡 将在无背景音乐的情况下运行');
+        console.warn('🚫 已禁用主 App 音频降级');
       }
 
       await shareBackgroundPreloader.preloadAllAssets(data);
@@ -514,7 +527,7 @@ export default function ShareJournal() {
         return (
           <DynamicStepBackground
             backgroundUrl={config?.bg_naming_url}
-            fallbackUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
+            fallbackUrl={config?.bg_video_url}
           >
             <NamingRitual
               onComplete={handleNamingComplete}
@@ -525,7 +538,7 @@ export default function ShareJournal() {
       case 'home':
         return (
           <DynamicStepBackground
-            backgroundUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
+            backgroundUrl={config?.bg_video_url}
           >
             <HomePage
               userName={state.userName}
@@ -539,7 +552,7 @@ export default function ShareJournal() {
         return (
           <DynamicStepBackground
             backgroundUrl={config?.bg_emotion_url}
-            fallbackUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
+            fallbackUrl={config?.bg_video_url}
           >
             <EmotionScan
               onNext={handleEmotionComplete}
@@ -551,7 +564,7 @@ export default function ShareJournal() {
         return (
           <DynamicStepBackground
             backgroundUrl={config?.bg_journal_url}
-            fallbackUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
+            fallbackUrl={config?.bg_video_url}
           >
             <InnerWhisperJournal
               emotions={state.selectedEmotions}
@@ -563,7 +576,7 @@ export default function ShareJournal() {
       case 'dialogue':
         return (
           <DynamicStepBackground
-            backgroundUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
+            backgroundUrl={config?.bg_video_url}
           >
             <HigherSelfDialogue
               userName={state.userName}
@@ -597,7 +610,7 @@ export default function ShareJournal() {
         return (
           <DynamicStepBackground
             backgroundUrl={config?.bg_answer_book_url}
-            fallbackUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
+            fallbackUrl={config?.bg_video_url}
           >
             <BookOfAnswers
               backgroundAudio={backgroundMusic}

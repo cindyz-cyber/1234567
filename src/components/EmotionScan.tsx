@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
 import PortalBackground from './PortalBackground';
-import VideoBackground from './VideoBackground';
 import posterImage from '../assets/0_1_640_N.webp';
 
 interface Particle {
@@ -256,13 +255,6 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
   return (
     <>
-      <VideoBackground />
-      <PortalBackground
-        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/qg5emh46ebi-1772600045215.mp4"
-        posterImg={posterImage}
-        overlayGradient={`rgba(0, 0, 0, ${backgroundDarkness})`}
-      />
-
       <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative" style={{ position: 'relative', zIndex: 1 }}>
 
       {particles.map(particle => (

@@ -1,7 +1,4 @@
 import { useState } from 'react';
-import PortalBackground from './PortalBackground';
-import VideoBackground from './VideoBackground';
-import posterImage from '../assets/0_1_640_N.webp';
 
 interface HomePageProps {
   userName: string;
@@ -32,12 +29,6 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 breathing-fade relative">
-      <VideoBackground />
-      <PortalBackground
-        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
-        posterImg={posterImage}
-      />
-
       <div className="absolute top-0 left-0 w-full h-[30vh] z-20 pointer-events-none top-vignette" />
 
       <div className="absolute top-[8vh] left-0 w-full z-30 flex justify-center pointer-events-none">
