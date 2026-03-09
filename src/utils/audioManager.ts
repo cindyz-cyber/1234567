@@ -148,56 +148,63 @@ export const isVideoUrl = (url: string): boolean => {
 };
 
 /**
- * 智能媒体播放器 - 支持音频（MP3）和视频（MP4）
+ * 🔥 引流后台专属音频播放器 - 强制阻断主 App 降级
  * 当 URL 为 MP4 时，返回 null 但记录日志，前端需要单独处理视频背景
  */
 export const playShareBackgroundMusic = async (
   shareConfigUrl: string | null | undefined,
-  fallbackToMainApp: boolean = true
+  fallbackToMainApp: boolean = false  // 🔥 默认禁用降级
 ): Promise<HTMLAudioElement | null> => {
-  let finalMusicUrl: string | null = null;
+  console.group('🎵 引流后台音频加载 - 场景配置绝对优先');
+  console.log('🚫 主 App 降级已禁用，fallbackToMainApp:', fallbackToMainApp);
 
-  console.group('🎵 媒体加载策略 - 三级优先级 + 视频/音频混合支持');
-
-  if (shareConfigUrl && shareConfigUrl.trim() !== '') {
-    console.log('✅ 优先级 1: h5_share_config.bg_music_url 已配置');
-    console.log('🎵 URL:', shareConfigUrl);
-
-    // 检测是否为视频文件
-    if (isVideoUrl(shareConfigUrl)) {
-      console.log('🎬 检测到 MP4 视频文件，将作为背景视频使用（静音播放）');
-      console.log('💡 前端需要在 <video> 标签中加载此 URL');
-      console.groupEnd();
-      return null; // 视频不在这里处理，返回 null 让前端知道需要用视频
-    }
-
-    finalMusicUrl = shareConfigUrl;
-  } else if (fallbackToMainApp) {
-    console.log('⚠️ 优先级 1 未配置，尝试优先级 2: 主 App 全局音频资源');
-    try {
-      const mainAppAudio = await playBackgroundMusicLoop();
-      if (mainAppAudio) {
-        console.log('✅ 优先级 2 成功: 已从主 App audio_files 表获取音频');
-        console.groupEnd();
-        return mainAppAudio;
-      }
-      console.warn('⚠️ 优先级 2 失败: 主 App 无可用音频资源');
-    } catch (err) {
-      console.error('❌ 优先级 2 异常:', err);
-    }
-
-    console.warn('⚠️ 优先级 3: 本地静态资源（未实现）');
-    console.warn('💡 建议: 请在 /admin/share-config 配置 bg_music_url');
-  } else {
-    console.error('❌ 所有优先级均未配置，音频加载失败');
-  }
-
-  console.groupEnd();
-
-  if (!finalMusicUrl) {
-    console.error('❌ 无可用音频 URL，终止播放');
+  // 🔥 强制检查场景配置
+  if (!shareConfigUrl || shareConfigUrl.trim() === '') {
+    console.error('❌ 场景未配置 bg_music_url！');
+    console.error('💡 请到后台 /admin/share-config 上传音频文件');
+    console.error('🚫 已禁用主 App 降级，不会尝试加载 audio_files 表');
+    console.groupEnd();
     return null;
   }
+
+  const trimmedUrl = shareConfigUrl.trim();
+  console.log('✅ 场景专属音频 URL:', trimmedUrl);
+  console.log('📊 URL 长度:', trimmedUrl.length);
+  console.log('🔍 URL 是否包含空格:', /\s/.test(trimmedUrl));
+
+  // 检测是否为视频文件
+  if (isVideoUrl(trimmedUrl)) {
+    console.log('🎬 检测到 MP4 视频文件，将作为背景视频使用（静音播放）');
+    console.log('💡 前端需要在 <video> 标签中加载此 URL');
+    console.groupEnd();
+    return null; // 视频不在这里处理，返回 null 让前端知道需要用视频
+  }
+
+  // 🔥 针对文件名包含空格或特殊字符的处理
+  console.group('🔧 URL 编码处理（防止文件名空格失效）');
+  console.log('📡 原始 URL:', trimmedUrl);
+
+  // 检查 URL 是否已经是完整的 Supabase URL
+  let finalMusicUrl: string;
+  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+    // 已经是完整 URL，只需要编码路径部分
+    try {
+      const urlObj = new URL(trimmedUrl);
+      const pathSegments = urlObj.pathname.split('/');
+      const encodedSegments = pathSegments.map(segment => encodeURIComponent(segment));
+      urlObj.pathname = encodedSegments.join('/');
+      finalMusicUrl = urlObj.toString();
+      console.log('✅ URL 路径已编码:', finalMusicUrl);
+    } catch (e) {
+      console.warn('⚠️ URL 解析失败，使用原始 URL');
+      finalMusicUrl = trimmedUrl;
+    }
+  } else {
+    // 相对路径，直接编码
+    finalMusicUrl = encodeURI(trimmedUrl);
+    console.log('✅ 相对路径已编码:', finalMusicUrl);
+  }
+  console.groupEnd();
 
   const cacheBuster = `?t=${Date.now()}`;
   const finalAudioUrl = finalMusicUrl + cacheBuster;

@@ -157,23 +157,23 @@ export default function ShareJournal() {
       console.log('');
       console.log('🎵 背景音乐 URL (bg_music_url):', data.bg_music_url || '⏩ 将尝试主 App 资源');
       console.log('🎬 通用背景视频 URL (bg_video_url):', data.bg_video_url || '⏩ 使用默认视频');
-      console.log('🖼️ 卡片内部背景 URL (card_inner_bg_url):', data.card_inner_bg_url || '⏩ 使用默认背景');
+      console.log('🖼️ 卡片内部背景 URL (card_inner_bg_url):', data.card_inner_bg_url || '❌ 未配置');
       console.log('');
-      console.log('📄 各步骤专属背景（中国区加速）:');
-      console.log('  - 起名页 (bg_naming_url):', data.bg_naming_url || '⏩ 降级到 bg_video_url');
-      console.log('  - 情绪页 (bg_emotion_url):', data.bg_emotion_url || '⏩ 降级到 bg_video_url');
-      console.log('  - 日记页 (bg_journal_url):', data.bg_journal_url || '⏩ 降级到 bg_video_url');
-      console.log('  - 过渡页 (bg_transition_url):', data.bg_transition_url || '⏩ 降级到 bg_video_url');
-      console.log('  - 答案之书 (bg_answer_book_url):', data.bg_answer_book_url || '⏩ 降级到 bg_video_url');
+      console.log('📄 各步骤专属背景（引流后台专属）:');
+      console.log('  - 起名页 (bg_naming_url):', data.bg_naming_url || '→ 回退到 bg_video_url');
+      console.log('  - 情绪页 (bg_emotion_url):', data.bg_emotion_url || '→ 回退到 bg_video_url');
+      console.log('  - 日记页 (bg_journal_url):', data.bg_journal_url || '→ 回退到 bg_video_url');
+      console.log('  - 过渡页 (bg_transition_url):', data.bg_transition_url || '→ 回退到 bg_video_url');
+      console.log('  - 答案之书 (bg_answer_book_url):', data.bg_answer_book_url || '→ 回退到 bg_video_url');
       console.log('');
-      console.log('🎵 音频加载策略（三级优先级）:');
-      console.log('  ✅ 优先级 1: 场景专属音频 (h5_share_config.bg_music_url)');
-      console.log('  ⏩ 优先级 2: 主 App 全局音频 (audio_files 表)');
-      console.log('  ⏩ 优先级 3: 本地静态资源（未实现）');
+      console.log('🎵 音频加载策略（场景配置绝对优先）:');
+      console.log('  🔥 唯一数据源: h5_share_config.bg_music_url');
+      console.log('  🚫 已禁用主 App 音频降级 (audio_files 表)');
+      console.log('  🚫 已禁用本地静态资源降级');
       if (data.bg_music_url) {
-        console.log('  🎯 当前场景已配置专属音频，将使用优先级 1');
+        console.log('  ✅ 当前场景已配置专属音频，将直接加载');
       } else {
-        console.log('  ⚠️ 当前场景未配置专属音频，将降级到优先级 2');
+        console.error('  ❌ 当前场景未配置音频，将在无背景音乐的情况下运行');
       }
       console.groupEnd();
 
@@ -217,6 +217,15 @@ export default function ShareJournal() {
           console.log('🎵 检测到音频文件（MP3）');
           console.log('💡 策略: 提前创建 Audio 对象，设置 preload="metadata"');
 
+          console.group('🎵 正在尝试加载引流后台专属 MP3');
+          console.log('📡 完整 URL:', data.bg_music_url);
+          console.log('📊 URL 长度:', data.bg_music_url.length);
+          console.log('🔍 是否包含特殊字符:', /[^\x20-\x7E]/.test(data.bg_music_url));
+          console.log('🔍 是否包含空格:', /\s/.test(data.bg_music_url));
+          console.log('💡 文件名将在 audioManager 中自动执行 encodeURI() 处理');
+          console.log('🚫 已禁用主 App 降级，只加载场景配置');
+          console.groupEnd();
+
           // 🔥 禁用主 App 降级，只加载场景音频
           const audio = await playShareBackgroundMusic(data.bg_music_url, false);
 
@@ -230,6 +239,7 @@ export default function ShareJournal() {
           } else {
             console.error('❌ 场景音频加载失败');
             console.error('💡 请检查 bg_music_url 是否可访问');
+            console.error('💡 请确认 URL 没有权限问题');
           }
         }
 

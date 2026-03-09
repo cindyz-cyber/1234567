@@ -14,12 +14,13 @@ export default function DynamicStepBackground({
 }: DynamicStepBackgroundProps) {
   const effectiveUrl = backgroundUrl && backgroundUrl.trim() !== '' ? backgroundUrl : fallbackUrl;
 
-  console.group('🎬 动态背景加载');
+  console.group('🎬 场景专属背景加载');
   console.log('📍 组件: DynamicStepBackground');
-  console.log('🔗 专属背景 URL (backgroundUrl):', backgroundUrl || '❌ 未配置');
-  console.log('🔗 降级背景 URL (fallbackUrl):', fallbackUrl || '❌ 未配置');
+  console.log('🔗 优先级 1 - 专属背景 (backgroundUrl):', backgroundUrl || '❌ 未配置');
+  console.log('🔗 优先级 2 - 通用背景 (fallbackUrl):', fallbackUrl || '❌ 未配置');
   console.log('✅ 最终使用 URL:', effectiveUrl || '❌ 无背景');
-  console.log('🚀 资源来源:', effectiveUrl?.includes('supabase') ? 'Supabase Storage（中国区加速）' : '本地或默认');
+  console.log('🚀 资源来源:', effectiveUrl?.includes('supabase') ? 'Supabase Storage（引流后台）' : '❌ 未知来源');
+  console.log('🚫 已禁用主 App 资源降级');
   console.groupEnd();
 
   if (!effectiveUrl) {
