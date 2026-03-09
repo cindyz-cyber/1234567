@@ -34,11 +34,22 @@ const BACKGROUND_RESOURCES = [
 
 // 安装事件：预缓存所有 Poster 图片（体积小，立即缓存）
 self.addEventListener('install', (event) => {
-  console.log('📦 Service Worker 安装中...');
+  console.log('📦 [v-emergency-stop-2026] Service Worker 安装中...');
+  console.warn('🚨 紧急停止版本：强制废弃所有旧缓存');
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      // 先缓存所有 Poster（优先级最高）
+    caches.keys().then((cacheNames) => {
+      // 先删除所有旧缓存（包括任何可能残留的版本）
+      return Promise.all(
+        cacheNames.map((name) => {
+          console.log('🗑️  [install] 删除旧缓存:', name);
+          return caches.delete(name);
+        })
+      );
+    }).then(() => {
+      return caches.open(CACHE_NAME);
+    }).then((cache) => {
+      // 再缓存所有 Poster（优先级最高）
       const posters = BACKGROUND_RESOURCES.filter(url => url.endsWith('.jpg'));
       return cache.addAll(posters).then(() => {
         console.log('✅ Poster 图片已预缓存:', posters.length, '个');
@@ -52,7 +63,8 @@ self.addEventListener('install', (event) => {
 
 // 激活事件：清理旧版本缓存
 self.addEventListener('activate', (event) => {
-  console.log('🔄 Service Worker 激活中...');
+  console.log('🔄 [v-emergency-stop-2026] Service Worker 激活中...');
+  console.warn('🚨 强制接管所有页面，清理所有旧版本缓存');
 
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -60,17 +72,18 @@ self.addEventListener('activate', (event) => {
         cacheNames
           .filter((name) => name !== CACHE_NAME)
           .map((name) => {
-            console.log('🗑️  删除旧缓存:', name);
+            console.log('🗑️  [activate] 删除旧缓存:', name);
             return caches.delete(name);
           })
       );
     }).then(() => {
       console.log('✅ Service Worker 已激活，当前缓存:', CACHE_NAME);
+      console.log('🚨 紧急停止版本已生效，所有旧缓存已清理');
     })
   );
 
-  // 立即接管所有页面
-  self.clients.claim();
+  // 立即接管所有页面（包括已打开的页面）
+  return self.clients.claim();
 });
 
 // Fetch 事件：Cache First (缓存优先) 策略

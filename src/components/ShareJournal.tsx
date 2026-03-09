@@ -50,7 +50,11 @@ interface JournalState {
 const IS_LINK_DEPRECATED = true;
 
 export default function ShareJournal() {
-  const [currentStep, setCurrentStep] = useState<JournalStep>('naming');
+  // 🚨 物理级拦截器 - URL 检测（最高优先级）
+  // 任何包含旧 token 的 URL 直接拦截，零容忍
+  const isBlockedUrl = window.location.href.includes('zen2026');
+
+  const [currentStep, setCurrentStep] = useState<JournalStep>(isBlockedUrl ? 'blocked' : 'naming');
   const [config, setConfig] = useState<H5ShareConfig | null>(null);
   const [isValidating, setIsValidating] = useState(true);
   const [state, setState] = useState<JournalState>({
@@ -109,7 +113,16 @@ export default function ShareJournal() {
   }, [currentStep, generatedImage]);
 
   useEffect(() => {
-    // 🔥 前端硬开关检查（最高优先级 - Emergency Kill-Switch）
+    // 🚨 物理级拦截器 1: URL 检测（优先级 1）
+    if (isBlockedUrl) {
+      console.error('🚫 [URL BLOCKED] 检测到旧 token: zen2026，立即拦截');
+      console.error('🛑 停止所有初始化，进入失效状态');
+      setCurrentStep('blocked');
+      setIsValidating(false);
+      return;
+    }
+
+    // 🚨 物理级拦截器 2: 全局硬开关（优先级 2）
     if (IS_LINK_DEPRECATED) {
       console.error('🚫 [IS_LINK_DEPRECATED = true] 前端硬开关已激活，全网失效');
       console.error('💡 即使数据库连接正常，该部署包也会直接拦截所有用户');
@@ -136,7 +149,7 @@ export default function ShareJournal() {
     }
 
     validateAccess();
-  }, []);
+  }, [isBlockedUrl]);
 
   // 🔥 监听 blocked 状态，自动清理所有音频资源
   useEffect(() => {
