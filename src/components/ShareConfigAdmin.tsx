@@ -410,6 +410,41 @@ export default function ShareConfigAdmin() {
                   </div>
                 </div>
 
+                {/* 页面活跃状态 Toggle 开关 */}
+                <div className="mb-6 p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-400/30 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {formData.is_active ? (
+                        <Unlock className="w-6 h-6 text-green-400" />
+                      ) : (
+                        <Lock className="w-6 h-6 text-red-400" />
+                      )}
+                      <div>
+                        <h3 className="text-base font-semibold text-white">
+                          页面活跃状态 (is_active)
+                        </h3>
+                        <p className="text-sm text-white/60 mt-1">
+                          {formData.is_active
+                            ? '当前启用：用户可以正常访问引流页'
+                            : '当前停用：访问将显示"链接已失效"'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
+                      className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors duration-300 ${
+                        formData.is_active ? 'bg-green-500' : 'bg-gray-600'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform duration-300 ${
+                          formData.is_active ? 'translate-x-9' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -454,19 +489,7 @@ export default function ShareConfigAdmin() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.is_active}
-                          onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                          className="w-5 h-5 rounded border-white/30 bg-white/10 text-amber-500 focus:ring-2 focus:ring-amber-400"
-                        />
-                        <span className="text-sm font-medium text-white/80">启用此场景</span>
-                      </label>
-                    </div>
-
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-white/80 mb-2">
                         访问令牌 (daily_token)
