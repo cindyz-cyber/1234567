@@ -49,15 +49,37 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
         if (globalAudio.preload === 'none') {
           console.log('🚀 首次触发音频加载（preload="none" -> "metadata"）');
           globalAudio.preload = 'metadata'; // 启用流式加载
-          globalAudio.load(); // 触发加载
-          console.log('⏳ 音频开始流式加载...');
+
+          // 🔥 关键修复：等待元数据加载完成后再设置 currentTime
+          await new Promise<void>((resolve) => {
+            const onLoadedMetadata = () => {
+              console.log('✅ 音频元数据加载完成');
+              console.log('⏱️ 音频时长:', globalAudio!.duration, '秒');
+              globalAudio!.removeEventListener('loadedmetadata', onLoadedMetadata);
+              resolve();
+            };
+
+            const onCanPlay = () => {
+              console.log('✅ 音频可以播放');
+              globalAudio!.removeEventListener('canplay', onCanPlay);
+              resolve();
+            };
+
+            // 监听两个事件，哪个先到用哪个
+            globalAudio!.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
+            globalAudio!.addEventListener('canplay', onCanPlay, { once: true });
+
+            // 触发加载
+            globalAudio!.load();
+            console.log('⏳ 音频开始流式加载，等待元数据...');
+          });
         }
 
         console.log('🔄 第一次强制重置: currentTime = 0');
         globalAudio.currentTime = 0;
 
         // 🔥 双重确保：等待一帧后再次重置
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise(resolve => setTimeout(resolve, 100));
         console.log('🔄 第二次强制重置: currentTime = 0');
         globalAudio.currentTime = 0;
 
@@ -70,10 +92,12 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           console.log('🔊 音量:', globalAudio.volume);
 
           // 🔥 三重确保：播放后再检查一次
-          if (globalAudio.currentTime > 0.5) {
-            console.warn('⚠️ 检测到播放位置异常，强制归零');
-            globalAudio.currentTime = 0;
-          }
+          setTimeout(() => {
+            if (globalAudio && globalAudio.currentTime > 0.5) {
+              console.warn('⚠️ 检测到播放位置异常，第三次强制归零');
+              globalAudio.currentTime = 0;
+            }
+          }, 100);
 
           backgroundMusic = globalAudio;
         } catch (err) {
