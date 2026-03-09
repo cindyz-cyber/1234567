@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import VideoBackground from './VideoBackground';
+import FullScreenVideoBackground from './FullScreenVideoBackground';
 
 interface DynamicStepBackgroundProps {
   backgroundUrl: string | null | undefined;
@@ -30,9 +30,11 @@ export default function DynamicStepBackground({
 
   if (isVideo) {
     return (
-      <div className="dynamic-step-container">
-        <VideoBackground videoUrl={effectiveUrl} />
-        {children}
+      <div className="dynamic-step-container" style={{ position: 'relative', minHeight: '100vh' }}>
+        <FullScreenVideoBackground videoUrl={effectiveUrl} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {children}
+        </div>
       </div>
     );
   }

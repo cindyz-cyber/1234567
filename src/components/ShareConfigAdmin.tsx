@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Lock, Unlock, Save, RefreshCw, Plus, Trash2, CreditCard as Edit2, Copy } from 'lucide-react';
-import AudioUploader from './AudioUploader';
+import MediaUploader from './MediaUploader';
 
 const ADMIN_PASSWORD = 'plantlogic2026';
 
@@ -504,125 +504,87 @@ export default function ShareConfigAdmin() {
                     <h3 className="text-lg font-semibold text-white mb-4">场景资源配置</h3>
 
                     <div className="space-y-6">
-                      <div>
-                        <label className="block text-sm font-medium text-white/80 mb-2">
-                          背景媒体 URL（支持 MP3 音频 / MP4 视频）
-                        </label>
-                        <AudioUploader
-                          currentUrl={formData.bg_music_url}
-                          onUploadComplete={(url, fileType) => {
-                            console.log(`${fileType === 'video' ? '🎬 视频' : '🎵 音频'}上传完成，自动填充 URL:`, url);
-                            setFormData({ ...formData, bg_music_url: url });
-                          }}
-                        />
-                        <div className="mt-3">
-                          <label className="block text-xs font-medium text-white/60 mb-2">
-                            或手动输入 URL（支持 .mp3 或 .mp4）:
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.bg_music_url}
-                            onChange={(e) => setFormData({ ...formData, bg_music_url: e.target.value })}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
-                            placeholder="https://your-cdn.com/media.mp3 或 .mp4"
-                          />
-                        </div>
-                      </div>
+                      <MediaUploader
+                        label="背景媒体（支持 MP3 音频 / MP4 视频）"
+                        currentValue={formData.bg_music_url}
+                        onUploadComplete={(url) => setFormData({ ...formData, bg_music_url: url })}
+                        accept=".mp3,.mp4,.webm"
+                        maxSizeMB={100}
+                        folder="background-music"
+                      />
 
-                      <div>
-                        <label className="block text-sm font-medium text-white/80 mb-2">
-                          背景视频 URL（.mp4）
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.bg_video_url}
-                          onChange={(e) => setFormData({ ...formData, bg_video_url: e.target.value })}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                          placeholder="https://your-cdn.com/video.mp4"
-                        />
-                      </div>
+                      <MediaUploader
+                        label="背景视频（支持 MP4）"
+                        currentValue={formData.bg_video_url}
+                        onUploadComplete={(url) => setFormData({ ...formData, bg_video_url: url })}
+                        accept=".mp4,.webm"
+                        maxSizeMB={100}
+                        folder="background-music"
+                      />
 
-                      <div>
-                        <label className="block text-sm font-medium text-white/80 mb-2">
-                          卡片背景图 URL（支持 .jpg / .png / .webp）
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.card_bg_image_url}
-                          onChange={(e) => setFormData({ ...formData, card_bg_image_url: e.target.value })}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                          placeholder="/0_0_640_N.webp 或上传 .jpg/.png/.webp"
-                        />
-                      </div>
+                      <MediaUploader
+                        label="卡片背景图（支持 JPG/PNG/WEBP）"
+                        currentValue={formData.card_bg_image_url}
+                        onUploadComplete={(url) => setFormData({ ...formData, card_bg_image_url: url })}
+                        accept=".jpg,.jpeg,.png,.webp"
+                        maxSizeMB={10}
+                        folder="background-music"
+                      />
 
-                      <div>
-                        <label className="block text-sm font-medium text-white/80 mb-2">
-                          卡片内部背景 URL（支持 .jpg / .png / .webp）
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.card_inner_bg_url}
-                          onChange={(e) => setFormData({ ...formData, card_inner_bg_url: e.target.value })}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                          placeholder="/0_0_640_N.webp 或上传 .jpg/.png/.webp"
-                        />
-                      </div>
+                      <MediaUploader
+                        label="卡片内部背景（支持 JPG/PNG/WEBP）"
+                        currentValue={formData.card_inner_bg_url}
+                        onUploadComplete={(url) => setFormData({ ...formData, card_inner_bg_url: url })}
+                        accept=".jpg,.jpeg,.png,.webp"
+                        maxSizeMB={10}
+                        folder="background-music"
+                      />
 
                       <details className="bg-white/5 rounded-lg p-4">
                         <summary className="cursor-pointer font-semibold text-white/80 mb-2">
                           高级配置：各步骤专属背景（可选）
                         </summary>
-                        <div className="space-y-4 mt-4">
-                          <div>
-                            <label className="block text-sm font-medium text-white/70 mb-2">起名页背景 URL</label>
-                            <input
-                              type="text"
-                              value={formData.bg_naming_url}
-                              onChange={(e) => setFormData({ ...formData, bg_naming_url: e.target.value })}
-                              className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
-                              placeholder="留空则使用通用背景视频"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-white/70 mb-2">情绪页背景 URL</label>
-                            <input
-                              type="text"
-                              value={formData.bg_emotion_url}
-                              onChange={(e) => setFormData({ ...formData, bg_emotion_url: e.target.value })}
-                              className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
-                              placeholder="留空则使用通用背景视频"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-white/70 mb-2">日记页背景 URL</label>
-                            <input
-                              type="text"
-                              value={formData.bg_journal_url}
-                              onChange={(e) => setFormData({ ...formData, bg_journal_url: e.target.value })}
-                              className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
-                              placeholder="留空则使用通用背景视频"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-white/70 mb-2">过渡页背景 URL</label>
-                            <input
-                              type="text"
-                              value={formData.bg_transition_url}
-                              onChange={(e) => setFormData({ ...formData, bg_transition_url: e.target.value })}
-                              className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
-                              placeholder="留空则使用通用背景视频"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-white/70 mb-2">答案之书背景 URL</label>
-                            <input
-                              type="text"
-                              value={formData.bg_answer_book_url}
-                              onChange={(e) => setFormData({ ...formData, bg_answer_book_url: e.target.value })}
-                              className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
-                              placeholder="留空则使用通用背景视频"
-                            />
-                          </div>
+                        <div className="space-y-6 mt-4">
+                          <MediaUploader
+                            label="起名页背景（支持 JPG/MP4）"
+                            currentValue={formData.bg_naming_url}
+                            onUploadComplete={(url) => setFormData({ ...formData, bg_naming_url: url })}
+                            accept=".jpg,.jpeg,.png,.mp4,.webm"
+                            maxSizeMB={100}
+                            folder="background-music"
+                          />
+                          <MediaUploader
+                            label="情绪选择页背景（支持 JPG/MP4）"
+                            currentValue={formData.bg_emotion_url}
+                            onUploadComplete={(url) => setFormData({ ...formData, bg_emotion_url: url })}
+                            accept=".jpg,.jpeg,.png,.mp4,.webm"
+                            maxSizeMB={100}
+                            folder="background-music"
+                          />
+                          <MediaUploader
+                            label="日记页背景（支持 JPG/MP4）"
+                            currentValue={formData.bg_journal_url}
+                            onUploadComplete={(url) => setFormData({ ...formData, bg_journal_url: url })}
+                            accept=".jpg,.jpeg,.png,.mp4,.webm"
+                            maxSizeMB={100}
+                            folder="background-music"
+                          />
+                          <MediaUploader
+                            label="过渡页背景（支持 JPG/MP4）"
+                            currentValue={formData.bg_transition_url}
+                            onUploadComplete={(url) => setFormData({ ...formData, bg_transition_url: url })}
+                            accept=".jpg,.jpeg,.png,.mp4,.webm"
+                            maxSizeMB={100}
+                            folder="background-music"
+                          />
+                          <MediaUploader
+                            label="答案之书背景（支持 JPG/MP4）"
+                            currentValue={formData.bg_answer_book_url}
+                            onUploadComplete={(url) => setFormData({ ...formData, bg_answer_book_url: url })}
+                            accept=".jpg,.jpeg,.png,.mp4,.webm"
+                            maxSizeMB={100}
+                            folder="background-music"
+                          />
                         </div>
                       </details>
                     </div>
