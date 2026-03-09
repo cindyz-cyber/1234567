@@ -244,7 +244,11 @@ export default function ShareJournal() {
             console.log('🔄 强制重置: currentTime = 0');
             audio.pause();
             audio.currentTime = 0;
+
+            // 🔥 修复 1: 同时赋值给 backgroundMusic 和 preloadedAudio，解决状态更新延迟
+            console.log('🔄 同时更新 backgroundMusic 和 preloadedAudio 状态');
             setBackgroundMusic(audio);
+            setPreloadedAudio(audio);
           } else {
             console.error('❌ 场景音频加载失败');
             console.error('💡 请检查 bg_music_url 是否可访问');
@@ -346,15 +350,31 @@ export default function ShareJournal() {
   };
 
   const handleTransitionComplete = (transitionMusic: HTMLAudioElement | null) => {
+    console.group('🔄 [ShareJournal] handleTransitionComplete 调用');
+    console.log('📥 接收到的 transitionMusic:', transitionMusic ? '有效' : 'null');
+
     if (transitionMusic) {
       console.log('✅ Background music received from GoldenTransition, continuing playback');
       console.log('🎵 Music playing:', !transitionMusic.paused);
       console.log('🎵 Music volume:', transitionMusic.volume);
       console.log('🎵 Music source:', transitionMusic.src);
+      console.log('🎵 Music currentTime:', transitionMusic.currentTime);
+
+      // 🔥 修复 3: 立即调用 setBackgroundMusic，确保生命周期完整
+      console.log('🔄 立即更新 backgroundMusic 状态，确保后续步骤持续有效');
       setBackgroundMusic(transitionMusic);
+
+      // 验证状态将被更新
+      console.log('✅ backgroundMusic 将在下次渲染中生效');
+      console.log('🎯 后续 dialogue 和 answer 步骤将继续使用此实例');
     } else {
       console.warn('⚠️ No background music from GoldenTransition');
+      console.warn('💡 将使用现有的 backgroundMusic 状态（若有）');
     }
+
+    console.log('🔄 切换到 dialogue 步骤');
+    console.groupEnd();
+
     setCurrentStep('dialogue');
   };
 
@@ -609,6 +629,24 @@ export default function ShareJournal() {
         );
 
       case 'transition':
+        console.group('🎬 [ShareJournal] 渲染 GoldenTransition');
+        console.log('🎵 backgroundMusic 状态:', backgroundMusic ? '已加载' : 'null');
+        console.log('🎵 preloadedAudio 状态:', preloadedAudio ? '已加载' : 'null');
+        console.log('📡 bg_music_url:', config?.bg_music_url);
+        console.log('🎬 是否为视频:', config?.bg_music_url ? isVideoUrl(config.bg_music_url) : false);
+
+        // 🔥 修复 1: 优先尝试 backgroundMusic，若为 null 则用 preloadedAudio 兜底
+        const audioToPass = backgroundMusic || preloadedAudio;
+        console.log('✅ 最终传递的音频对象:', audioToPass ? '有效' : '无');
+
+        // 🔥 修复 2: 检测是否为 MP4 视频，传递标识给 GoldenTransition
+        const isMusicVideo = config?.bg_music_url ? isVideoUrl(config.bg_music_url) : false;
+        console.log('🎯 isMusicVideo 标识:', isMusicVideo);
+        if (isMusicVideo) {
+          console.log('💡 GoldenTransition 将取消视频静音，播放视频中的音乐');
+        }
+        console.groupEnd();
+
         return (
           <GoldenTransition
             userName={state.userName}
@@ -616,7 +654,8 @@ export default function ShareJournal() {
             onComplete={handleTransitionComplete}
             backgroundMusicUrl={config?.bg_music_url}
             backgroundVideoUrl={config?.bg_transition_url || config?.bg_video_url}
-            globalAudio={backgroundMusic}
+            globalAudio={audioToPass}
+            isMusicVideo={isMusicVideo}
           />
         );
 

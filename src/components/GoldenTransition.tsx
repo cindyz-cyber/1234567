@@ -8,9 +8,10 @@ interface GoldenTransitionProps {
   backgroundMusicUrl?: string | null;
   backgroundVideoUrl?: string | null;
   globalAudio?: HTMLAudioElement | null;
+  isMusicVideo?: boolean;
 }
 
-export default function GoldenTransition({ userName, higherSelfName, onComplete, backgroundMusicUrl, backgroundVideoUrl, globalAudio }: GoldenTransitionProps) {
+export default function GoldenTransition({ userName, higherSelfName, onComplete, backgroundMusicUrl, backgroundVideoUrl, globalAudio, isMusicVideo = false }: GoldenTransitionProps) {
   const [fadeOut, setFadeOut] = useState(false);
   const defaultVideoUrl = 'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
 
@@ -28,8 +29,9 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     console.log('🎵 背景音乐 URL:', backgroundMusicUrl);
     console.log('🎥 背景视频 URL:', backgroundVideoUrl);
     console.log('🎵 全局音频对象:', globalAudio ? '有效' : '无');
-    console.log('🎬 媒体类型判断: isMediaUrlVideo =', isMediaUrlVideo);
-    console.log('🔊 视频声音策略:', isMediaUrlVideo ? '✅ 开启声音 (muted=false, volume=0.3)' : '🔇 静音播放 (muted=true)');
+    console.log('🎬 媒体类型判断 (内部): isMediaUrlVideo =', isMediaUrlVideo);
+    console.log('🎯 音乐视频标识 (传入): isMusicVideo =', isMusicVideo);
+    console.log('🔊 视频声音策略:', isMusicVideo ? '✅ 开启声音 (muted=false, volume=0.3)' : '🔇 静音播放 (muted=true)');
 
     let backgroundMusic: HTMLAudioElement | null = null;
     let fadeOutTimer: number | undefined;
@@ -145,7 +147,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
         <video
           autoPlay
           loop
-          muted={!isMediaUrlVideo}
+          muted={!isMusicVideo}
           playsInline
           preload="auto"
           crossOrigin="anonymous"
@@ -155,7 +157,12 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
             WebkitTransform: 'translate3d(0,0,0)',
             transform: 'translate3d(0,0,0)'
           }}
-          {...(isMediaUrlVideo ? { volume: 0.3 } : {})}
+          ref={(videoEl) => {
+            if (videoEl && isMusicVideo) {
+              videoEl.volume = 0.3;
+              console.log('🔊 [GoldenTransition] 视频音量已设置为 0.3');
+            }
+          }}
         >
           <source src={effectiveVideoUrl} type="video/mp4" />
         </video>
