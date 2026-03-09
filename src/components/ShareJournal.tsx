@@ -44,9 +44,10 @@ interface JournalState {
   kinData: any;
 }
 
-// 🔥 前端硬开关（紧急补丁）
+// 🔥 前端硬开关（Emergency Kill-Switch）
 // 当需要紧急关停时，将此值改为 true 即可实现全网瞬间失效
-const FORCED_DISABLED = false;
+// 优先级：最高 - 无需数据库连接，前端部署包直接拦截所有用户
+const IS_LINK_DEPRECATED = true;
 
 export default function ShareJournal() {
   const [currentStep, setCurrentStep] = useState<JournalStep>('naming');
@@ -108,9 +109,11 @@ export default function ShareJournal() {
   }, [currentStep, generatedImage]);
 
   useEffect(() => {
-    // 🔥 前端硬开关检查（最高优先级）
-    if (FORCED_DISABLED) {
-      console.error('🚫 [FORCED_DISABLED] 前端硬开关已激活，全网失效');
+    // 🔥 前端硬开关检查（最高优先级 - Emergency Kill-Switch）
+    if (IS_LINK_DEPRECATED) {
+      console.error('🚫 [IS_LINK_DEPRECATED = true] 前端硬开关已激活，全网失效');
+      console.error('💡 即使数据库连接正常，该部署包也会直接拦截所有用户');
+      console.error('🛑 停止所有后续初始化（音频、视频预加载）');
       setCurrentStep('blocked');
       setIsValidating(false);
       return;
@@ -182,9 +185,12 @@ export default function ShareJournal() {
       console.groupEnd();
 
       if (!sceneToken) {
-        console.error('❌ 缺少 scene 参数！');
+        console.group('❌ scene 参数缺失 - 强制拦截');
+        console.error('🚫 URL 缺少必需的 scene 参数');
         console.error('💡 正确 URL 格式: ?scene=xxx&token=yyy');
-        console.error('🚫 不会尝试加载默认场景');
+        console.error('🚫 严禁回退到默认场景');
+        console.error('🛑 强制进入 blocked 状态');
+        console.groupEnd();
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
@@ -199,20 +205,26 @@ export default function ShareJournal() {
         .maybeSingle();
 
       if (error) {
-        console.error('❌ 数据库查询失败:', error);
+        console.group('❌ 数据库查询失败 - 强制拦截');
+        console.error('🚫 数据库错误:', error.message);
         console.error('🔍 查询的 scene_token:', sceneToken);
         console.error('💡 请检查后台是否已配置该场景');
-        console.error('🚫 严禁回退到 default，必须修复配置');
+        console.error('🚫 严禁回退到 default 场景');
+        console.error('🛑 强制进入 blocked 状态');
+        console.groupEnd();
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
       if (!data) {
-        console.error('❌ 场景不存在！scene_token =', sceneToken);
-        console.error('🔍 数据库返回: null');
+        console.group('❌ 场景不存在 - 强制拦截');
+        console.error('🚫 数据库返回: null（场景未配置）');
+        console.error('🔍 查询的 scene_token:', sceneToken);
         console.error('💡 请到后台 /admin/share-config 创建该场景配置');
-        console.error('🚫 严禁回退到 default，必须创建对应配置');
+        console.error('🚫 严禁回退到 default 场景');
+        console.error('🛑 强制进入 blocked 状态');
+        console.groupEnd();
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
@@ -220,17 +232,28 @@ export default function ShareJournal() {
 
       console.log('✅ 场景配置查询成功:', data.scene_token);
       console.log('🎯 场景名称:', data.scene_name);
+      console.log('🔍 is_active 状态:', data.is_active);
 
       // 🔥 最高优先级：is_active 状态检查（必须在任何初始化之前）
-      if (!data.is_active) {
-        console.error('🚫 [is_active = false] 场景已停用，立即拦截');
-        console.error('🛑 场景标识:', data.scene_token);
-        console.error('🛑 场景名称:', data.scene_name);
-        console.error('🚫 停止所有后续初始化流程（音频、配置等）');
+      // 强制拦截：获取配置后的第一动作是检查激活状态
+      if (data.is_active === false) {
+        console.group('🚫 [is_active = false] 场景已停用 - 强制拦截');
+        console.error('🛑 场景标识 (scene_token):', data.scene_token);
+        console.error('🛑 场景名称 (scene_name):', data.scene_name);
+        console.error('🛑 停用时间:', new Date().toISOString());
+        console.error('🚫 立即终止所有后续初始化流程：');
+        console.error('   ❌ 音频预加载');
+        console.error('   ❌ 视频预加载');
+        console.error('   ❌ 背景资源预加载');
+        console.error('   ❌ 配置对象设置');
+        console.error('💡 用户将看到失效页面，无法访问任何内容');
+        console.groupEnd();
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
+
+      console.log('✅ is_active 验证通过，场景已激活，继续初始化...');
 
       console.group('🚀 H5 场景配置已加载');
       console.log('✅ 数据源：h5_share_config 表（场景化配置）');
@@ -628,17 +651,29 @@ export default function ShareJournal() {
     }
 
     if (currentStep === 'blocked') {
-      // 🔥 资源清理：进入 blocked 状态时立即停止所有音频
-      if (backgroundMusic && !backgroundMusic.paused) {
-        console.log('🛑 [blocked] 停止背景音乐');
+      // 🔥 资源彻底释放：进入 blocked 状态时立即停止并清理所有音频/视频
+      console.group('🛑 [blocked] 资源清理 - 停止所有媒体播放');
+
+      if (backgroundMusic) {
+        console.log('🧹 停止并释放 backgroundMusic');
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0;
+        backgroundMusic.volume = 0;
+        backgroundMusic.src = '';
+        console.log('✅ backgroundMusic 已完全释放');
       }
-      if (preloadedAudio && !preloadedAudio.paused) {
-        console.log('🛑 [blocked] 停止预加载音频');
+
+      if (preloadedAudio) {
+        console.log('🧹 停止并释放 preloadedAudio');
         preloadedAudio.pause();
         preloadedAudio.currentTime = 0;
+        preloadedAudio.volume = 0;
+        preloadedAudio.src = '';
+        console.log('✅ preloadedAudio 已完全释放');
       }
+
+      console.log('✅ 所有媒体资源已彻底释放');
+      console.groupEnd();
 
       return (
         <div className="blocked-screen">
