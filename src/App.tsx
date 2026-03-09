@@ -48,6 +48,7 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
   const [transitionAudioUrl, setTransitionAudioUrl] = useState<string | null>(null);
+  const [globalAudio, setGlobalAudio] = useState<HTMLAudioElement | null>(null);
   const [journeyData, setJourneyData] = useState<JourneyData>({
     emotions: [],
     bodyStates: [],
@@ -103,7 +104,7 @@ function App() {
         }
       }
 
-      // 加载 GoldenTransition 的音频文件
+      // 加载 GoldenTransition 的音频文件并预加载全局音频对象
       try {
         const { data: audioFiles, error: audioError } = await supabase
           .from('audio_files')
@@ -117,6 +118,15 @@ function App() {
           const audioUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/audio-files/${audioFiles.file_path}`;
           console.log('🎵 加载 GoldenTransition 音频:', audioUrl);
           setTransitionAudioUrl(audioUrl);
+
+          // 🔥 预创建全局音频对象（preload="none"，不立即下载）
+          console.log('🎯 [App] 创建全局音频对象（preload="none"）');
+          const audio = new Audio(audioUrl);
+          audio.preload = 'none'; // 不立即下载，等待 GoldenTransition 触发
+          audio.loop = false;
+          audio.volume = 0.5;
+          setGlobalAudio(audio);
+          console.log('✅ [App] 全局音频对象已创建，等待 GoldenTransition 激活');
         }
       } catch (audioError) {
         console.warn('加载音频文件失败 (non-critical):', audioError);
@@ -364,6 +374,7 @@ function App() {
             higherSelfName={userNames.higherSelfName}
             onComplete={handleTransitionComplete}
             backgroundMusicUrl={transitionAudioUrl}
+            globalAudio={globalAudio}
           />
         </Suspense>
       );
