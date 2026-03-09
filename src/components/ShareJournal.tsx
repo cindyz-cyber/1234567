@@ -163,7 +163,15 @@ export default function ShareJournal() {
       console.log('  - 过渡页 (bg_transition_url):', data.bg_transition_url || '⏩ 降级到 bg_video_url');
       console.log('  - 答案之书 (bg_answer_book_url):', data.bg_answer_book_url || '⏩ 降级到 bg_video_url');
       console.log('');
-      console.log('🔄 音频策略：优先 h5_share_config → 主 App audio_files → 本地静态资源');
+      console.log('🎵 音频加载策略（三级优先级）:');
+      console.log('  ✅ 优先级 1: 场景专属音频 (h5_share_config.bg_music_url)');
+      console.log('  ⏩ 优先级 2: 主 App 全局音频 (audio_files 表)');
+      console.log('  ⏩ 优先级 3: 本地静态资源（未实现）');
+      if (data.bg_music_url) {
+        console.log('  🎯 当前场景已配置专属音频，将使用优先级 1');
+      } else {
+        console.log('  ⚠️ 当前场景未配置专属音频，将降级到优先级 2');
+      }
       console.groupEnd();
 
       setConfig(data);

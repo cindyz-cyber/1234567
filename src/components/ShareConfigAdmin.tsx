@@ -516,27 +516,27 @@ export default function ShareConfigAdmin() {
 
                       <div>
                         <label className="block text-sm font-medium text-white/80 mb-2">
-                          卡片背景图 URL（.jpg / .webp）
+                          卡片背景图 URL（支持 .jpg / .png / .webp）
                         </label>
                         <input
                           type="text"
                           value={formData.card_bg_image_url}
                           onChange={(e) => setFormData({ ...formData, card_bg_image_url: e.target.value })}
                           className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                          placeholder="/0_0_640_N.webp"
+                          placeholder="/0_0_640_N.webp 或上传 .jpg/.png/.webp"
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-white/80 mb-2">
-                          卡片内部背景 URL（.jpg / .webp）
+                          卡片内部背景 URL（支持 .jpg / .png / .webp）
                         </label>
                         <input
                           type="text"
                           value={formData.card_inner_bg_url}
                           onChange={(e) => setFormData({ ...formData, card_inner_bg_url: e.target.value })}
                           className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                          placeholder="/0_0_640_N.webp"
+                          placeholder="/0_0_640_N.webp 或上传 .jpg/.png/.webp"
                         />
                       </div>
 
