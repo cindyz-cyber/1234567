@@ -253,6 +253,13 @@ export const playShareBackgroundMusic = async (
   console.log('🔒 微信兼容: 使用主App已认证域名，避免安全拦截');
   console.groupEnd();
 
+  // 🔥 修复 NotSupportedError：强制设置 CORS 和重新加载
+  console.group('🔧 修复 NotSupportedError');
+  console.log('✅ 设置 crossOrigin = "anonymous"');
+  console.log('✅ 调用 load() 重新初始化音频元素');
+  audio.load();
+  console.groupEnd();
+
   audio.addEventListener('loadstart', () => {
     console.log('🎵 音频开始加载（流式）');
   });
@@ -261,12 +268,25 @@ export const playShareBackgroundMusic = async (
     console.log('✅ 音频已可播放（缓冲足够）');
   });
 
+  audio.addEventListener('loadedmetadata', () => {
+    console.log('✅ 音频元数据已加载');
+    console.log('⏱️ 音频时长:', audio.duration, '秒');
+  });
+
   audio.addEventListener('error', (e) => {
     console.error('❌ 音频加载错误:', e);
     console.error('📊 错误详情:', {
       code: audio.error?.code,
-      message: audio.error?.message
+      message: audio.error?.message,
+      networkState: audio.networkState,
+      readyState: audio.readyState
     });
+    console.error('🔗 尝试加载的 URL:', audio.src);
+    console.error('🔍 可能的原因:');
+    console.error('  1. URL 不可访问或返回 404');
+    console.error('  2. 文件格式不被浏览器支持');
+    console.error('  3. CORS 跨域问题');
+    console.error('  4. 服务器返回的 MIME type 不正确');
   });
 
   console.group('🔄 强制音频从头播放');
@@ -282,6 +302,7 @@ export const playShareBackgroundMusic = async (
     })
     .catch(err => {
       console.error('❌ Audio play error:', err);
+      console.error('💡 可能需要用户交互才能播放');
     });
 
   return audio;

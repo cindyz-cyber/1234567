@@ -108,21 +108,24 @@ export default function ShareJournal() {
       // 🔥 强制处理 URL 参数空格
       const sceneToken = rawSceneToken ? rawSceneToken.trim() : null;
 
-      console.group('🎬 场景匹配验证');
+      console.group('🎬 场景匹配验证 - 强制参数优先级');
       console.log('📡 原始参数:', rawSceneToken);
       console.log('🧹 处理后参数:', sceneToken);
       console.log('💡 URL 格式要求: ?scene=xxx&token=yyy');
+      console.log('🚫 严禁回退到 default 场景');
       console.groupEnd();
 
       if (!sceneToken) {
         console.error('❌ 缺少 scene 参数！');
         console.error('💡 正确 URL 格式: ?scene=xxx&token=yyy');
+        console.error('🚫 不会尝试加载默认场景');
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
       // 🔥 强制精准匹配场景，取消默认降级
+      console.log('🔍 开始查询数据库，scene_token =', sceneToken);
       const { data, error } = await supabase
         .from('h5_share_config')
         .select('*')
@@ -133,20 +136,24 @@ export default function ShareJournal() {
         console.error('❌ 数据库查询失败:', error);
         console.error('🔍 查询的 scene_token:', sceneToken);
         console.error('💡 请检查后台是否已配置该场景');
+        console.error('🚫 严禁回退到 default，必须修复配置');
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
       if (!data) {
-        console.error('❌ 场景不存在！');
-        console.error('🔍 查询的 scene_token:', sceneToken);
+        console.error('❌ 场景不存在！scene_token =', sceneToken);
+        console.error('🔍 数据库返回: null');
         console.error('💡 请到后台 /admin/share-config 创建该场景配置');
-        console.error('🚫 已禁用默认降级，确保配置生效可见');
+        console.error('🚫 严禁回退到 default，必须创建对应配置');
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
+
+      console.log('✅ 场景配置查询成功:', data.scene_token);
+      console.log('🎯 场景名称:', data.scene_name);
 
       console.group('🚀 H5 场景配置已加载');
       console.log('✅ 数据源：h5_share_config 表（场景化配置）');
