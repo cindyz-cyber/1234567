@@ -73,11 +73,8 @@ export default function VideoBackground({ videoUrl }: VideoBackgroundProps = {})
         disablePictureInPicture={true}
         disableRemotePlayback={true}
         src={finalVideoUrl}
-        className="fixed w-full object-cover"
+        className="fixed inset-0 w-full h-full object-cover"
         style={{
-          top: '66vh',
-          bottom: 0,
-          height: '34vh',
           zIndex: -2,
           filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
           WebkitTransform: 'translate3d(0,0,0)',
@@ -91,13 +88,8 @@ export default function VideoBackground({ videoUrl }: VideoBackgroundProps = {})
 
 
       <div
-        className="fixed"
+        className="fixed inset-0"
         style={{
-          top: '66vh',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: '34vh',
           backgroundColor: 'rgba(2, 13, 10, 0.15)',
           zIndex: -1,
         }}
