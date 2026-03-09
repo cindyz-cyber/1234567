@@ -395,51 +395,6 @@ function App() {
       {currentTab !== 'person' && <VideoBackground />}
       <GoldenDust />
 
-      {!isAdmin && userNames && (
-        <button
-          onClick={async () => {
-            if (confirm('设置当前用户为管理员？')) {
-              try {
-                const { data: existing } = await supabase
-                  .from('user_profile')
-                  .select('id')
-                  .eq('user_name', userNames.userName)
-                  .eq('higher_self_name', userNames.higherSelfName)
-                  .maybeSingle();
-
-                if (existing) {
-                  await supabase
-                    .from('user_profile')
-                    .update({ is_admin: true })
-                    .eq('user_name', userNames.userName)
-                    .eq('higher_self_name', userNames.higherSelfName);
-                } else {
-                  await supabase
-                    .from('user_profile')
-                    .insert({
-                      user_name: userNames.userName,
-                      higher_self_name: userNames.higherSelfName,
-                      is_admin: true
-                    });
-                }
-                alert('已设置为管理员，页面将刷新');
-                window.location.reload();
-              } catch (error) {
-                console.error(error);
-                alert('设置失败');
-              }
-            }
-          }}
-          className="fixed top-20 right-4 z-[999] px-6 py-3 bg-gradient-to-r from-green-500/30 to-emerald-500/30 hover:from-green-500/50 hover:to-emerald-500/50 border-2 border-green-400/60 text-white rounded-xl text-base font-medium backdrop-blur-xl transition-all duration-300 shadow-2xl hover:scale-105 hover:shadow-green-500/50"
-          style={{
-            boxShadow: '0 8px 24px rgba(34, 197, 94, 0.4), 0 0 40px rgba(16, 185, 129, 0.3)',
-            letterSpacing: '0.05em'
-          }}
-        >
-          🔐 设为管理员
-        </button>
-      )}
-
       {currentTab === 'breath' && (
         <HomePage
           userName={userNames.userName}
