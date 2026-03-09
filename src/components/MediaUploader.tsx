@@ -122,6 +122,7 @@ export default function MediaUploader({
 
   const isVideo = previewUrl?.match(/\.(mp4|webm|ogg|mov)$/i);
   const isImage = previewUrl?.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+  const isAudio = previewUrl?.match(/\.(mp3|wav|m4a|aac|flac)$/i);
 
   return (
     <div className="space-y-3">
@@ -229,9 +230,33 @@ export default function MediaUploader({
             </div>
           )}
 
-          {/* URL 显示 */}
-          <div className="p-3 bg-white/5 border border-white/20 rounded-lg">
-            <p className="text-xs text-white/60 break-all font-mono">
+          {isAudio && (
+            <div className="p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-lg">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-purple-500/30 rounded-full flex items-center justify-center">
+                  <span className="text-xl">🎵</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-white">音频文件</p>
+                  <p className="text-xs text-white/60">点击播放预览</p>
+                </div>
+              </div>
+              <audio
+                src={previewUrl}
+                controls
+                className="w-full"
+                style={{ height: '40px' }}
+              />
+            </div>
+          )}
+
+          {/* URL 显示 - 增强可见性 */}
+          <div className="p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-400/40 rounded-lg">
+            <div className="flex items-center gap-2 mb-1">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+              <span className="text-xs font-semibold text-green-300">当前 URL</span>
+            </div>
+            <p className="text-xs text-green-200 break-all font-mono pl-6">
               {previewUrl}
             </p>
           </div>

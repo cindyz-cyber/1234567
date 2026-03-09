@@ -23,42 +23,56 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     : (backgroundVideoUrl && backgroundVideoUrl.trim() !== '' ? backgroundVideoUrl : defaultVideoUrl);
 
   useEffect(() => {
+    console.log('🎬 [GoldenTransition] 组件挂载，立即初始化音频');
+    console.log('🎵 背景音乐 URL:', backgroundMusicUrl);
+    console.log('🎥 背景视频 URL:', backgroundVideoUrl);
+
     let backgroundMusic: HTMLAudioElement | null = null;
     let fadeOutTimer: number | undefined;
     let completeTimer: number | undefined;
     const transitionDuration = 10000;
 
     const initializeAudio = async () => {
+      console.log('⚡ [GoldenTransition] 开始音频初始化流程');
+
       // 如果 backgroundMusicUrl 是视频，不加载音频（视频作为背景）
       if (isMediaUrlVideo) {
         console.log('🎬 检测到 MP4 视频作为背景媒体，跳过音频加载');
         console.log('📊 视频将在背景中静音播放');
       } else {
+        console.log('🎵 开始加载音频文件...');
         backgroundMusic = await playShareBackgroundMusic(backgroundMusicUrl, true);
 
         if (backgroundMusic) {
-          console.log('✅ Background music started successfully');
+          console.log('✅ [GoldenTransition] 音频加载成功并开始播放');
+          console.log('🔊 音量:', backgroundMusic.volume);
+          console.log('▶️ 播放状态:', !backgroundMusic.paused ? '播放中' : '暂停');
         } else {
-          console.warn('⚠️ No background music playing - all fallback methods failed');
+          console.warn('⚠️ [GoldenTransition] 音频加载失败 - 所有回退方法均失败');
         }
       }
 
       fadeOutTimer = window.setTimeout(() => {
+        console.log('🌅 [GoldenTransition] 开始淡出动画');
         setFadeOut(true);
       }, transitionDuration - 1000);
 
       completeTimer = window.setTimeout(() => {
+        console.log('✅ [GoldenTransition] 过渡完成，传递音频对象给下一步');
+        console.log('🎵 传递的音频对象:', backgroundMusic ? '有效' : '无');
         onComplete(backgroundMusic);
       }, transitionDuration);
     };
 
+    // 立即执行音频初始化
     initializeAudio();
 
     return () => {
+      console.log('🧹 [GoldenTransition] 组件卸载，清理定时器');
       if (fadeOutTimer) clearTimeout(fadeOutTimer);
       if (completeTimer) clearTimeout(completeTimer);
     };
-  }, [onComplete, backgroundMusicUrl]);
+  }, [onComplete, backgroundMusicUrl, backgroundVideoUrl, isMediaUrlVideo]);
 
   return (
     <div
