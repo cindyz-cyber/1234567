@@ -75,15 +75,59 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           });
         }
 
-        console.log('▶️ 使用双重强制归零播放器');
+        console.group('🔥 [GoldenTransition] 强制音频归零断路器');
 
         try {
-          // 🔥 使用统一的双重强制归零播放器
-          await playAudioFromZero(globalAudio);
-          console.log('✅ [GoldenTransition] 全局音频播放成功');
+          // 🔥 第一步：彻底静音并暂停，防止切歌时的爆音
+          globalAudio.pause();
+          console.log('⏸️ 音频已暂停');
+
+          // 🔥 第二步：第一次强制归零
+          globalAudio.currentTime = 0;
+          console.log('⏮️ 第一次强制归零: currentTime =', globalAudio.currentTime);
+
+          // 🔥 第三步：等待 60ms 让浏览器音频缓冲区清理（针对 iOS Safari 优化）
+          console.log('⏳ 等待 60ms 让浏览器清理音频缓冲区...');
+          await new Promise(resolve => setTimeout(resolve, 60));
+
+          // 🔥 第四步：第二次强制归零并确保加载状态
+          globalAudio.currentTime = 0;
+          console.log('🔄 第二次强制归零: currentTime =', globalAudio.currentTime);
+          console.log('📊 音频就绪状态: readyState =', globalAudio.readyState);
+          console.log('📡 网络状态: networkState =', globalAudio.networkState);
+
+          // 🔥 第五步：尝试播放
+          console.log('▶️ 开始播放音频...');
+          await globalAudio.play();
+          console.log('✅ [GoldenTransition] 音乐已从 0 秒强制启动');
+          console.log('⏱️ 播放后即时位置:', globalAudio.currentTime, '秒');
+
+          // 🔥 第六步：播放后瞬时检查，如果跳秒则强行拉回
+          setTimeout(() => {
+            if (globalAudio!.currentTime > 0.5) {
+              console.warn('⚠️ 检测到播放位置异常 (>0.5s)，第三次强制归零');
+              globalAudio!.currentTime = 0;
+              console.log('✅ 第三次重置完成，currentTime =', globalAudio!.currentTime);
+            } else {
+              console.log('✅ 播放位置验证通过，currentTime =', globalAudio!.currentTime);
+            }
+          }, 100);
+
           backgroundMusic = globalAudio;
         } catch (err) {
-          console.error('❌ 全局音频播放失败:', err);
+          console.error('❌ App 播放失败，尝试静默恢复:', err);
+          // 如果报错，尝试静音播放以绕过浏览器限制
+          try {
+            globalAudio.muted = true;
+            await globalAudio.play();
+            globalAudio.muted = false;
+            console.log('✅ 静默播放恢复成功');
+            backgroundMusic = globalAudio;
+          } catch (muteErr) {
+            console.error('❌ 静默播放也失败:', muteErr);
+          }
+        } finally {
+          console.groupEnd();
         }
       }
       // 如果 backgroundMusicUrl 是视频，不加载音频（视频作为背景）

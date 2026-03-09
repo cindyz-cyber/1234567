@@ -337,6 +337,26 @@ function App() {
     }
 
     if (currentStep === 'transition') {
+      console.group('🎵 [App.tsx] 进入 GoldenTransition - 音频实例管理');
+      console.log('📡 transitionAudioUrl:', transitionAudioUrl);
+      console.log('🔍 backgroundAudio 状态:', backgroundAudio ? '存在实例' : '无实例');
+
+      // 🔥 清理可能存在的旧音频实例，防止污染
+      if (backgroundAudio) {
+        console.warn('⚠️ 检测到旧音频实例，执行清理防止污染');
+        try {
+          backgroundAudio.pause();
+          backgroundAudio.currentTime = 0;
+          backgroundAudio.src = '';
+          backgroundAudio.load();
+          console.log('✅ 旧音频实例已清理');
+        } catch (cleanupErr) {
+          console.warn('⚠️ 音频清理失败（非致命）:', cleanupErr);
+        }
+        setBackgroundAudio(null);
+      }
+      console.groupEnd();
+
       return (
         <Suspense fallback={<div className="loading-screen">加载中...</div>}>
           <GoldenTransition

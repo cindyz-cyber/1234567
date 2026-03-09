@@ -93,6 +93,7 @@ export const playAudioFromUrl = (url: string): HTMLAudioElement => {
 /**
  * 🔥 双重强制归零播放器 - 确保音频从 0 秒开始
  * 参考 ShareJournal 的成功经验，实现强制重置逻辑
+ * 🔥 增强版：60ms 延迟，专为 iOS Safari 优化
  */
 export const playAudioFromZero = async (audioInstance: HTMLAudioElement): Promise<void> => {
   if (!audioInstance) {
@@ -100,36 +101,52 @@ export const playAudioFromZero = async (audioInstance: HTMLAudioElement): Promis
     return;
   }
 
-  console.group('🔥 [audioManager] 双重强制归零播放');
+  console.group('🔥 [audioManager] 三重强制归零播放 (iOS 优化)');
 
-  // 🔥 第一次强制重置
+  // 🔥 第一步：彻底静音并暂停，防止切歌时的爆音
+  audioInstance.pause();
+  console.log('⏸️ 音频已暂停');
+
+  // 🔥 第二步：第一次强制重置
   console.log('⏮️ 第一次强制重置: currentTime = 0');
   audioInstance.currentTime = 0;
+  console.log('📊 当前 currentTime:', audioInstance.currentTime);
+  console.log('📊 readyState:', audioInstance.readyState, '(0=无数据, 1=元数据, 2=当前帧, 3=未来数据, 4=足够数据)');
 
-  // 🔥 等待一个微小的 Tick 确保浏览器完成指针复位
-  await new Promise(resolve => setTimeout(resolve, 50));
+  // 🔥 第三步：等待 60ms 让浏览器音频缓冲区清理（针对 iOS Safari 优化）
+  console.log('⏳ 等待 60ms 让浏览器清理音频缓冲区 (iOS Safari 专项)...');
+  await new Promise(resolve => setTimeout(resolve, 60));
 
-  // 🔥 第二次强制重置
+  // 🔥 第四步：第二次强制重置并确保加载状态
   console.log('🔄 第二次强制重置: currentTime = 0');
   audioInstance.currentTime = 0;
+  console.log('📊 重置后 currentTime:', audioInstance.currentTime);
+  console.log('📊 重置后 readyState:', audioInstance.readyState);
 
   try {
+    console.log('▶️ 开始播放音频...');
     await audioInstance.play();
     console.log('✅ 音频播放成功');
-    console.log('⏱️ 当前播放位置:', audioInstance.currentTime, '秒');
+    console.log('⏱️ 播放后即时位置:', audioInstance.currentTime, '秒');
 
-    // 🔥 播放后瞬时检查，如果跳秒则强行拉回
+    // 🔥 第五步：播放后瞬时检查，如果跳秒则强行拉回
     setTimeout(() => {
       if (audioInstance.currentTime > 0.5) {
         console.warn('⚠️ 检测到播放位置异常 (>0.5s)，第三次强制归零');
         audioInstance.currentTime = 0;
         console.log('✅ 第三次重置完成，currentTime =', audioInstance.currentTime);
       } else {
-        console.log('✅ 播放位置正常，currentTime =', audioInstance.currentTime);
+        console.log('✅ 播放位置验证通过，currentTime =', audioInstance.currentTime);
       }
     }, 100);
   } catch (err) {
     console.error('❌ 播放失败:', err);
+    console.error('📊 失败时的状态:');
+    console.error('   readyState:', audioInstance.readyState);
+    console.error('   networkState:', audioInstance.networkState);
+    console.error('   paused:', audioInstance.paused);
+    console.error('   currentTime:', audioInstance.currentTime);
+    console.error('   src:', audioInstance.src);
     throw err;
   } finally {
     console.groupEnd();
@@ -344,13 +361,19 @@ export const playShareBackgroundMusic = async (
       console.group('🔄 强制音频从头播放');
       console.log('⏮️ 重置播放进度: currentTime = 0');
       console.log('💡 确保用户听到歌曲第 0 秒，避免从中间跳出');
+      console.log('📊 音频状态诊断:');
+      console.log('   readyState:', audio.readyState, '(0=无数据, 1=元数据, 2=当前帧, 3=未来数据, 4=足够数据)');
+      console.log('   networkState:', audio.networkState, '(0=空闲, 1=加载中, 2=无源, 3=无支持)');
+      console.log('   duration:', audio.duration, '秒');
+      console.log('   currentTime (重置前):', audio.currentTime, '秒');
 
       // 🔥 第一次重置
       audio.currentTime = 0;
       console.log('✅ 第一次重置完成，currentTime =', audio.currentTime);
 
-      // 🔥 等待一小段时间确保生效
-      await new Promise(r => setTimeout(r, 50));
+      // 🔥 等待 60ms 确保生效（iOS Safari 优化）
+      console.log('⏳ 等待 60ms 让浏览器清理缓冲区...');
+      await new Promise(r => setTimeout(r, 60));
 
       // 🔥 第二次重置（双保险）
       audio.currentTime = 0;
@@ -359,20 +382,43 @@ export const playShareBackgroundMusic = async (
 
       audio.play()
         .then(() => {
-          console.log('✅ Background music started successfully (streaming mode)');
+          console.group('✅ 背景音乐播放成功');
           console.log('⏱️ 当前播放位置:', audio.currentTime, '秒');
+          console.log('📊 播放状态:');
+          console.log('   paused:', audio.paused);
+          console.log('   muted:', audio.muted);
+          console.log('   volume:', audio.volume);
+          console.log('   loop:', audio.loop);
+          console.groupEnd();
 
           // 🔥 播放后立即检查并纠正
           setTimeout(() => {
             if (audio.currentTime > 0.5) {
-              console.warn('⚠️ 检测到播放位置异常，第三次强制归零');
+              console.warn('⚠️ 检测到播放位置异常 (>0.5s)，第三次强制归零');
               audio.currentTime = 0;
+              console.log('✅ 第三次归零完成，currentTime =', audio.currentTime);
+            } else {
+              console.log('✅ 播放位置验证通过，currentTime =', audio.currentTime);
             }
           }, 100);
         })
         .catch(err => {
-          console.error('❌ Audio play error:', err);
-          console.error('💡 可能需要用户交互才能播放');
+          console.group('❌ 音频播放失败');
+          console.error('错误信息:', err);
+          console.error('错误类型:', err.name);
+          console.error('错误详情:', err.message);
+          console.error('📊 失败时的音频状态:');
+          console.error('   readyState:', audio.readyState);
+          console.error('   networkState:', audio.networkState);
+          console.error('   paused:', audio.paused);
+          console.error('   currentTime:', audio.currentTime);
+          console.error('   src:', audio.src);
+          console.error('💡 可能的原因:');
+          console.error('   1. 需要用户交互才能播放（浏览器自动播放策略）');
+          console.error('   2. 音频文件加载失败（403/404）');
+          console.error('   3. 音频格式不支持');
+          console.error('   4. 网络连接问题');
+          console.groupEnd();
         });
 
       // 移除监听器，避免重复触发
@@ -380,7 +426,30 @@ export const playShareBackgroundMusic = async (
       resolve(audio);
     };
 
-    audio.addEventListener('canplay', onCanPlay, { once: true });
+    // 🔥 添加加载超时检测
+    const loadTimeout = setTimeout(() => {
+      console.group('⚠️ 音频加载超时（5秒）');
+      console.error('📊 超时时的音频状态:');
+      console.error('   readyState:', audio.readyState, '(如果 < 2，说明网络太慢或文件不可访问)');
+      console.error('   networkState:', audio.networkState);
+      console.error('   src:', audio.src);
+      console.error('💡 建议:');
+      console.error('   1. 检查网络连接');
+      console.error('   2. 检查 Supabase Storage 权限配置');
+      console.error('   3. 确认音频文件 URL 可访问（返回 200 而非 403）');
+      console.error('   4. 如果是微信内置浏览器，确认域名已通过认证');
+      console.groupEnd();
+    }, 5000);
+
+    audio.addEventListener('canplay', () => {
+      clearTimeout(loadTimeout);
+      onCanPlay();
+    }, { once: true });
+
+    // 🔥 添加错误监听
+    audio.addEventListener('error', () => {
+      clearTimeout(loadTimeout);
+    }, { once: true });
   });
 };
 /**
