@@ -262,9 +262,16 @@ export const playShareBackgroundMusic = async (
     });
   });
 
+  console.group('🔄 强制音频从头播放');
+  console.log('⏮️ 重置播放进度: currentTime = 0');
+  console.log('💡 确保用户听到歌曲第 0 秒，避免从中间跳出');
+  audio.currentTime = 0;
+  console.groupEnd();
+
   audio.play()
     .then(() => {
       console.log('✅ Background music started successfully (streaming mode)');
+      console.log('⏱️ 当前播放位置:', audio.currentTime, '秒');
     })
     .catch(err => {
       console.error('❌ Audio play error:', err);
