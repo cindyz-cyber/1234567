@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App.tsx';
 import ShareJournal from './components/ShareJournal.tsx';
 import ShareConfigAdmin from './components/ShareConfigAdmin.tsx';
@@ -8,6 +8,59 @@ import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
 import { initializeVideoPreload } from './utils/videoPreloader';
 import { initializeGlobalBackgroundPreload } from './utils/globalBackgroundPreloader';
+
+// 🚫 已弃用路由拦截器
+function DeprecatedRoute() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+      color: '#fff',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      padding: '20px',
+      textAlign: 'center'
+    }}>
+      <div style={{
+        fontSize: '64px',
+        marginBottom: '20px',
+        opacity: 0.5
+      }}>🔒</div>
+      <h1 style={{
+        fontSize: '28px',
+        fontWeight: '600',
+        marginBottom: '12px',
+        color: '#f0f0f0'
+      }}>链接已失效</h1>
+      <p style={{
+        fontSize: '16px',
+        color: '#aaa',
+        marginBottom: '30px',
+        maxWidth: '400px'
+      }}>此分享链接已过期或不再可用</p>
+      <a
+        href="/"
+        style={{
+          padding: '12px 32px',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: '#fff',
+          textDecoration: 'none',
+          borderRadius: '8px',
+          fontSize: '16px',
+          fontWeight: '500',
+          transition: 'transform 0.2s'
+        }}
+        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        返回首页
+      </a>
+    </div>
+  );
+}
 
 // Kin 计算引擎自检：启动时必须通过三个断言测试
 function validateKinEngine() {
@@ -87,7 +140,7 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/share/journal" element={<ShareJournal />} />
-        <Route path="/share/journey" element={<ShareJournal />} />
+        <Route path="/share/journey" element={<DeprecatedRoute />} />
         <Route path="/admin/share-config" element={<ShareConfigAdmin />} />
         <Route path="/*" element={<App />} />
       </Routes>
