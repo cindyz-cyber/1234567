@@ -255,6 +255,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
   return (
     <>
+      <PortalBackground
+        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/mf2l1xwzmq-1773037528059.mp4"
+        posterImg={posterImage}
+        overlayGradient="linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(2, 13, 10, 0.25) 50%, rgba(0, 0, 0, 0.22) 100%)"
+      />
       <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative" style={{ position: 'relative', zIndex: 1 }}>
 
       {particles.map(particle => (
