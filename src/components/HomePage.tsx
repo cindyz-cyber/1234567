@@ -11,10 +11,13 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
 
   const handleCircleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    // 🔥 使用统一的音频预热函数
-    await warmupAudioContext();
-
     console.log('🟡 Yellow ball clicked!');
+
+    // 🔥 使用统一的音频预热函数
+    warmupAudioContext().catch(err => {
+      console.warn('⚠️ 音频预热失败（非致命）:', err);
+    });
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
