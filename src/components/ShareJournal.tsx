@@ -114,6 +114,22 @@ export default function ShareJournal() {
       console.error('🚫 [IS_LINK_DEPRECATED = true] 前端硬开关已激活，全网失效');
       console.error('💡 即使数据库连接正常，该部署包也会直接拦截所有用户');
       console.error('🛑 停止所有后续初始化（音频、视频预加载）');
+
+      // 🛑 立即阻止所有媒体资源加载
+      console.warn('🚨 中断所有预加载任务');
+
+      // 清理可能已创建的音频实例
+      if (backgroundMusic) {
+        backgroundMusic.pause();
+        backgroundMusic.src = '';
+        backgroundMusic.load();
+      }
+      if (preloadedAudio) {
+        preloadedAudio.pause();
+        preloadedAudio.src = '';
+        preloadedAudio.load();
+      }
+
       setCurrentStep('blocked');
       setIsValidating(false);
       return;

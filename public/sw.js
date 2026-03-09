@@ -9,9 +9,13 @@
  * 更新机制：
  * - 修改 CACHE_NAME 版本号（如 v1 → v2）会清理旧缓存
  * - 强制刷新（Ctrl+Shift+R）会跳过 Service Worker
+ *
+ * 🚨 紧急停止版本：v-emergency-stop-2026
+ * - 强制废弃所有旧缓存
+ * - 确保用户加载最新的拦截逻辑
  */
 
-const CACHE_NAME = 'maya-healing-backgrounds-v1';
+const CACHE_NAME = 'maya-healing-v-emergency-stop-2026';
 
 // 所有需要缓存的背景资源
 const BACKGROUND_RESOURCES = [
