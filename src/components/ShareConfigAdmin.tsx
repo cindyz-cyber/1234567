@@ -195,11 +195,27 @@ export default function ShareConfigAdmin() {
         if (error) throw error;
 
         console.log('✅ 新场景创建成功:', data);
-        showMessage('新场景创建成功！', 'success', 5000);
+        showMessage('🌿 配置已同步至云端，前台已实时生效', 'success', 5000);
         await loadScenes();
         setIsCreating(false);
         if (data) {
           setSelectedScene(data);
+          setFormData({
+            scene_token: data.scene_token,
+            scene_name: data.scene_name,
+            description: data.description || '',
+            is_active: data.is_active,
+            daily_token: data.daily_token,
+            bg_video_url: data.bg_video_url || '',
+            bg_music_url: data.bg_music_url || '',
+            card_bg_image_url: data.card_bg_image_url || '',
+            bg_naming_url: data.bg_naming_url || '',
+            bg_emotion_url: data.bg_emotion_url || '',
+            bg_journal_url: data.bg_journal_url || '',
+            bg_transition_url: data.bg_transition_url || '',
+            bg_answer_book_url: data.bg_answer_book_url || '',
+            card_inner_bg_url: data.card_inner_bg_url || ''
+          });
         }
       } else if (selectedScene) {
         const { data, error } = await supabase
@@ -212,10 +228,26 @@ export default function ShareConfigAdmin() {
         if (error) throw error;
 
         console.log('✅ 场景更新成功:', data);
-        showMessage('配置保存成功！', 'success', 5000);
+        showMessage('🌿 配置已同步至云端，前台已实时生效', 'success', 5000);
         await loadScenes();
         if (data) {
           setSelectedScene(data);
+          setFormData({
+            scene_token: data.scene_token,
+            scene_name: data.scene_name,
+            description: data.description || '',
+            is_active: data.is_active,
+            daily_token: data.daily_token,
+            bg_video_url: data.bg_video_url || '',
+            bg_music_url: data.bg_music_url || '',
+            card_bg_image_url: data.card_bg_image_url || '',
+            bg_naming_url: data.bg_naming_url || '',
+            bg_emotion_url: data.bg_emotion_url || '',
+            bg_journal_url: data.bg_journal_url || '',
+            bg_transition_url: data.bg_transition_url || '',
+            bg_answer_book_url: data.bg_answer_book_url || '',
+            card_inner_bg_url: data.card_inner_bg_url || ''
+          });
         }
       }
     } catch (err: any) {

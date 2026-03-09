@@ -486,7 +486,7 @@ export default function ShareJournal() {
         return (
           <DynamicStepBackground
             backgroundUrl={config?.bg_naming_url}
-            fallbackUrl={config?.bg_video_url}
+            fallbackUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
           >
             <NamingRitual
               onComplete={handleNamingComplete}
@@ -497,7 +497,7 @@ export default function ShareJournal() {
       case 'home':
         return (
           <DynamicStepBackground
-            backgroundUrl={config?.bg_video_url}
+            backgroundUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
           >
             <HomePage
               userName={state.userName}
@@ -511,7 +511,7 @@ export default function ShareJournal() {
         return (
           <DynamicStepBackground
             backgroundUrl={config?.bg_emotion_url}
-            fallbackUrl={config?.bg_video_url}
+            fallbackUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
           >
             <EmotionScan
               onNext={handleEmotionComplete}
@@ -523,7 +523,7 @@ export default function ShareJournal() {
         return (
           <DynamicStepBackground
             backgroundUrl={config?.bg_journal_url}
-            fallbackUrl={config?.bg_video_url}
+            fallbackUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
           >
             <InnerWhisperJournal
               emotions={state.selectedEmotions}
@@ -535,7 +535,7 @@ export default function ShareJournal() {
       case 'dialogue':
         return (
           <DynamicStepBackground
-            backgroundUrl={config?.bg_video_url}
+            backgroundUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
           >
             <HigherSelfDialogue
               userName={state.userName}
@@ -568,7 +568,7 @@ export default function ShareJournal() {
         return (
           <DynamicStepBackground
             backgroundUrl={config?.bg_answer_book_url}
-            fallbackUrl={config?.bg_video_url}
+            fallbackUrl={config?.bg_music_url?.endsWith('.mp4') ? config?.bg_music_url : config?.bg_video_url}
           >
             <BookOfAnswers
               backgroundAudio={backgroundMusic}
