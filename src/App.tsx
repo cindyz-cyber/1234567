@@ -47,6 +47,7 @@ function App() {
   const [isPremium, setIsPremium] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
+  const [transitionAudioUrl, setTransitionAudioUrl] = useState<string | null>(null);
   const [journeyData, setJourneyData] = useState<JourneyData>({
     emotions: [],
     bodyStates: [],
@@ -100,6 +101,25 @@ function App() {
         } catch (dbError) {
           console.warn('Database connection issue (non-critical):', dbError);
         }
+      }
+
+      // 加载 GoldenTransition 的音频文件
+      try {
+        const { data: audioFiles, error: audioError } = await supabase
+          .from('audio_files')
+          .select('file_path')
+          .eq('is_active', true)
+          .eq('file_type', 'guidance')
+          .limit(1)
+          .maybeSingle();
+
+        if (!audioError && audioFiles?.file_path) {
+          const audioUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/audio-files/${audioFiles.file_path}`;
+          console.log('🎵 加载 GoldenTransition 音频:', audioUrl);
+          setTransitionAudioUrl(audioUrl);
+        }
+      } catch (audioError) {
+        console.warn('加载音频文件失败 (non-critical):', audioError);
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -323,6 +343,7 @@ function App() {
             userName={userNames.userName}
             higherSelfName={userNames.higherSelfName}
             onComplete={handleTransitionComplete}
+            backgroundMusicUrl={transitionAudioUrl}
           />
         </Suspense>
       );
