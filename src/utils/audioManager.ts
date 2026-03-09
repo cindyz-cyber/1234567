@@ -90,6 +90,52 @@ export const playAudioFromUrl = (url: string): HTMLAudioElement => {
   return audio;
 };
 
+/**
+ * 🔥 双重强制归零播放器 - 确保音频从 0 秒开始
+ * 参考 ShareJournal 的成功经验，实现强制重置逻辑
+ */
+export const playAudioFromZero = async (audioInstance: HTMLAudioElement): Promise<void> => {
+  if (!audioInstance) {
+    console.error('❌ playAudioFromZero: audioInstance 为空');
+    return;
+  }
+
+  console.group('🔥 [audioManager] 双重强制归零播放');
+
+  // 🔥 第一次强制重置
+  console.log('⏮️ 第一次强制重置: currentTime = 0');
+  audioInstance.currentTime = 0;
+
+  // 🔥 等待一个微小的 Tick 确保浏览器完成指针复位
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  // 🔥 第二次强制重置
+  console.log('🔄 第二次强制重置: currentTime = 0');
+  audioInstance.currentTime = 0;
+
+  try {
+    await audioInstance.play();
+    console.log('✅ 音频播放成功');
+    console.log('⏱️ 当前播放位置:', audioInstance.currentTime, '秒');
+
+    // 🔥 播放后瞬时检查，如果跳秒则强行拉回
+    setTimeout(() => {
+      if (audioInstance.currentTime > 0.5) {
+        console.warn('⚠️ 检测到播放位置异常 (>0.5s)，第三次强制归零');
+        audioInstance.currentTime = 0;
+        console.log('✅ 第三次重置完成，currentTime =', audioInstance.currentTime);
+      } else {
+        console.log('✅ 播放位置正常，currentTime =', audioInstance.currentTime);
+      }
+    }, 100);
+  } catch (err) {
+    console.error('❌ 播放失败:', err);
+    throw err;
+  } finally {
+    console.groupEnd();
+  }
+};
+
 export const playBackgroundMusicLoop = async (): Promise<HTMLAudioElement | null> => {
   try {
     const { data, error } = await supabase
@@ -113,7 +159,9 @@ export const playBackgroundMusicLoop = async (): Promise<HTMLAudioElement | null
     audio.volume = 0.3;
     audio.loop = true;
     registerAudio(audio);
-    audio.play().catch(err => console.error('Audio play error:', err));
+
+    // 🔥 使用双重强制归零播放
+    await playAudioFromZero(audio);
 
     return audio;
   } catch (error) {
@@ -364,4 +412,50 @@ export const pauseAllAudio = () => {
   console.log('✅ 所有音频已暂停，实例保持存活');
   console.log('🔄 音频可在后续步骤中通过 play() 恢复播放');
   console.groupEnd();
+};
+
+/**
+ * 🔥 用户交互音频预热 - 解决 iOS 自动播放限制
+ * 在用户点击"开始"按钮时调用，静默解锁音频权限
+ */
+export const warmupAudioContext = async (audioInstance?: HTMLAudioElement | null): Promise<void> => {
+  console.group('🔓 [audioManager] 用户交互音频预热');
+
+  try {
+    // 预热 AudioContext（解决 iOS 和某些浏览器的限制）
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioContext) {
+      const audioContext = new AudioContext();
+      if (audioContext.state === 'suspended') {
+        console.log('🔓 AudioContext 处于 suspended 状态，正在恢复...');
+        await audioContext.resume();
+        console.log('✅ AudioContext 已恢复为 running 状态');
+      } else {
+        console.log('✅ AudioContext 已处于', audioContext.state, '状态');
+      }
+    }
+
+    // 如果传入了音频实例，进行静默预热
+    if (audioInstance) {
+      console.log('🎵 开始预热音频实例...');
+      audioInstance.muted = true;
+
+      try {
+        await audioInstance.play();
+        console.log('✅ 音频实例预热成功（静音播放）');
+
+        audioInstance.pause();
+        audioInstance.muted = false;
+        audioInstance.currentTime = 0;
+
+        console.log('✅ 音频实例已复位，准备正式播放');
+      } catch (err) {
+        console.warn('⚠️ 音频实例预热失败（非致命）:', err);
+      }
+    }
+  } catch (err) {
+    console.warn('⚠️ 音频预热失败（非致命）:', err);
+  } finally {
+    console.groupEnd();
+  }
 };

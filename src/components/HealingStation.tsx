@@ -8,6 +8,7 @@ import {
   HealingTrack,
   FREQUENCY_BENEFITS
 } from '../utils/healingAudioService';
+import { playAudioFromZero } from '../utils/audioManager';
 
 interface HealingStationProps {
   frequencyHz: number;
@@ -35,7 +36,8 @@ export default function HealingStation({ frequencyHz, chakraName }: HealingStati
       audioRef.current.src = getAudioUrl(currentTrack.filePath);
       audioRef.current.load();
       if (isPlaying) {
-        audioRef.current.play().catch(err => {
+        // 🔥 使用双重强制归零播放器
+        playAudioFromZero(audioRef.current).catch(err => {
           console.error('Error playing audio:', err);
           setIsPlaying(false);
         });
@@ -71,13 +73,11 @@ export default function HealingStation({ frequencyHz, chakraName }: HealingStati
     if (newTrack) {
       setCurrentTrack(newTrack);
       setCurrentTime(0);
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-      }
+      // 双重强制归零将在 useEffect 中处理
     }
   };
 
-  const togglePlayPause = (e: React.MouseEvent) => {
+  const togglePlayPause = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!audioRef.current || !currentTrack) return;
 
@@ -85,11 +85,14 @@ export default function HealingStation({ frequencyHz, chakraName }: HealingStati
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.play().catch(err => {
+      // 🔥 使用双重强制归零播放器
+      try {
+        await playAudioFromZero(audioRef.current);
+        setIsPlaying(true);
+      } catch (err) {
         console.error('Error playing audio:', err);
         setIsPlaying(false);
-      });
-      setIsPlaying(true);
+      }
     }
   };
 

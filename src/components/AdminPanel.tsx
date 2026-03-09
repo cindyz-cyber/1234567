@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Upload, Trash2, Play, Pause, CheckCircle, Circle, Database } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import KnowledgeBaseSeeder from './KnowledgeBaseSeeder';
+import { playAudioFromZero } from '../utils/audioManager';
 
 interface AudioFile {
   id: string;
@@ -285,7 +286,13 @@ export default function AdminPanel() {
 
     setAudioElement(audio);
     setPlayingId(file.id);
-    audio.play();
+
+    // 🔥 使用双重强制归零播放器
+    playAudioFromZero(audio).catch(err => {
+      console.error('播放失败:', err);
+      setPlayingId(null);
+      setAudioElement(null);
+    });
   };
 
   if (activeView === 'knowledge') {

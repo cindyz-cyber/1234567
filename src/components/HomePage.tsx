@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { warmupAudioContext } from '../utils/audioManager';
 
 interface HomePageProps {
   userName: string;
@@ -9,26 +10,9 @@ interface HomePageProps {
 export default function HomePage({ userName, higherSelfName, onStartJourney }: HomePageProps) {
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
 
-  const handleCircleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // 🔥 强制解锁浏览器音频权限（用户交互触发）
-    console.group('🔓 [HomePage] 解锁浏览器音频权限');
-    try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioContext) {
-        const audioContext = new AudioContext();
-        if (audioContext.state === 'suspended') {
-          console.log('🔓 AudioContext 处于 suspended 状态，正在恢复...');
-          audioContext.resume().then(() => {
-            console.log('✅ AudioContext 已恢复为 running 状态');
-          });
-        } else {
-          console.log('✅ AudioContext 已处于', audioContext.state, '状态');
-        }
-      }
-    } catch (err) {
-      console.warn('⚠️ AudioContext 初始化失败:', err);
-    }
-    console.groupEnd();
+  const handleCircleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    // 🔥 使用统一的音频预热函数
+    await warmupAudioContext();
 
     console.log('🟡 Yellow ball clicked!');
     const rect = e.currentTarget.getBoundingClientRect();

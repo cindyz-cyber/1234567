@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { playBackgroundMusicLoop, playShareBackgroundMusic, isVideoUrl } from '../utils/audioManager';
+import { playBackgroundMusicLoop, playShareBackgroundMusic, isVideoUrl, playAudioFromZero } from '../utils/audioManager';
 
 interface GoldenTransitionProps {
   userName: string;
@@ -75,30 +75,12 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           });
         }
 
-        console.log('🔄 第一次强制重置: currentTime = 0');
-        globalAudio.currentTime = 0;
-
-        // 🔥 双重确保：等待一帧后再次重置
-        await new Promise(resolve => setTimeout(resolve, 100));
-        console.log('🔄 第二次强制重置: currentTime = 0');
-        globalAudio.currentTime = 0;
-
-        console.log('▶️ 开始播放音频');
+        console.log('▶️ 使用双重强制归零播放器');
 
         try {
-          await globalAudio.play();
+          // 🔥 使用统一的双重强制归零播放器
+          await playAudioFromZero(globalAudio);
           console.log('✅ [GoldenTransition] 全局音频播放成功');
-          console.log('⏱️ 当前播放位置:', globalAudio.currentTime, '秒');
-          console.log('🔊 音量:', globalAudio.volume);
-
-          // 🔥 三重确保：播放后再检查一次
-          setTimeout(() => {
-            if (globalAudio && globalAudio.currentTime > 0.5) {
-              console.warn('⚠️ 检测到播放位置异常，第三次强制归零');
-              globalAudio.currentTime = 0;
-            }
-          }, 100);
-
           backgroundMusic = globalAudio;
         } catch (err) {
           console.error('❌ 全局音频播放失败:', err);
