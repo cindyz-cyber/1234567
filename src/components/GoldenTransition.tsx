@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { playBackgroundMusicLoop, playShareBackgroundMusic } from '../utils/audioManager';
+import { playBackgroundMusicLoop, playShareBackgroundMusic, isVideoUrl } from '../utils/audioManager';
 
 interface GoldenTransitionProps {
   userName: string;
@@ -12,7 +12,15 @@ interface GoldenTransitionProps {
 export default function GoldenTransition({ userName, higherSelfName, onComplete, backgroundMusicUrl, backgroundVideoUrl }: GoldenTransitionProps) {
   const [fadeOut, setFadeOut] = useState(false);
   const defaultVideoUrl = 'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
-  const effectiveVideoUrl = backgroundVideoUrl && backgroundVideoUrl.trim() !== '' ? backgroundVideoUrl : defaultVideoUrl;
+
+  // 智能视频 URL 选择：
+  // 1. 如果 backgroundMusicUrl 是 MP4，优先使用它作为视频背景
+  // 2. 否则使用 backgroundVideoUrl
+  // 3. 都没有则使用默认视频
+  const isMediaUrlVideo = backgroundMusicUrl && isVideoUrl(backgroundMusicUrl);
+  const effectiveVideoUrl = isMediaUrlVideo
+    ? backgroundMusicUrl
+    : (backgroundVideoUrl && backgroundVideoUrl.trim() !== '' ? backgroundVideoUrl : defaultVideoUrl);
 
   useEffect(() => {
     let backgroundMusic: HTMLAudioElement | null = null;
@@ -21,12 +29,18 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     const transitionDuration = 10000;
 
     const initializeAudio = async () => {
-      backgroundMusic = await playShareBackgroundMusic(backgroundMusicUrl, true);
-
-      if (backgroundMusic) {
-        console.log('✅ Background music started successfully');
+      // 如果 backgroundMusicUrl 是视频，不加载音频（视频作为背景）
+      if (isMediaUrlVideo) {
+        console.log('🎬 检测到 MP4 视频作为背景媒体，跳过音频加载');
+        console.log('📊 视频将在背景中静音播放');
       } else {
-        console.warn('⚠️ No background music playing - all fallback methods failed');
+        backgroundMusic = await playShareBackgroundMusic(backgroundMusicUrl, true);
+
+        if (backgroundMusic) {
+          console.log('✅ Background music started successfully');
+        } else {
+          console.warn('⚠️ No background music playing - all fallback methods failed');
+        }
       }
 
       fadeOutTimer = window.setTimeout(() => {

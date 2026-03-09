@@ -50,6 +50,7 @@ export default function ShareConfigAdmin() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error' | 'info'>('info');
 
   const [formData, setFormData] = useState<SceneFormData>({
     scene_token: '',
@@ -74,13 +75,18 @@ export default function ShareConfigAdmin() {
     }
   }, [isAuthenticated]);
 
+  const showMessage = (msg: string, type: 'success' | 'error' | 'info' = 'info', duration: number = 3000) => {
+    setMessage(msg);
+    setMessageType(type);
+    setTimeout(() => setMessage(''), duration);
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
     } else {
-      setMessage('密码错误');
-      setTimeout(() => setMessage(''), 3000);
+      showMessage('密码错误', 'error');
     }
   };
 
@@ -107,8 +113,7 @@ export default function ShareConfigAdmin() {
       }
     } catch (err: any) {
       console.error('❌ 加载失败:', err);
-      setMessage('加载配置失败: ' + err.message);
-      setTimeout(() => setMessage(''), 5000);
+      showMessage('加载配置失败: ' + err.message, 'error', 5000);
     } finally {
       setLoading(false);
     }
@@ -160,8 +165,7 @@ export default function ShareConfigAdmin() {
 
   const handleSave = async () => {
     if (!formData.scene_token || !formData.scene_name) {
-      setMessage('场景标识和场景名称不能为空');
-      setTimeout(() => setMessage(''), 3000);
+      showMessage('场景标识和场景名称不能为空', 'error');
       return;
     }
 
@@ -177,8 +181,7 @@ export default function ShareConfigAdmin() {
           .maybeSingle();
 
         if (existing) {
-          setMessage('场景标识已存在，请使用不同的标识');
-          setTimeout(() => setMessage(''), 5000);
+          showMessage('场景标识已存在，请使用不同的标识', 'error', 5000);
           setSaving(false);
           return;
         }
@@ -192,7 +195,7 @@ export default function ShareConfigAdmin() {
         if (error) throw error;
 
         console.log('✅ 新场景创建成功:', data);
-        setMessage('新场景创建成功');
+        showMessage('新场景创建成功！', 'success', 5000);
         await loadScenes();
         setIsCreating(false);
         if (data) {
@@ -209,18 +212,15 @@ export default function ShareConfigAdmin() {
         if (error) throw error;
 
         console.log('✅ 场景更新成功:', data);
-        setMessage('配置保存成功');
+        showMessage('配置保存成功！', 'success', 5000);
         await loadScenes();
         if (data) {
           setSelectedScene(data);
         }
       }
-
-      setTimeout(() => setMessage(''), 3000);
     } catch (err: any) {
       console.error('❌ 保存失败:', err);
-      setMessage('保存失败: ' + err.message);
-      setTimeout(() => setMessage(''), 5000);
+      showMessage('保存失败: ' + err.message, 'error', 5000);
     } finally {
       setSaving(false);
     }
@@ -228,8 +228,7 @@ export default function ShareConfigAdmin() {
 
   const handleDelete = async (sceneId: string, sceneToken: string) => {
     if (sceneToken === 'default') {
-      setMessage('默认场景不能删除');
-      setTimeout(() => setMessage(''), 3000);
+      showMessage('默认场景不能删除', 'error');
       return;
     }
 
@@ -248,16 +247,14 @@ export default function ShareConfigAdmin() {
       if (error) throw error;
 
       console.log('✅ 场景删除成功');
-      setMessage('场景已删除');
-      setTimeout(() => setMessage(''), 3000);
+      showMessage('场景已删除', 'success');
 
       await loadScenes();
       setSelectedScene(null);
       setIsCreating(false);
     } catch (err: any) {
       console.error('❌ 删除失败:', err);
-      setMessage('删除失败: ' + err.message);
-      setTimeout(() => setMessage(''), 5000);
+      showMessage('删除失败: ' + err.message, 'error', 5000);
     }
   };
 
@@ -265,8 +262,7 @@ export default function ShareConfigAdmin() {
     const baseUrl = window.location.origin;
     const url = `${baseUrl}/share/journal?scene=${sceneToken}&token=${formData.daily_token}`;
     navigator.clipboard.writeText(url);
-    setMessage('链接已复制到剪贴板');
-    setTimeout(() => setMessage(''), 3000);
+    showMessage('链接已复制到剪贴板', 'success');
   };
 
   if (!isAuthenticated) {
@@ -478,25 +474,25 @@ export default function ShareConfigAdmin() {
                     <div className="space-y-6">
                       <div>
                         <label className="block text-sm font-medium text-white/80 mb-2">
-                          背景音乐 URL（支持 192kbps 高品质长音频）
+                          背景媒体 URL（支持 MP3 音频 / MP4 视频）
                         </label>
                         <AudioUploader
                           currentUrl={formData.bg_music_url}
-                          onUploadComplete={(url) => {
-                            console.log('🎵 音频上传完成，自动填充 URL:', url);
+                          onUploadComplete={(url, fileType) => {
+                            console.log(`${fileType === 'video' ? '🎬 视频' : '🎵 音频'}上传完成，自动填充 URL:`, url);
                             setFormData({ ...formData, bg_music_url: url });
                           }}
                         />
                         <div className="mt-3">
                           <label className="block text-xs font-medium text-white/60 mb-2">
-                            或手动输入 URL:
+                            或手动输入 URL（支持 .mp3 或 .mp4）:
                           </label>
                           <input
                             type="text"
                             value={formData.bg_music_url}
                             onChange={(e) => setFormData({ ...formData, bg_music_url: e.target.value })}
                             className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
-                            placeholder="https://your-cdn.com/music.mp3"
+                            placeholder="https://your-cdn.com/media.mp3 或 .mp4"
                           />
                         </div>
                       </div>
@@ -623,8 +619,20 @@ export default function ShareConfigAdmin() {
         </div>
 
         {message && (
-          <div className="fixed bottom-6 right-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg px-6 py-3 text-white shadow-lg">
-            {message}
+          <div
+            className={`fixed bottom-6 right-6 backdrop-blur-md border rounded-lg px-6 py-3 shadow-lg transition-all ${
+              messageType === 'success'
+                ? 'bg-green-500/20 border-green-400/50 text-green-100'
+                : messageType === 'error'
+                ? 'bg-red-500/20 border-red-400/50 text-red-100'
+                : 'bg-white/10 border-white/20 text-white'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {messageType === 'success' && <span className="text-2xl">✅</span>}
+              {messageType === 'error' && <span className="text-2xl">❌</span>}
+              <span>{message}</span>
+            </div>
           </div>
         )}
 

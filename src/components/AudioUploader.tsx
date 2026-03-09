@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { Upload, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Upload, Loader2, Check, AlertCircle, Music, Video } from 'lucide-react';
 
 interface AudioUploaderProps {
-  onUploadComplete: (url: string) => void;
+  onUploadComplete: (url: string, fileType: 'audio' | 'video') => void;
   currentUrl?: string;
 }
 
@@ -12,6 +12,7 @@ export default function AudioUploader({ onUploadComplete, currentUrl }: AudioUpl
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [fileType, setFileType] = useState<'audio' | 'video' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,12 +22,16 @@ export default function AudioUploader({ onUploadComplete, currentUrl }: AudioUpl
     setError('');
     setSuccess(false);
     setProgress(0);
+    setFileType(null);
 
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    if (fileExtension !== 'mp3') {
-      setError('仅支持 .mp3 格式的音频文件');
+    if (!['mp3', 'mp4'].includes(fileExtension || '')) {
+      setError('仅支持 .mp3 或 .mp4 格式的媒体文件');
       return;
     }
+
+    const detectedFileType = fileExtension === 'mp4' ? 'video' : 'audio';
+    setFileType(detectedFileType);
 
     const maxSize = 100 * 1024 * 1024;
     if (file.size > maxSize) {
@@ -37,13 +42,15 @@ export default function AudioUploader({ onUploadComplete, currentUrl }: AudioUpl
     setUploading(true);
 
     try {
-      const fileName = `bg-music-${Date.now()}.mp3`;
+      const fileExt = fileExtension === 'mp4' ? 'mp4' : 'mp3';
+      const fileName = `bg-media-${Date.now()}.${fileExt}`;
       const filePath = `background-music/${fileName}`;
 
-      console.log('🎵 开始上传音频文件:', {
+      console.log(`${detectedFileType === 'video' ? '🎬' : '🎵'} 开始上传媒体文件:`, {
         fileName,
         fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-        fileType: file.type
+        fileType: file.type,
+        mediaType: detectedFileType
       });
 
       const xhr = new XMLHttpRequest();
@@ -106,11 +113,11 @@ export default function AudioUploader({ onUploadComplete, currentUrl }: AudioUpl
       }
 
       const publicUrl = data.publicUrl;
-      console.log('✅ 音频文件上传成功:', publicUrl);
+      console.log(`✅ ${detectedFileType === 'video' ? '视频' : '音频'}文件上传成功:`, publicUrl);
 
       setProgress(100);
       setSuccess(true);
-      onUploadComplete(publicUrl);
+      onUploadComplete(publicUrl, detectedFileType);
 
       setTimeout(() => {
         setSuccess(false);
@@ -137,7 +144,7 @@ export default function AudioUploader({ onUploadComplete, currentUrl }: AudioUpl
       <input
         ref={fileInputRef}
         type="file"
-        accept=".mp3,audio/mpeg"
+        accept=".mp3,.mp4,audio/mpeg,video/mp4"
         onChange={handleFileSelect}
         className="hidden"
       />
@@ -156,12 +163,12 @@ export default function AudioUploader({ onUploadComplete, currentUrl }: AudioUpl
         ) : success ? (
           <>
             <Check className="w-5 h-5" />
-            上传成功
+            上传成功 {fileType === 'video' ? '🎬' : '🎵'}
           </>
         ) : (
           <>
             <Upload className="w-5 h-5" />
-            选择 MP3 文件上传
+            选择 MP3/MP4 文件上传
           </>
         )}
       </button>
@@ -193,19 +200,43 @@ export default function AudioUploader({ onUploadComplete, currentUrl }: AudioUpl
       {success && (
         <div className="flex items-start gap-2 p-3 bg-green-500/20 border border-green-400/30 rounded-lg">
           <Check className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-green-200">文件上传成功，URL 已自动填充</p>
+          <p className="text-sm text-green-200">
+            {fileType === 'video' ? '视频' : '音频'}文件上传成功，URL 已自动填充
+          </p>
         </div>
       )}
 
       <div className="p-3 bg-blue-500/10 border border-blue-400/20 rounded-lg">
-        <p className="text-xs text-blue-200">
-          <strong>格式要求：</strong>仅支持 .mp3 格式，最大 100MB，推荐 192kbps 高品质音频
-        </p>
+        <div className="flex items-start gap-2">
+          <Music className="w-4 h-4 text-blue-300 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-xs text-blue-200 mb-1">
+              <strong>音频（MP3）：</strong>最大 100MB，推荐 192kbps 高品质音频，流式播放
+            </p>
+          </div>
+        </div>
+        <div className="flex items-start gap-2 mt-2">
+          <Video className="w-4 h-4 text-blue-300 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-xs text-blue-200">
+              <strong>视频（MP4）：</strong>最大 100MB，自动静音播放，可用作背景视频
+            </p>
+          </div>
+        </div>
       </div>
 
       {currentUrl && (
         <div className="p-3 bg-white/5 border border-white/10 rounded-lg">
-          <p className="text-xs text-white/60 mb-1">当前音频 URL:</p>
+          <div className="flex items-center gap-2 mb-1">
+            {currentUrl.endsWith('.mp4') ? (
+              <Video className="w-4 h-4 text-white/60" />
+            ) : (
+              <Music className="w-4 h-4 text-white/60" />
+            )}
+            <p className="text-xs text-white/60">
+              当前媒体 URL ({currentUrl.endsWith('.mp4') ? '视频' : '音频'}):
+            </p>
+          </div>
           <p className="text-xs text-white/80 break-all font-mono">{currentUrl}</p>
         </div>
       )}

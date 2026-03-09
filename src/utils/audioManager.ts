@@ -140,17 +140,37 @@ export const fadeOutAudio = (audio: HTMLAudioElement, duration: number = 2000): 
   });
 };
 
+/**
+ * 检测 URL 是否为视频文件（MP4）
+ */
+export const isVideoUrl = (url: string): boolean => {
+  return url.toLowerCase().endsWith('.mp4') || url.toLowerCase().includes('.mp4?');
+};
+
+/**
+ * 智能媒体播放器 - 支持音频（MP3）和视频（MP4）
+ * 当 URL 为 MP4 时，返回 null 但记录日志，前端需要单独处理视频背景
+ */
 export const playShareBackgroundMusic = async (
   shareConfigUrl: string | null | undefined,
   fallbackToMainApp: boolean = true
 ): Promise<HTMLAudioElement | null> => {
   let finalMusicUrl: string | null = null;
 
-  console.group('🎵 音频加载策略 - 三级优先级');
+  console.group('🎵 媒体加载策略 - 三级优先级 + 视频/音频混合支持');
 
   if (shareConfigUrl && shareConfigUrl.trim() !== '') {
     console.log('✅ 优先级 1: h5_share_config.bg_music_url 已配置');
     console.log('🎵 URL:', shareConfigUrl);
+
+    // 检测是否为视频文件
+    if (isVideoUrl(shareConfigUrl)) {
+      console.log('🎬 检测到 MP4 视频文件，将作为背景视频使用（静音播放）');
+      console.log('💡 前端需要在 <video> 标签中加载此 URL');
+      console.groupEnd();
+      return null; // 视频不在这里处理，返回 null 让前端知道需要用视频
+    }
+
     finalMusicUrl = shareConfigUrl;
   } else if (fallbackToMainApp) {
     console.log('⚠️ 优先级 1 未配置，尝试优先级 2: 主 App 全局音频资源');
