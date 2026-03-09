@@ -13,14 +13,16 @@ export default function VideoBackground({ videoUrl }: VideoBackgroundProps = {})
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const asset = BACKGROUND_ASSETS.golden_flow;
-  const finalVideoUrl = videoUrl || asset?.sources?.[0]?.url;
+  const defaultHomeVideo = 'https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/imuqqrh3qnl-1773037470946.mp4';
+  const finalVideoUrl = videoUrl || defaultHomeVideo || asset?.sources?.[0]?.url;
 
   console.group('🎥 视频背景加载');
   console.log('📍 组件: VideoBackground');
   console.log('🔗 配置台传入 URL (videoUrl):', videoUrl || '❌ 未传入');
-  console.log('🔗 本地默认 URL (fallback):', asset?.sources?.[0]?.url || '❌ 未定义');
+  console.log('🔗 新主页默认视频:', defaultHomeVideo);
+  console.log('🔗 本地降级 URL (fallback):', asset?.sources?.[0]?.url || '❌ 未定义');
   console.log('✅ 最终使用 URL:', finalVideoUrl);
-  console.log('🚀 资源来源:', videoUrl ? 'Supabase Storage（配置台）' : '本地静态资源（降级）');
+  console.log('🚀 资源来源:', videoUrl ? 'Supabase Storage（配置台）' : '新主页默认视频');
   console.groupEnd();
 
   if (!asset) {
