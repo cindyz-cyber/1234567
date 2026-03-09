@@ -7,9 +7,10 @@ interface GoldenTransitionProps {
   onComplete: (backgroundMusic: HTMLAudioElement | null) => void;
   backgroundMusicUrl?: string | null;
   backgroundVideoUrl?: string | null;
+  globalAudio?: HTMLAudioElement | null;
 }
 
-export default function GoldenTransition({ userName, higherSelfName, onComplete, backgroundMusicUrl, backgroundVideoUrl }: GoldenTransitionProps) {
+export default function GoldenTransition({ userName, higherSelfName, onComplete, backgroundMusicUrl, backgroundVideoUrl, globalAudio }: GoldenTransitionProps) {
   const [fadeOut, setFadeOut] = useState(false);
   const defaultVideoUrl = 'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
 
@@ -26,6 +27,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     console.log('🎬 [GoldenTransition] 组件挂载，立即初始化音频');
     console.log('🎵 背景音乐 URL:', backgroundMusicUrl);
     console.log('🎥 背景视频 URL:', backgroundVideoUrl);
+    console.log('🎵 全局音频对象:', globalAudio ? '有效' : '无');
 
     let backgroundMusic: HTMLAudioElement | null = null;
     let fadeOutTimer: number | undefined;
@@ -35,12 +37,31 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     const initializeAudio = async () => {
       console.log('⚡ [GoldenTransition] 开始音频初始化流程');
 
+      // 优先使用全局音频对象（在 validateAccess 中提前创建）
+      if (globalAudio) {
+        console.log('✅ 使用全局音频对象（已在 validateAccess 中初始化）');
+        console.log('🔄 强制重置播放进度: currentTime = 0');
+        globalAudio.currentTime = 0;
+        console.log('▶️ 开始播放音频');
+
+        try {
+          await globalAudio.play();
+          console.log('✅ [GoldenTransition] 全局音频播放成功');
+          console.log('⏱️ 当前播放位置:', globalAudio.currentTime, '秒');
+          console.log('🔊 音量:', globalAudio.volume);
+          backgroundMusic = globalAudio;
+        } catch (err) {
+          console.error('❌ 全局音频播放失败:', err);
+        }
+      }
       // 如果 backgroundMusicUrl 是视频，不加载音频（视频作为背景）
-      if (isMediaUrlVideo) {
+      else if (isMediaUrlVideo) {
         console.log('🎬 检测到 MP4 视频作为背景媒体，跳过音频加载');
         console.log('📊 视频将在背景中静音播放');
-      } else {
-        console.log('🎵 开始加载音频文件...');
+      }
+      // 回退：如果没有全局音频对象，按原逻辑加载
+      else {
+        console.log('⚠️ 无全局音频对象，按原逻辑加载音频文件...');
         backgroundMusic = await playShareBackgroundMusic(backgroundMusicUrl, true);
 
         if (backgroundMusic) {
@@ -72,7 +93,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
       if (fadeOutTimer) clearTimeout(fadeOutTimer);
       if (completeTimer) clearTimeout(completeTimer);
     };
-  }, [onComplete, backgroundMusicUrl, backgroundVideoUrl, isMediaUrlVideo]);
+  }, [onComplete, backgroundMusicUrl, backgroundVideoUrl, isMediaUrlVideo, globalAudio]);
 
   return (
     <div

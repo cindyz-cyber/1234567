@@ -9,7 +9,7 @@ import HigherSelfDialogue from './HigherSelfDialogue';
 import GoldenTransition from './GoldenTransition';
 import BookOfAnswers from './BookOfAnswers';
 import DynamicStepBackground from './DynamicStepBackground';
-import { playBackgroundMusicLoop } from '../utils/audioManager';
+import { playBackgroundMusicLoop, playShareBackgroundMusic, isVideoUrl } from '../utils/audioManager';
 import { shareBackgroundPreloader } from '../utils/shareBackgroundPreloader';
 
 type JournalStep = 'blocked' | 'naming' | 'home' | 'emotion' | 'journal' | 'dialogue' | 'transition' | 'answer' | 'card';
@@ -183,22 +183,50 @@ export default function ShareJournal() {
         return;
       }
 
-      const pathSegments = window.location.pathname.split('/').filter(s => s);
-      const queryToken = urlParams.get('token');
-      const pathToken = pathSegments[pathSegments.length - 1];
-      const urlToken = queryToken || (pathToken !== 'journal' ? pathToken : null);
+      const urlToken = urlParams.get('token');
 
-      console.log('🔑 Token from URL:', urlToken);
-      console.log('🔑 Required token:', data.daily_token);
+      console.log('🔑 Token from URL query:', urlToken);
+      console.log('🔑 Required token (daily_token):', data.daily_token);
 
       if (!urlToken || urlToken !== data.daily_token) {
         console.warn('⚠️ Token validation failed');
+        console.warn('💡 正确格式: ?scene=xxx&token=yyy');
         setCurrentStep('blocked');
         setIsValidating(false);
         return;
       }
 
       console.log('✅ Token validated successfully');
+      console.log('🎵 开始预加载场景资源...');
+
+      // 🎵 提前初始化音频对象（确保从头播放）
+      if (data.bg_music_url) {
+        console.group('🎵 提前初始化音频对象');
+        console.log('📡 媒体 URL:', data.bg_music_url);
+
+        // 检测是否为 MP4 视频
+        if (isVideoUrl(data.bg_music_url)) {
+          console.log('🎬 检测到 MP4 视频文件');
+          console.log('📊 将作为背景视频使用（静音播放）');
+          console.log('💡 音频将由 GoldenTransition 中的 <video> 标签处理');
+        } else {
+          console.log('🎵 检测到音频文件（MP3）');
+          console.log('💡 策略: 提前创建 Audio 对象，设置 preload="metadata"');
+
+          const audio = await playShareBackgroundMusic(data.bg_music_url, true);
+
+          if (audio) {
+            console.log('✅ 音频对象初始化成功');
+            console.log('⏸️ 暂停播放，等待用户到达 GoldenTransition 页面');
+            audio.pause();
+            audio.currentTime = 0;
+            setBackgroundMusic(audio);
+          }
+        }
+
+        console.groupEnd();
+      }
+
       await shareBackgroundPreloader.preloadAllAssets(data);
 
       setIsValidating(false);
@@ -555,6 +583,7 @@ export default function ShareJournal() {
             onComplete={handleTransitionComplete}
             backgroundMusicUrl={config?.bg_music_url}
             backgroundVideoUrl={config?.bg_transition_url || config?.bg_video_url}
+            globalAudio={backgroundMusic}
           />
         );
 
