@@ -90,7 +90,7 @@ export default function ShareConfigAdmin() {
     }
   };
 
-  const loadScenes = async () => {
+  const loadScenes = async (currentSceneToken?: string) => {
     setLoading(true);
     console.log('🔄 加载所有场景配置...');
 
@@ -108,6 +108,17 @@ export default function ShareConfigAdmin() {
       console.log('✅ 成功加载场景列表:', data);
       setScenes(data || []);
 
+      // 如果指定了当前场景标识，选中该场景
+      if (currentSceneToken && data) {
+        const currentScene = data.find(s => s.scene_token === currentSceneToken);
+        if (currentScene) {
+          console.log('🎯 保持选中场景:', currentScene.scene_name);
+          selectScene(currentScene);
+          return;
+        }
+      }
+
+      // 否则默认选中第一个场景
       if (data && data.length > 0 && !selectedScene) {
         selectScene(data[0]);
       }
@@ -170,85 +181,49 @@ export default function ShareConfigAdmin() {
     }
 
     setSaving(true);
-    console.log('💾 保存场景配置...', formData);
+    console.log('💾 保存场景配置（UPSERT 模式）...', formData);
 
     try {
-      if (isCreating) {
-        const { data: existing } = await supabase
-          .from('h5_share_config')
-          .select('id')
-          .eq('scene_token', formData.scene_token)
-          .maybeSingle();
+      // 使用 upsert 统一处理新建和更新
+      const { data, error } = await supabase
+        .from('h5_share_config')
+        .upsert(formData, {
+          onConflict: 'scene_token',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single();
 
-        if (existing) {
-          showMessage('场景标识已存在，请使用不同的标识', 'error', 5000);
-          setSaving(false);
-          return;
-        }
+      if (error) throw error;
 
-        const { data, error } = await supabase
-          .from('h5_share_config')
-          .insert([formData])
-          .select()
-          .single();
+      console.log('✅ 场景保存成功（UPSERT）:', data);
+      showMessage('🌿 配置已同步至云端，前台已实时生效', 'success', 5000);
 
-        if (error) throw error;
+      // 退出创建模式
+      setIsCreating(false);
 
-        console.log('✅ 新场景创建成功:', data);
-        showMessage('🌿 配置已同步至云端，前台已实时生效', 'success', 5000);
-        await loadScenes();
-        setIsCreating(false);
-        if (data) {
-          setSelectedScene(data);
-          setFormData({
-            scene_token: data.scene_token,
-            scene_name: data.scene_name,
-            description: data.description || '',
-            is_active: data.is_active,
-            daily_token: data.daily_token,
-            bg_video_url: data.bg_video_url || '',
-            bg_music_url: data.bg_music_url || '',
-            card_bg_image_url: data.card_bg_image_url || '',
-            bg_naming_url: data.bg_naming_url || '',
-            bg_emotion_url: data.bg_emotion_url || '',
-            bg_journal_url: data.bg_journal_url || '',
-            bg_transition_url: data.bg_transition_url || '',
-            bg_answer_book_url: data.bg_answer_book_url || '',
-            card_inner_bg_url: data.card_inner_bg_url || ''
-          });
-        }
-      } else if (selectedScene) {
-        const { data, error } = await supabase
-          .from('h5_share_config')
-          .update(formData)
-          .eq('id', selectedScene.id)
-          .select()
-          .single();
+      // 强制刷新场景列表，并保持选中当前场景
+      await loadScenes(data.scene_token);
 
-        if (error) throw error;
-
-        console.log('✅ 场景更新成功:', data);
-        showMessage('🌿 配置已同步至云端，前台已实时生效', 'success', 5000);
-        await loadScenes();
-        if (data) {
-          setSelectedScene(data);
-          setFormData({
-            scene_token: data.scene_token,
-            scene_name: data.scene_name,
-            description: data.description || '',
-            is_active: data.is_active,
-            daily_token: data.daily_token,
-            bg_video_url: data.bg_video_url || '',
-            bg_music_url: data.bg_music_url || '',
-            card_bg_image_url: data.card_bg_image_url || '',
-            bg_naming_url: data.bg_naming_url || '',
-            bg_emotion_url: data.bg_emotion_url || '',
-            bg_journal_url: data.bg_journal_url || '',
-            bg_transition_url: data.bg_transition_url || '',
-            bg_answer_book_url: data.bg_answer_book_url || '',
-            card_inner_bg_url: data.card_inner_bg_url || ''
-          });
-        }
+      // 更新当前选中场景和表单数据
+      if (data) {
+        setSelectedScene(data);
+        setFormData({
+          scene_token: data.scene_token,
+          scene_name: data.scene_name,
+          description: data.description || '',
+          is_active: data.is_active,
+          daily_token: data.daily_token,
+          bg_video_url: data.bg_video_url || '',
+          bg_music_url: data.bg_music_url || '',
+          card_bg_image_url: data.card_bg_image_url || '',
+          bg_naming_url: data.bg_naming_url || '',
+          bg_emotion_url: data.bg_emotion_url || '',
+          bg_journal_url: data.bg_journal_url || '',
+          bg_transition_url: data.bg_transition_url || '',
+          bg_answer_book_url: data.bg_answer_book_url || '',
+          card_inner_bg_url: data.card_inner_bg_url || ''
+        });
       }
     } catch (err: any) {
       console.error('❌ 保存失败:', err);
