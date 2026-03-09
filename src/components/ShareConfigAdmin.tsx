@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Lock, Unlock, Save, RefreshCw, Plus, Trash2, Edit2, Copy } from 'lucide-react';
+import { Lock, Unlock, Save, RefreshCw, Plus, Trash2, CreditCard as Edit2, Copy } from 'lucide-react';
 import AudioUploader from './AudioUploader';
 
 const ADMIN_PASSWORD = 'plantlogic2026';
