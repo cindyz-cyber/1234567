@@ -44,6 +44,10 @@ interface JournalState {
   kinData: any;
 }
 
+// 🔥 前端硬开关（紧急补丁）
+// 当需要紧急关停时，将此值改为 true 即可实现全网瞬间失效
+const FORCED_DISABLED = false;
+
 export default function ShareJournal() {
   const [currentStep, setCurrentStep] = useState<JournalStep>('naming');
   const [config, setConfig] = useState<H5ShareConfig | null>(null);
@@ -104,8 +108,42 @@ export default function ShareJournal() {
   }, [currentStep, generatedImage]);
 
   useEffect(() => {
+    // 🔥 前端硬开关检查（最高优先级）
+    if (FORCED_DISABLED) {
+      console.error('🚫 [FORCED_DISABLED] 前端硬开关已激活，全网失效');
+      setCurrentStep('blocked');
+      setIsValidating(false);
+      return;
+    }
+
     validateAccess();
   }, []);
+
+  // 🔥 监听 blocked 状态，自动清理所有音频资源
+  useEffect(() => {
+    if (currentStep === 'blocked') {
+      console.group('🛑 [blocked] 进入失效状态，清理所有音频资源');
+
+      if (backgroundMusic) {
+        console.log('🧹 停止并清理 backgroundMusic');
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+        backgroundMusic.volume = 0;
+        console.log('✅ backgroundMusic 已静音并归零');
+      }
+
+      if (preloadedAudio) {
+        console.log('🧹 停止并清理 preloadedAudio');
+        preloadedAudio.pause();
+        preloadedAudio.currentTime = 0;
+        preloadedAudio.volume = 0;
+        console.log('✅ preloadedAudio 已静音并归零');
+      }
+
+      console.log('✅ 所有音频资源已清理完毕');
+      console.groupEnd();
+    }
+  }, [currentStep, backgroundMusic, preloadedAudio]);
 
   useEffect(() => {
     return () => {
@@ -183,6 +221,17 @@ export default function ShareJournal() {
       console.log('✅ 场景配置查询成功:', data.scene_token);
       console.log('🎯 场景名称:', data.scene_name);
 
+      // 🔥 最高优先级：is_active 状态检查（必须在任何初始化之前）
+      if (!data.is_active) {
+        console.error('🚫 [is_active = false] 场景已停用，立即拦截');
+        console.error('🛑 场景标识:', data.scene_token);
+        console.error('🛑 场景名称:', data.scene_name);
+        console.error('🚫 停止所有后续初始化流程（音频、配置等）');
+        setCurrentStep('blocked');
+        setIsValidating(false);
+        return;
+      }
+
       console.group('🚀 H5 场景配置已加载');
       console.log('✅ 数据源：h5_share_config 表（场景化配置）');
       console.log('🎭 场景标识 (scene_token):', data.scene_token);
@@ -215,13 +264,6 @@ export default function ShareJournal() {
       console.groupEnd();
 
       setConfig(data);
-
-      if (!data.is_active) {
-        console.warn('⚠️ H5 page is disabled');
-        setCurrentStep('blocked');
-        setIsValidating(false);
-        return;
-      }
 
       const urlToken = urlParams.get('token');
 
@@ -586,6 +628,18 @@ export default function ShareJournal() {
     }
 
     if (currentStep === 'blocked') {
+      // 🔥 资源清理：进入 blocked 状态时立即停止所有音频
+      if (backgroundMusic && !backgroundMusic.paused) {
+        console.log('🛑 [blocked] 停止背景音乐');
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+      }
+      if (preloadedAudio && !preloadedAudio.paused) {
+        console.log('🛑 [blocked] 停止预加载音频');
+        preloadedAudio.pause();
+        preloadedAudio.currentTime = 0;
+      }
+
       return (
         <div className="blocked-screen">
           <div className="zen-container">
