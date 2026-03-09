@@ -150,6 +150,7 @@ export const isVideoUrl = (url: string): boolean => {
 /**
  * 🔥 引流后台专属音频播放器 - 强制阻断主 App 降级
  * 当 URL 为 MP4 时，返回 null 但记录日志，前端需要单独处理视频背景
+ * 🔥 修复：等待音频 canplay 事件后再设置 currentTime = 0 并播放
  */
 export const playShareBackgroundMusic = async (
   shareConfigUrl: string | null | undefined,
@@ -289,23 +290,50 @@ export const playShareBackgroundMusic = async (
     console.error('  4. 服务器返回的 MIME type 不正确');
   });
 
-  console.group('🔄 强制音频从头播放');
-  console.log('⏮️ 重置播放进度: currentTime = 0');
-  console.log('💡 确保用户听到歌曲第 0 秒，避免从中间跳出');
-  audio.currentTime = 0;
-  console.groupEnd();
+  // 🔥 等待元数据加载完成后再播放，确保 currentTime = 0 生效
+  return new Promise<HTMLAudioElement>((resolve) => {
+    const onCanPlay = async () => {
+      console.group('🔄 强制音频从头播放');
+      console.log('⏮️ 重置播放进度: currentTime = 0');
+      console.log('💡 确保用户听到歌曲第 0 秒，避免从中间跳出');
 
-  audio.play()
-    .then(() => {
-      console.log('✅ Background music started successfully (streaming mode)');
-      console.log('⏱️ 当前播放位置:', audio.currentTime, '秒');
-    })
-    .catch(err => {
-      console.error('❌ Audio play error:', err);
-      console.error('💡 可能需要用户交互才能播放');
-    });
+      // 🔥 第一次重置
+      audio.currentTime = 0;
+      console.log('✅ 第一次重置完成，currentTime =', audio.currentTime);
 
-  return audio;
+      // 🔥 等待一小段时间确保生效
+      await new Promise(r => setTimeout(r, 50));
+
+      // 🔥 第二次重置（双保险）
+      audio.currentTime = 0;
+      console.log('✅ 第二次重置完成，currentTime =', audio.currentTime);
+      console.groupEnd();
+
+      audio.play()
+        .then(() => {
+          console.log('✅ Background music started successfully (streaming mode)');
+          console.log('⏱️ 当前播放位置:', audio.currentTime, '秒');
+
+          // 🔥 播放后立即检查并纠正
+          setTimeout(() => {
+            if (audio.currentTime > 0.5) {
+              console.warn('⚠️ 检测到播放位置异常，第三次强制归零');
+              audio.currentTime = 0;
+            }
+          }, 100);
+        })
+        .catch(err => {
+          console.error('❌ Audio play error:', err);
+          console.error('💡 可能需要用户交互才能播放');
+        });
+
+      // 移除监听器，避免重复触发
+      audio.removeEventListener('canplay', onCanPlay);
+      resolve(audio);
+    };
+
+    audio.addEventListener('canplay', onCanPlay, { once: true });
+  });
 };
 /**
  * 🔥 新增：暂停所有音频但保持实例存活
