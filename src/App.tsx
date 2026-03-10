@@ -12,6 +12,7 @@ import SampleUploadPanel from './components/SampleUploadPanel';
 import VideoUploader from './components/VideoUploader';
 import GoldenDust from './components/GoldenDust';
 import VideoBackground from './components/VideoBackground';
+import BlockedPage from './components/BlockedPage';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 import { preloadCoreBackgrounds } from './utils/backgroundAssets';
@@ -39,6 +40,11 @@ interface UserNames {
 }
 
 function App() {
+  // 🚨 KILL SWITCH: 全局路径黑名单拦截（第一道防线）
+  const currentPath = window.location.pathname;
+  const BLOCKED_PATHS = ['/share/journey', '/share/journal', '/admin/share-config'];
+  const isBlockedPath = BLOCKED_PATHS.some(blocked => currentPath.includes(blocked));
+
   const [loading, setLoading] = useState(true);
   const [userNames, setUserNames] = useState<UserNames | null>(null);
   const [currentStep, setCurrentStep] = useState<FlowStep>('home');
@@ -61,6 +67,13 @@ function App() {
   }, [currentStep]);
 
   useEffect(() => {
+    // 🚨 KILL SWITCH: 如果检测到黑名单路径，立即停止所有初始化
+    if (isBlockedPath) {
+      console.error('🚨 [App] 检测到黑名单路径，停止初始化:', currentPath);
+      setLoading(false);
+      return;
+    }
+
     const timeout = setTimeout(() => {
       console.warn('Loading timeout - forcing app to render');
       setLoading(false);
@@ -73,9 +86,16 @@ function App() {
     loadProfile();
 
     return () => clearTimeout(timeout);
-  }, []);
+  }, [isBlockedPath, currentPath]);
 
   async function loadProfile() {
+    // 🚨 KILL SWITCH: 如果是黑名单路径，禁止数据库请求
+    if (isBlockedPath) {
+      console.error('🚨 [App.loadProfile] 黑名单路径，拒绝执行数据库请求');
+      setLoading(false);
+      return;
+    }
+
     try {
       const storedUserName = localStorage.getItem('userName');
       const storedHigherSelfName = localStorage.getItem('higherSelfName');
@@ -301,6 +321,12 @@ function App() {
     if (tab === 'breath') {
       setCurrentStep('home');
     }
+  }
+
+  // 🚨 KILL SWITCH: 强制渲染拦截页面（优先级最高）
+  if (isBlockedPath) {
+    console.error('🚨 [App] 渲染拦截页面:', currentPath);
+    return <BlockedPage />;
   }
 
   if (loading) {

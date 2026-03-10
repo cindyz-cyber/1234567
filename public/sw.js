@@ -10,12 +10,14 @@
  * - 修改 CACHE_NAME 版本号（如 v1 → v2）会清理旧缓存
  * - 强制刷新（Ctrl+Shift+R）会跳过 Service Worker
  *
- * 🚨 紧急停止版本：v-emergency-stop-2026
- * - 强制废弃所有旧缓存
- * - 确保用户加载最新的拦截逻辑
+ * 🚨 KILL SWITCH 版本：v-kill-share-journey-2026-03-10
+ * - 物理阻断所有 /share/journey 路径
+ * - 清理所有僵尸缓存
+ * - 强制返回 404 响应
  */
 
-const CACHE_NAME = 'maya-healing-v-emergency-stop-2026';
+const CACHE_NAME = 'maya-healing-v-kill-share-journey-2026-03-10';
+const BLOCKED_PATHS = ['/share/journey', '/share/journal', '/admin/share-config'];
 
 // 所有需要缓存的背景资源
 const BACKGROUND_RESOURCES = [
@@ -86,9 +88,36 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// Fetch 事件：Cache First (缓存优先) 策略
+// Fetch 事件：Cache First (缓存优先) 策略 + 路径黑名单拦截
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+
+  // 🚨 KILL SWITCH: 物理阻断黑名单路径
+  const isBlocked = BLOCKED_PATHS.some(blockedPath => url.pathname.includes(blockedPath));
+
+  if (isBlocked) {
+    console.error('🚨 [SW KILL SWITCH] 拦截已废弃路径:', url.pathname);
+    event.respondWith(
+      new Response(
+        JSON.stringify({
+          error: 'DEPRECATED_PATH_BLOCKED',
+          message: '此链接已永久失效',
+          path: url.pathname,
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 410, // 410 Gone - 资源已永久删除
+          statusText: 'Gone',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'X-Blocked-Reason': 'DEPRECATED_SHARE_JOURNEY_PATH'
+          }
+        }
+      )
+    );
+    return;
+  }
 
   // 检查是否为背景资源
   const isBackgroundResource = BACKGROUND_RESOURCES.some(resource =>
