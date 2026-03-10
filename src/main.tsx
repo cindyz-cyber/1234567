@@ -2,14 +2,13 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App.tsx';
-import ShareJournal from './components/ShareJournal.tsx';
-import ShareConfigAdmin from './components/ShareConfigAdmin.tsx';
+import FlowJourney from './components/FlowJourney.tsx';
+import FlowConfigAdmin from './components/FlowConfigAdmin.tsx';
 import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
 import { initializeVideoPreload } from './utils/videoPreloader';
 import { initializeGlobalBackgroundPreload } from './utils/globalBackgroundPreloader';
 
-// 🚫 已弃用路由拦截器
 function DeprecatedRoute() {
   return (
     <div style={{
@@ -18,43 +17,57 @@ function DeprecatedRoute() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
       color: '#fff',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       padding: '20px',
       textAlign: 'center'
     }}>
       <div style={{
-        fontSize: '64px',
-        marginBottom: '20px',
-        opacity: 0.5
-      }}>🔒</div>
+        fontSize: '80px',
+        marginBottom: '24px',
+        opacity: 0.6
+      }}>🚫</div>
       <h1 style={{
-        fontSize: '28px',
-        fontWeight: '600',
-        marginBottom: '12px',
-        color: '#f0f0f0'
+        fontSize: '32px',
+        fontWeight: '700',
+        marginBottom: '16px',
+        color: '#f1f5f9'
       }}>链接已失效</h1>
       <p style={{
-        fontSize: '16px',
-        color: '#aaa',
-        marginBottom: '30px',
-        maxWidth: '400px'
-      }}>此分享链接已过期或不再可用</p>
+        fontSize: '18px',
+        color: '#94a3b8',
+        marginBottom: '12px',
+        maxWidth: '500px',
+        lineHeight: '1.6'
+      }}>此分享链接已过期或被废弃</p>
+      <p style={{
+        fontSize: '14px',
+        color: '#64748b',
+        marginBottom: '36px',
+        maxWidth: '500px'
+      }}>旧版 /share 路由已全面下线，请联系管理员获取新的访问链接</p>
       <a
         href="/"
         style={{
-          padding: '12px 32px',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          padding: '14px 36px',
+          background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
           color: '#fff',
           textDecoration: 'none',
-          borderRadius: '8px',
+          borderRadius: '12px',
           fontSize: '16px',
-          fontWeight: '500',
-          transition: 'transform 0.2s'
+          fontWeight: '600',
+          transition: 'all 0.2s',
+          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
         }}
-        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        onMouseOver={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.5)';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
+        }}
       >
         返回首页
       </a>
@@ -139,9 +152,10 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/share/journal" element={<ShareJournal />} />
-        <Route path="/share/journey" element={<DeprecatedRoute />} />
-        <Route path="/admin/share-config" element={<ShareConfigAdmin />} />
+        <Route path="/flow/:scenePath" element={<FlowJourney />} />
+        <Route path="/admin/flow-config" element={<FlowConfigAdmin />} />
+        <Route path="/share/*" element={<DeprecatedRoute />} />
+        <Route path="/admin/share-config" element={<DeprecatedRoute />} />
         <Route path="/*" element={<App />} />
       </Routes>
     </BrowserRouter>
