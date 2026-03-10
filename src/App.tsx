@@ -40,10 +40,32 @@ interface UserNames {
 }
 
 function App() {
-  // 🚨 KILL SWITCH: 全局路径黑名单拦截（第一道防线）
+  // 🚨 KILL SWITCH 升级版：域名 + 路径双重拦截（最高优先级）
+  const hostname = window.location.hostname;
   const currentPath = window.location.pathname;
+
+  // 定义最新生产环境标识（请根据实际情况修改）
+  const PRODUCTION_NETLIFY_PREFIX = 'main--'; // 例如: main--yourapp.netlify.app
+
+  // 检查是否为旧版 Netlify 预览链接
+  const isOldNetlifyPreview = hostname.includes('netlify.app') && !hostname.startsWith(PRODUCTION_NETLIFY_PREFIX);
+
+  // 检查是否为黑名单路径
   const BLOCKED_PATHS = ['/share/journey', '/share/journal', '/admin/share-config'];
   const isBlockedPath = BLOCKED_PATHS.some(blocked => currentPath.includes(blocked));
+
+  // 任一条件触发立即拦截
+  const shouldBlock = isOldNetlifyPreview || isBlockedPath;
+
+  if (shouldBlock) {
+    console.error('🚨 [KILL SWITCH] 检测到违规访问:', {
+      hostname,
+      currentPath,
+      isOldNetlifyPreview,
+      isBlockedPath,
+      reason: isOldNetlifyPreview ? '旧版预览链接' : '黑名单路径'
+    });
+  }
 
   const [loading, setLoading] = useState(true);
   const [userNames, setUserNames] = useState<UserNames | null>(null);
@@ -67,9 +89,9 @@ function App() {
   }, [currentStep]);
 
   useEffect(() => {
-    // 🚨 KILL SWITCH: 如果检测到黑名单路径，立即停止所有初始化
-    if (isBlockedPath) {
-      console.error('🚨 [App] 检测到黑名单路径，停止初始化:', currentPath);
+    // 🚨 KILL SWITCH: 如果检测到任何违规情况，立即停止所有初始化
+    if (shouldBlock) {
+      console.error('🚨 [App] 检测到违规访问，停止初始化:', { hostname, currentPath });
       setLoading(false);
       return;
     }
@@ -86,12 +108,12 @@ function App() {
     loadProfile();
 
     return () => clearTimeout(timeout);
-  }, [isBlockedPath, currentPath]);
+  }, [shouldBlock, hostname, currentPath]);
 
   async function loadProfile() {
-    // 🚨 KILL SWITCH: 如果是黑名单路径，禁止数据库请求
-    if (isBlockedPath) {
-      console.error('🚨 [App.loadProfile] 黑名单路径，拒绝执行数据库请求');
+    // 🚨 KILL SWITCH: 如果检测到违规访问，禁止数据库请求
+    if (shouldBlock) {
+      console.error('🚨 [App.loadProfile] 违规访问，拒绝执行数据库请求');
       setLoading(false);
       return;
     }
@@ -323,9 +345,9 @@ function App() {
     }
   }
 
-  // 🚨 KILL SWITCH: 强制渲染拦截页面（优先级最高）
-  if (isBlockedPath) {
-    console.error('🚨 [App] 渲染拦截页面:', currentPath);
+  // 🚨 KILL SWITCH 升级版: 强制渲染拦截页面（优先级最高）
+  if (shouldBlock) {
+    console.error('🚨 [App] 渲染拦截页面:', { hostname, currentPath });
     return <BlockedPage />;
   }
 
