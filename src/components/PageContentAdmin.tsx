@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Save, RefreshCw, Search, Edit2 } from 'lucide-react';
+import { Save, RefreshCw, Search, CreditCard as Edit2 } from 'lucide-react';
 
 interface ContentItem {
   id: string;
