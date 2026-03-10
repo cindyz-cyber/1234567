@@ -94,7 +94,7 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
             opacity: 0.8,
           }}
         >
-          想和「{higherSelfName}」聊一聊吗
+          请点击金球，进入Cindy冥想空间
         </p>
       </div>
 
