@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Lock, Unlock, Save, RefreshCw, Plus, Trash2, CreditCard as Edit2, Copy, FileText } from 'lucide-react';
+import { Lock, Unlock, Save, RefreshCw, Plus, Trash2, CreditCard as Edit2, Copy, FileText, Eye, EyeOff } from 'lucide-react';
 import MediaUploader from './MediaUploader';
 
 const ADMIN_PASSWORD = 'plantlogic2026';
@@ -273,6 +273,29 @@ export default function ShareConfigAdmin() {
     }
   };
 
+  const toggleSceneVisibility = async (sceneId: string, currentStatus: boolean, sceneToken: string) => {
+    console.log('👁️ 切换场景显示状态:', sceneId, '当前状态:', currentStatus);
+
+    try {
+      const newStatus = !currentStatus;
+      const { error } = await supabase
+        .from('h5_share_config')
+        .update({ is_active: newStatus })
+        .eq('id', sceneId);
+
+      if (error) throw error;
+
+      console.log('✅ 场景状态已更新:', newStatus ? '显示' : '隐藏');
+      showMessage(newStatus ? '页面已显示' : '页面已隐藏', 'success', 2000);
+
+      // 重新加载场景列表，保持当前选中的场景
+      await loadScenes(sceneToken);
+    } catch (err: any) {
+      console.error('❌ 状态切换失败:', err);
+      showMessage('操作失败: ' + err.message, 'error', 5000);
+    }
+  };
+
   const copySceneUrl = (sceneToken: string) => {
     const baseUrl = window.location.origin;
     const url = `${baseUrl}/share/journal?scene=${sceneToken}&token=${formData.daily_token}`;
@@ -362,22 +385,40 @@ export default function ShareConfigAdmin() {
               {scenes.map((scene) => (
                 <div
                   key={scene.id}
-                  onClick={() => selectScene(scene)}
-                  className={`p-3 rounded-lg cursor-pointer transition-all ${
+                  className={`p-3 rounded-lg transition-all ${
                     selectedScene?.id === scene.id && !isCreating
                       ? 'bg-amber-500/30 border border-amber-400/50'
                       : 'bg-white/5 hover:bg-white/10 border border-white/10'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div
+                      className="flex-1 min-w-0 cursor-pointer"
+                      onClick={() => selectScene(scene)}
+                    >
                       <p className="font-semibold text-white truncate">{scene.scene_name}</p>
                       <p className="text-xs text-white/60 font-mono">{scene.scene_token}</p>
                       {scene.description && (
                         <p className="text-xs text-white/50 mt-1 truncate">{scene.description}</p>
                       )}
                     </div>
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ml-2 ${scene.is_active ? 'bg-green-400' : 'bg-red-400'}`} />
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSceneVisibility(scene.id, scene.is_active, scene.scene_token);
+                        }}
+                        className={`p-1.5 rounded-lg transition-all ${
+                          scene.is_active
+                            ? 'bg-green-500/20 hover:bg-green-500/30 text-green-400'
+                            : 'bg-red-500/20 hover:bg-red-500/30 text-red-400'
+                        }`}
+                        title={scene.is_active ? '点击隐藏页面' : '点击显示页面'}
+                      >
+                        {scene.is_active ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                      </button>
+                      <div className={`w-2 h-2 rounded-full ${scene.is_active ? 'bg-green-400' : 'bg-red-400'}`} />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -400,6 +441,26 @@ export default function ShareConfigAdmin() {
                   <div className="flex gap-2">
                     {!isCreating && selectedScene && (
                       <>
+                        <button
+                          onClick={() => toggleSceneVisibility(selectedScene.id, selectedScene.is_active, selectedScene.scene_token)}
+                          className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-all ${
+                            selectedScene.is_active
+                              ? 'bg-green-500/20 hover:bg-green-500/30 border-green-400/30 text-green-300'
+                              : 'bg-red-500/20 hover:bg-red-500/30 border-red-400/30 text-red-300'
+                          }`}
+                        >
+                          {selectedScene.is_active ? (
+                            <>
+                              <Eye className="w-4 h-4" />
+                              页面显示中
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="w-4 h-4" />
+                              页面已隐藏
+                            </>
+                          )}
+                        </button>
                         <button
                           onClick={() => copySceneUrl(selectedScene.scene_token)}
                           className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-lg text-blue-300 transition-all"

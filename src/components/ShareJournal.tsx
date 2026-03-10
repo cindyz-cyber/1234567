@@ -185,6 +185,18 @@ export default function ShareJournal() {
       console.log('✅ 场景配置查询成功:', data.scene_token);
       console.log('🎯 场景名称:', data.scene_name);
 
+      // 🔒 检查页面是否被隐藏
+      if (!data.is_active) {
+        console.warn('⚠️ 该场景已被管理员隐藏');
+        console.log('🔍 场景标识:', data.scene_token);
+        console.log('📝 场景名称:', data.scene_name);
+        console.log('💡 请联系管理员启用此场景');
+        setCurrentStep('blocked');
+        setIsValidating(false);
+        setConfig(data); // 保存配置信息用于显示场景名称
+        return;
+      }
+
       console.group('🚀 H5 场景配置已加载');
       console.log('✅ 数据源：h5_share_config 表（场景化配置）');
       console.log('🎭 场景标识 (scene_token):', data.scene_token);
@@ -605,14 +617,29 @@ export default function ShareJournal() {
     }
 
     if (currentStep === 'blocked') {
+      // 如果有 config 且 is_active 为 false，说明是页面被隐藏
+      const isHidden = config && !config.is_active;
+
       return (
         <div className="blocked-screen">
           <div className="zen-container">
-            <div className="zen-icon">🌿</div>
-            <h1 className="zen-title">链接已随时间流转而失效</h1>
+            <div className="zen-icon">{isHidden ? '🔒' : '🌿'}</div>
+            <h1 className="zen-title">
+              {isHidden ? '此页面已暂时关闭' : '链接已随时间流转而失效'}
+            </h1>
             <p className="zen-message">
-              请关注"植本逻辑"<br />
-              获取最新能量场入口
+              {isHidden ? (
+                <>
+                  场景「{config?.scene_name || '未命名'}」已被管理员隐藏
+                  <br />
+                  请稍后再试或联系管理员
+                </>
+              ) : (
+                <>
+                  请关注"植本逻辑"<br />
+                  获取最新能量场入口
+                </>
+              )}
             </p>
             <div className="zen-footer">
               <div className="zen-sparkle">✨</div>
