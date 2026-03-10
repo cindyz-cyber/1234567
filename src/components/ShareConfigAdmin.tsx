@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Lock, Unlock, Save, RefreshCw, Plus, Trash2, CreditCard as Edit2, Copy } from 'lucide-react';
+import { Lock, Unlock, Save, RefreshCw, Plus, Trash2, CreditCard as Edit2, Copy, FileText } from 'lucide-react';
 import MediaUploader from './MediaUploader';
 
 const ADMIN_PASSWORD = 'plantlogic2026';
@@ -44,6 +45,7 @@ interface SceneFormData {
 }
 
 export default function ShareConfigAdmin() {
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [scenes, setScenes] = useState<H5ShareConfig[]>([]);
@@ -323,14 +325,23 @@ export default function ShareConfigAdmin() {
                 <p className="text-sm text-white/60">单页面、多场景动态加载系统</p>
               </div>
             </div>
-            <button
-              onClick={loadScenes}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-white transition-all disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              刷新
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate('/admin/page-content')}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border border-blue-400/50 rounded-lg text-white transition-all shadow-lg shadow-blue-500/20"
+              >
+                <FileText className="w-4 h-4" />
+                页面文案配置
+              </button>
+              <button
+                onClick={loadScenes}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-white transition-all disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                刷新
+              </button>
+            </div>
           </div>
         </div>
 

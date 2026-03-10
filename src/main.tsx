@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App.tsx';
 import ShareJournal from './components/ShareJournal.tsx';
 import ShareConfigAdmin from './components/ShareConfigAdmin.tsx';
+import PageContentAdmin from './components/PageContentAdmin.tsx';
 import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
 import { initializeVideoPreload } from './utils/videoPreloader';
@@ -88,6 +89,7 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/share/journal" element={<ShareJournal />} />
         <Route path="/admin/share-config" element={<ShareConfigAdmin />} />
+        <Route path="/admin/page-content" element={<PageContentAdmin />} />
         <Route path="/*" element={<App />} />
       </Routes>
     </BrowserRouter>

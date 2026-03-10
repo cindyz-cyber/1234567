@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Save, RefreshCw, Search, CreditCard as Edit2 } from 'lucide-react';
+import { Save, RefreshCw, Search, CreditCard as Edit2, ArrowLeft } from 'lucide-react';
 
 interface ContentItem {
   id: string;
@@ -17,6 +18,7 @@ interface PageGroup {
 }
 
 export default function PageContentAdmin() {
+  const navigate = useNavigate();
   const [sceneToken, setSceneToken] = useState('default');
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [editedContents, setEditedContents] = useState<{ [key: string]: string }>({});
@@ -133,6 +135,13 @@ export default function PageContentAdmin() {
           </h1>
           <p className="admin-subtitle">动态配置引流页面的所有文字内容</p>
         </div>
+        <button
+          onClick={() => navigate('/admin/share-config')}
+          className="back-button"
+        >
+          <ArrowLeft size={18} />
+          返回多场景配置
+        </button>
       </div>
 
       <div className="controls-bar">
@@ -253,9 +262,33 @@ export default function PageContentAdmin() {
         }
 
         .admin-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: start;
           margin-bottom: 32px;
           padding-bottom: 24px;
           border-bottom: 1px solid rgba(247, 231, 206, 0.15);
+        }
+
+        .back-button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 24px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(247, 231, 206, 0.2);
+          border-radius: 10px;
+          color: rgba(247, 231, 206, 0.8);
+          font-size: 14px;
+          letter-spacing: 0.1em;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(247, 231, 206, 0.3);
+          color: #F7E7CE;
         }
 
         .admin-title {
