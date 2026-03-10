@@ -9,9 +9,15 @@
  * 更新机制：
  * - 修改 CACHE_NAME 版本号（如 v1 → v2）会清理旧缓存
  * - 强制刷新（Ctrl+Shift+R）会跳过 Service Worker
+ *
+ * 🚨 KILL SWITCH 版本：v-kill-share-journey-2026-03-10
+ * - 物理阻断所有 /share/journey 路径
+ * - 清理所有僵尸缓存
+ * - 强制返回 404 响应
  */
 
-const CACHE_NAME = 'maya-healing-backgrounds-v1';
+const CACHE_NAME = 'maya-healing-v-production-2026-03-10';
+const BLOCKED_PATHS = ['/share/', '/admin/share-config'];
 
 // 所有需要缓存的背景资源
 const BACKGROUND_RESOURCES = [
@@ -30,11 +36,22 @@ const BACKGROUND_RESOURCES = [
 
 // 安装事件：预缓存所有 Poster 图片（体积小，立即缓存）
 self.addEventListener('install', (event) => {
-  console.log('📦 Service Worker 安装中...');
+  console.log('📦 [v-emergency-stop-2026] Service Worker 安装中...');
+  console.warn('🚨 紧急停止版本：强制废弃所有旧缓存');
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      // 先缓存所有 Poster（优先级最高）
+    caches.keys().then((cacheNames) => {
+      // 先删除所有旧缓存（包括任何可能残留的版本）
+      return Promise.all(
+        cacheNames.map((name) => {
+          console.log('🗑️  [install] 删除旧缓存:', name);
+          return caches.delete(name);
+        })
+      );
+    }).then(() => {
+      return caches.open(CACHE_NAME);
+    }).then((cache) => {
+      // 再缓存所有 Poster（优先级最高）
       const posters = BACKGROUND_RESOURCES.filter(url => url.endsWith('.jpg'));
       return cache.addAll(posters).then(() => {
         console.log('✅ Poster 图片已预缓存:', posters.length, '个');
@@ -48,7 +65,8 @@ self.addEventListener('install', (event) => {
 
 // 激活事件：清理旧版本缓存
 self.addEventListener('activate', (event) => {
-  console.log('🔄 Service Worker 激活中...');
+  console.log('🔄 [v-emergency-stop-2026] Service Worker 激活中...');
+  console.warn('🚨 强制接管所有页面，清理所有旧版本缓存');
 
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -56,22 +74,50 @@ self.addEventListener('activate', (event) => {
         cacheNames
           .filter((name) => name !== CACHE_NAME)
           .map((name) => {
-            console.log('🗑️  删除旧缓存:', name);
+            console.log('🗑️  [activate] 删除旧缓存:', name);
             return caches.delete(name);
           })
       );
     }).then(() => {
       console.log('✅ Service Worker 已激活，当前缓存:', CACHE_NAME);
+      console.log('🚨 紧急停止版本已生效，所有旧缓存已清理');
     })
   );
 
-  // 立即接管所有页面
-  self.clients.claim();
+  // 立即接管所有页面（包括已打开的页面）
+  return self.clients.claim();
 });
 
-// Fetch 事件：Cache First (缓存优先) 策略
+// Fetch 事件：Cache First (缓存优先) 策略 + 路径黑名单拦截
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+
+  // 🚨 KILL SWITCH: 物理阻断黑名单路径
+  const isBlocked = BLOCKED_PATHS.some(blockedPath => url.pathname.includes(blockedPath));
+
+  if (isBlocked) {
+    console.error('🚨 [SW KILL SWITCH] 拦截已废弃路径:', url.pathname);
+    event.respondWith(
+      new Response(
+        JSON.stringify({
+          error: 'DEPRECATED_PATH_BLOCKED',
+          message: '此链接已永久失效',
+          path: url.pathname,
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 410, // 410 Gone - 资源已永久删除
+          statusText: 'Gone',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'X-Blocked-Reason': 'DEPRECATED_SHARE_JOURNEY_PATH'
+          }
+        }
+      )
+    );
+    return;
+  }
 
   // 检查是否为背景资源
   const isBackgroundResource = BACKGROUND_RESOURCES.some(resource =>

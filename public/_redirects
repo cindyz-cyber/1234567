@@ -1,1 +1,6 @@
+# 🚨 KILL SWITCH: 强制拦截黑名单路径（410 = 永久消失）
+/share/* /blocked 410!
+/admin/share-config* /blocked 410!
+
+# 默认 SPA 路由
 /* /index.html 200
