@@ -1,255 +1,106 @@
-# 🚨 KILL SWITCH 部署指南
+# Kill Switch 紧急部署指南
 
-## 版本信息
+## 问题诊断
+用户反馈旧链接 `https://69ae75bf...netlify.app/share/journeyzen2026` 仍然可以访问。
 
-- **版本号**: v-kill-share-journey-2026-03-10
-- **部署时间**: 2026-03-10
-- **目的**: 物理阻断所有 `/share/journey` 旧路径访问
+## 根本原因
+1. **路径匹配不够精确**：`/share/journey*` 无法匹配 `/share/journeyzen2026`
+2. **通配符语法错误**：Netlify `_redirects` 中 `*` 只能用在路径末尾，不能用在中间
 
----
-
-## 三层拦截机制
-
-### 1️⃣ 路由层拦截 (main.tsx)
-
-```typescript
-// main.tsx 中已配置路由黑名单
-<Route path="/share/*" element={<DeprecatedRoute />} />
-<Route path="/admin/share-config" element={<DeprecatedRoute />} />
-```
-
-**生效条件**: 新部署版本
-**拦截效果**: 显示"链接已失效"页面
+## 解决方案
+将所有 `/share/*` 路径全部拦截，而不是只拦截特定的子路径。
 
 ---
 
-### 2️⃣ 应用层拦截 (App.tsx)
+## 三层防御更新
 
-```typescript
-// App.tsx 中的全局拦截器
-const BLOCKED_PATHS = ['/share/journey', '/share/journal', '/admin/share-config'];
-const isBlockedPath = BLOCKED_PATHS.some(blocked => currentPath.includes(blocked));
+### 第一层：Netlify CDN 拦截
 
-// 强制渲染 BlockedPage 组件
-if (isBlockedPath) {
-  return <BlockedPage />;
-}
+#### 更新前（错误）
+```plaintext
+/share/journey* /blocked 410!
+/share/journal* /blocked 410!
 ```
 
-**生效条件**: 任何访问 App 组件的请求
-**拦截效果**:
-- 停止所有数据库请求
-- 阻止初始化逻辑
-- 显示专业拦截页面
-
----
-
-### 3️⃣ Service Worker 拦截 (sw.js)
-
-```javascript
-// sw.js 中的物理拦截
-const BLOCKED_PATHS = ['/share/journey', '/share/journal', '/admin/share-config'];
-
-// 返回 410 Gone 状态码
-event.respondWith(
-  new Response(JSON.stringify({ error: 'DEPRECATED_PATH_BLOCKED' }), {
-    status: 410,
-    statusText: 'Gone'
-  })
-);
+#### 更新后（正确）
+```plaintext
+/share/* /blocked 410!
 ```
 
-**生效条件**: 浏览器缓存的旧版本
-**拦截效果**:
-- 清理所有僵尸缓存
-- 直接返回 410 Gone 响应
-- 不从缓存提取任何旧数据
+**效果**：
+- ✅ `/share/journey` → 拦截
+- ✅ `/share/journeyzen2026` → 拦截
+- ✅ `/share/journal` → 拦截
+- ✅ `/share/anything` → 拦截
 
 ---
 
 ## 部署步骤
 
-### 步骤 1: 下载构建包
+### 步骤 1：验证文件更新
+```bash
+cat public/_redirects
+# 预期：/share/* /blocked 410!
 
-下载文件: `dist-kill-switch-2026-03-10.tar.gz`
+cat dist/_redirects
+# 预期：/share/* /blocked 410!
+```
 
-### 步骤 2: 解压
+### 步骤 2：推送到 GitHub
+```bash
+git add .
+git commit -m "fix: 扩大 Kill Switch 拦截范围至所有 /share/* 路径"
+git push origin main
+```
+
+### 步骤 3：等待 Netlify 自动部署（1-3 分钟）
+
+### 步骤 4：清除浏览器缓存
+- Windows/Linux: `Ctrl + Shift + R`
+- Mac: `Cmd + Shift + R`
+
+---
+
+## 测试验证
 
 ```bash
-tar -xzf dist-kill-switch-2026-03-10.tar.gz
+# 测试旧链接
+curl -I https://69ae75bf829d1011d7f6d0ed--illustrious-concha-e6f2de.netlify.app/share/journeyzen2026
+
+# 预期输出：
+# HTTP/2 410 Gone
 ```
 
-### 步骤 3: 上传到 Netlify
+---
 
-**方式 A - 拖拽上传 (推荐)**:
-1. 访问 Netlify Dashboard
-2. 选择 Sites
-3. 拖拽 `dist` 文件夹到部署区域
+## 为什么原来的规则失效了？
 
-**方式 B - CLI 上传**:
+### Netlify _redirects 语法说明
+
+#### 错误示例 ❌
+```plaintext
+/share/journey* /blocked 410!
+```
+
+**问题**：
+- `/share/journey*` 只匹配以 `/share/journey` 开头的路径
+- 但 `/share/journeyzen2026` 中 `journey` 和 `zen` 之间没有分隔符
+- 所以不会匹配
+
+#### 正确示例 ✅
+```plaintext
+/share/* /blocked 410!
+```
+
+**效果**：匹配所有以 `/share/` 开头的路径
+
+---
+
+## 成功标志
+
 ```bash
-netlify deploy --prod --dir=dist
+$ curl -I https://69ae75bf...netlify.app/share/journeyzen2026
+HTTP/2 410 Gone
 ```
 
-### 步骤 4: 验证部署
-
-访问以下旧路径，确认被拦截:
-
-```
-https://your-domain.com/share/journey
-https://your-domain.com/share/journal
-https://your-domain.com/admin/share-config
-```
-
-**预期结果**:
-- 显示黑色背景拦截页面
-- 提示"此链接已永久失效"
-- 控制台输出 `🚨 [SW KILL SWITCH] 拦截已废弃路径`
-
----
-
-## 测试清单
-
-### ✅ 必须验证的场景
-
-1. **新用户访问旧链接**
-   - [ ] 访问 `/share/journey?token=xxx`
-   - [ ] 确认显示拦截页面
-
-2. **老用户浏览器缓存**
-   - [ ] 清除浏览器缓存前访问
-   - [ ] Service Worker 应返回 410 Gone
-   - [ ] 控制台显示拦截日志
-
-3. **直接 URL 访问**
-   - [ ] 在浏览器输入完整旧路径
-   - [ ] 确认路由层拦截生效
-
-4. **旧 Netlify 预览链接**
-   - [ ] 访问之前的 Preview Deploy URL
-   - [ ] 确认 Service Worker 拦截
-
----
-
-## 旧链接处理方案
-
-### 已废弃路径列表
-
-```
-/share/journey
-/share/journal
-/admin/share-config
-```
-
-### 新路径迁移
-
-| 旧路径 | 新路径 | 说明 |
-|--------|--------|------|
-| `/share/journey?token=xxx` | `/flow/{scene}?token=xxx` | 使用新 Flow 系统 |
-| `/admin/share-config` | `/admin/flow-config` | 使用新后台管理 |
-
----
-
-## 紧急回滚
-
-如果需要紧急回滚:
-
-1. 恢复之前的部署版本
-2. 或修改 `sw.js` 中的 `BLOCKED_PATHS = []`
-3. 重新构建并部署
-
----
-
-## 技术细节
-
-### Service Worker 版本管理
-
-当前版本: `v-kill-share-journey-2026-03-10`
-
-更新 Service Worker 版本会:
-- 自动清理所有旧缓存
-- 强制用户下载新版本资源
-- 立即激活新拦截逻辑
-
-### 拦截日志
-
-在浏览器控制台查看拦截日志:
-
-```javascript
-// Service Worker 拦截
-🚨 [SW KILL SWITCH] 拦截已废弃路径: /share/journey
-
-// App.tsx 拦截
-🚨 [App] 检测到黑名单路径，停止初始化: /share/journey
-🚨 [App.loadProfile] 黑名单路径，拒绝执行数据库请求
-🚨 [App] 渲染拦截页面: /share/journey
-```
-
----
-
-## 常见问题
-
-### Q: 为什么需要三层拦截？
-
-**A**: 多层防御确保无论用户从哪个入口进入，都能被拦截:
-- 路由层：拦截新部署版本的请求
-- 应用层：拦截任何意外进入 App 的请求
-- SW 层：拦截浏览器缓存的旧版本
-
-### Q: 旧 Netlify 预览链接还能访问吗？
-
-**A**: 不能。Service Worker 会在所有版本中拦截黑名单路径，即使是旧的 Preview Deploy 也会被阻断。
-
-### Q: 如何确认 Service Worker 已更新？
-
-**A**:
-1. 打开浏览器 DevTools
-2. Application > Service Workers
-3. 查看版本号是否为 `v-kill-share-journey-2026-03-10`
-
----
-
-## 部署后验证脚本
-
-在浏览器控制台执行:
-
-```javascript
-// 检查 Service Worker 版本
-navigator.serviceWorker.getRegistration().then(reg => {
-  console.log('Active SW:', reg.active?.scriptURL);
-});
-
-// 测试拦截路径
-const testPaths = [
-  '/share/journey',
-  '/share/journal',
-  '/admin/share-config'
-];
-
-testPaths.forEach(path => {
-  fetch(path).then(res => {
-    console.log(`${path}: ${res.status} ${res.statusText}`);
-  });
-});
-```
-
-**预期输出**:
-```
-/share/journey: 410 Gone
-/share/journal: 410 Gone
-/admin/share-config: 410 Gone
-```
-
----
-
-## 联系信息
-
-如有问题，请联系技术团队。
-
----
-
-## 更新记录
-
-- **2026-03-10**: 首次部署 KILL SWITCH 版本
-- 三层拦截机制全部启用
-- Service Worker 版本升级至 v-kill-share-journey-2026-03-10
+部署成功！

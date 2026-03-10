@@ -50,8 +50,8 @@ function App() {
   // 检查是否为旧版 Netlify 预览链接
   const isOldNetlifyPreview = hostname.includes('netlify.app') && !hostname.startsWith(PRODUCTION_NETLIFY_PREFIX);
 
-  // 检查是否为黑名单路径
-  const BLOCKED_PATHS = ['/share/journey', '/share/journal', '/admin/share-config'];
+  // 检查是否为黑名单路径（拦截所有 /share/* 路径）
+  const BLOCKED_PATHS = ['/share/', '/admin/share-config'];
   const isBlockedPath = BLOCKED_PATHS.some(blocked => currentPath.includes(blocked));
 
   // 任一条件触发立即拦截

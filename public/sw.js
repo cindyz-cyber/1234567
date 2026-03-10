@@ -17,7 +17,7 @@
  */
 
 const CACHE_NAME = 'maya-healing-v-kill-share-journey-2026-03-10';
-const BLOCKED_PATHS = ['/share/journey', '/share/journal', '/admin/share-config'];
+const BLOCKED_PATHS = ['/share/', '/admin/share-config'];
 
 // 所有需要缓存的背景资源
 const BACKGROUND_RESOURCES = [
