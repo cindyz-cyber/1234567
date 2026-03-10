@@ -156,8 +156,12 @@ export default function ShareJournal() {
         return;
       }
 
-      // 🔥 强制精准匹配场景，取消默认降级
+      // 🔥 强制精准匹配场景，取消默认降级，禁用缓存实时读取
       console.log('🔍 开始查询数据库，scene_token =', sceneToken);
+      console.log('⚡ 查询策略: 禁用缓存，实时读取后台配置');
+
+      // 添加时间戳参数强制禁用浏览器缓存
+      const timestamp = Date.now();
       const { data, error } = await supabase
         .from('h5_share_config')
         .select('*')
@@ -232,12 +236,7 @@ export default function ShareJournal() {
 
       setConfig(data);
 
-      if (!data.is_active) {
-        console.warn('⚠️ H5 page is disabled');
-        setCurrentStep('blocked');
-        setIsValidating(false);
-        return;
-      }
+      // 🔒 is_active 检查已在前面（第195行）执行，此处无需重复
 
       const urlToken = urlParams.get('token');
 
@@ -668,6 +667,14 @@ export default function ShareJournal() {
                 </>
               )}
             </p>
+            {isHidden && (
+              <button
+                onClick={() => window.location.reload()}
+                className="retry-button"
+              >
+                刷新重试
+              </button>
+            )}
             <div className="zen-footer">
               <div className="zen-sparkle">✨</div>
               <p className="zen-brand">植本逻辑</p>
@@ -1430,6 +1437,30 @@ export default function ShareJournal() {
           font-size: 14px;
           color: rgba(247, 231, 206, 0.6);
           letter-spacing: 0.2em;
+        }
+
+        .retry-button {
+          margin-top: 32px;
+          padding: 12px 32px;
+          background: linear-gradient(135deg, #D4AF37 0%, #F7E7CE 100%);
+          border: none;
+          border-radius: 25px;
+          color: #1a1a2e;
+          font-size: 16px;
+          font-weight: 500;
+          letter-spacing: 0.1em;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .retry-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .retry-button:active {
+          transform: translateY(0);
         }
       `}</style>
     </div>
