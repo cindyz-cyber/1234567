@@ -19,57 +19,106 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
+    console.group('🎤 [InnerWhisperJournal] 语音识别初始化');
+    console.log('🔍 检测浏览器支持...');
+    console.log('  - webkitSpeechRecognition:', 'webkitSpeechRecognition' in window);
+    console.log('  - SpeechRecognition:', 'SpeechRecognition' in window);
+
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      console.log('✅ 浏览器支持语音识别 API');
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = 'zh-CN';
 
-      recognitionRef.current.onresult = (event: any) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
+      try {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = 'zh-CN';
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
+        console.log('✅ 语音识别对象创建成功');
+        console.log('📊 配置:');
+        console.log('  - continuous:', recognitionRef.current.continuous);
+        console.log('  - interimResults:', recognitionRef.current.interimResults);
+        console.log('  - lang:', recognitionRef.current.lang);
+
+        recognitionRef.current.onstart = () => {
+          console.log('🎙️ [Speech] 语音识别已启动');
+        };
+
+        recognitionRef.current.onresult = (event: any) => {
+          console.log('📝 [Speech] 收到识别结果');
+          let interimTranscript = '';
+          let finalTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript;
+            } else {
+              interimTranscript += transcript;
+            }
           }
-        }
 
-        if (finalTranscript) {
-          setJournalText(prev => prev + finalTranscript);
-        }
-      };
+          console.log('  - 临时结果:', interimTranscript);
+          console.log('  - 最终结果:', finalTranscript);
 
-      recognitionRef.current.onerror = (event: any) => {
-        console.error('Speech recognition error', event.error);
-        if (event.error === 'no-speech') {
-          return;
-        }
-        setIsListening(false);
-      };
-
-      recognitionRef.current.onend = () => {
-        if (isListening) {
-          try {
-            recognitionRef.current?.start();
-          } catch (e) {
-            console.error('Failed to restart recognition', e);
-            setIsListening(false);
+          if (finalTranscript) {
+            console.log('✅ 将最终结果添加到文本框:', finalTranscript);
+            setJournalText(prev => prev + finalTranscript);
           }
-        }
-      };
+        };
+
+        recognitionRef.current.onerror = (event: any) => {
+          console.error('❌ [Speech] 语音识别错误:', event.error);
+          console.error('❌ 错误详情:', event);
+
+          if (event.error === 'no-speech') {
+            console.log('💡 未检测到语音，继续监听...');
+            return;
+          }
+
+          if (event.error === 'not-allowed') {
+            console.error('❌ 麦克风权限被拒绝');
+            alert('麦克风权限被拒绝\n\n请在浏览器设置中允许麦克风权限，然后刷新页面重试。');
+          }
+
+          setIsListening(false);
+        };
+
+        recognitionRef.current.onend = () => {
+          console.log('🛑 [Speech] 语音识别已结束');
+          console.log('  - isListening 状态:', isListening);
+
+          if (isListening) {
+            console.log('🔄 [Speech] 自动重启语音识别...');
+            try {
+              recognitionRef.current?.start();
+              console.log('✅ [Speech] 重启成功');
+            } catch (e) {
+              console.error('❌ [Speech] 重启失败:', e);
+              setIsListening(false);
+            }
+          }
+        };
+
+        console.log('✅ 所有事件监听器已设置');
+      } catch (err) {
+        console.error('❌ 创建语音识别对象失败:', err);
+      }
+    } else {
+      console.warn('⚠️ 浏览器不支持语音识别 API');
+      console.warn('💡 建议使用 Chrome、Edge 或 Safari 浏览器');
     }
+
+    console.groupEnd();
 
     return () => {
       if (recognitionRef.current) {
+        console.log('🧹 [InnerWhisperJournal] 清理语音识别对象');
         try {
           recognitionRef.current.stop();
+          console.log('✅ 语音识别已停止');
         } catch (e) {
-          console.error('Error stopping recognition', e);
+          console.error('❌ 停止语音识别失败:', e);
         }
       }
     };
@@ -88,26 +137,61 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
   }, [isListening]);
 
   const toggleVoiceInput = async () => {
+    console.group('🎤 [InnerWhisperJournal] 喇叭按钮点击');
+    console.log('📍 当前状态 isListening:', isListening);
+    console.log('📍 recognitionRef.current:', recognitionRef.current ? '已初始化' : 'null');
+    console.log('📍 浏览器支持检测:');
+    console.log('  - webkitSpeechRecognition:', 'webkitSpeechRecognition' in window);
+    console.log('  - SpeechRecognition:', 'SpeechRecognition' in window);
+    console.groupEnd();
+
     if (!recognitionRef.current) {
-      alert('您的浏览器不支持语音输入功能');
+      console.error('❌ 语音识别未初始化');
+      alert('您的浏览器不支持语音输入功能\n\n建议使用:\n- Chrome 浏览器\n- Edge 浏览器\n- Safari 浏览器');
       return;
     }
 
     if (isListening) {
+      console.log('🛑 停止语音识别...');
       try {
         recognitionRef.current.stop();
         setIsListening(false);
+        console.log('✅ 语音识别已停止');
       } catch (e) {
-        console.error('Error stopping recognition', e);
+        console.error('❌ 停止语音识别失败:', e);
         setIsListening(false);
       }
     } else {
+      console.log('🎙️ 启动语音识别...');
       try {
         await recognitionRef.current.start();
         setIsListening(true);
+        console.log('✅ 语音识别已启动');
+        console.log('💡 请开始说话，识别结果会自动填入文本框');
       } catch (e) {
-        console.error('Error starting recognition', e);
-        alert('无法启动语音识别，请确保您已授权麦克风权限');
+        console.error('❌ 启动语音识别失败:', e);
+        console.error('❌ 错误类型:', e instanceof Error ? e.message : String(e));
+
+        // 更详细的错误提示
+        let errorMessage = '无法启动语音识别\n\n';
+        if (e instanceof Error && e.message.includes('not-allowed')) {
+          errorMessage += '原因：麦克风权限被拒绝\n\n';
+          errorMessage += '解决方法：\n';
+          errorMessage += '1. 点击地址栏左侧的锁图标\n';
+          errorMessage += '2. 找到"麦克风"权限\n';
+          errorMessage += '3. 选择"允许"并刷新页面';
+        } else if (e instanceof Error && e.message.includes('already-started')) {
+          errorMessage += '原因：语音识别已经在运行\n\n';
+          errorMessage += '解决方法：请刷新页面重试';
+        } else {
+          errorMessage += '原因：' + (e instanceof Error ? e.message : String(e)) + '\n\n';
+          errorMessage += '建议：\n';
+          errorMessage += '1. 检查麦克风权限\n';
+          errorMessage += '2. 确保使用 Chrome/Edge/Safari 浏览器\n';
+          errorMessage += '3. 刷新页面重试';
+        }
+
+        alert(errorMessage);
       }
     }
   };
@@ -217,11 +301,12 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
             <div className="inner-glow" />
           </div>
 
-          <div className="flex justify-center mt-8 gap-4">
+          <div className="flex justify-center mt-8 gap-4 flex-col items-center">
             <button
               onClick={toggleVoiceInput}
               className={`voice-button ${isListening ? 'listening' : ''}`}
               disabled={isSaving}
+              title={isListening ? '点击停止语音输入' : '点击开始语音输入'}
             >
               <div className="voice-button-ring" style={{
                 opacity: pulseIntensity,
@@ -238,6 +323,17 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
                 </div>
               )}
             </button>
+
+            <div style={{
+              textAlign: 'center',
+              color: 'rgba(247, 231, 206, 0.7)',
+              fontSize: '14px',
+              letterSpacing: '0.1em',
+              marginTop: '8px',
+              textShadow: '0 0 10px rgba(247, 231, 206, 0.3)'
+            }}>
+              {isListening ? '🎤 正在聆听...' : '点击喇叭开始语音输入'}
+            </div>
           </div>
 
           <div className="mt-8 max-w-md mx-auto">
