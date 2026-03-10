@@ -49,7 +49,7 @@ export function getNextVisiblePage(
   currentPage: PageName,
   visibilityConfig: PageVisibilityConfig
 ): PageName | null {
-  const pageFlow: PageName[] = ['naming', 'home', 'emotion', 'journal', 'dialogue', 'transition', 'answer', 'card'];
+  const pageFlow: PageName[] = ['naming', 'home', 'emotion', 'journal', 'transition', 'dialogue', 'answer', 'card'];
 
   const currentIndex = pageFlow.indexOf(currentPage);
   if (currentIndex === -1) return null;
@@ -69,7 +69,7 @@ export function getNextVisiblePage(
  * 获取流程中的第一个可见页面
  */
 export function getFirstVisiblePage(visibilityConfig: PageVisibilityConfig): PageName {
-  const pageFlow: PageName[] = ['naming', 'home', 'emotion', 'journal', 'dialogue', 'transition', 'answer', 'card'];
+  const pageFlow: PageName[] = ['naming', 'home', 'emotion', 'journal', 'transition', 'dialogue', 'answer', 'card'];
 
   for (const page of pageFlow) {
     if (isPageVisible(page, visibilityConfig)) {
