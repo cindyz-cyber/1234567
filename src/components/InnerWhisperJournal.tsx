@@ -167,7 +167,7 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
             video.play().catch(err => console.log('Video autoplay failed:', err));
           }}
         >
-          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/fe2rqfs27y-1772615676760.mp4" type="video/mp4" />
+          <source src="/assets/videos/zen-vortex.mp4" type="video/mp4" />
         </video>
         <div
           className="absolute inset-0 w-full h-full"

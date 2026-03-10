@@ -20,12 +20,12 @@ export interface BackgroundAsset {
   description: string;
 }
 
-// 核心背景资源（使用 Supabase CDN）
+// 核心背景资源（使用本地资产）
 export const BACKGROUND_ASSETS: Record<string, BackgroundAsset> = {
   // 主背景 - 金色流动（最常用）
   golden_flow: {
     id: 'golden_flow',
-    videoUrl: 'https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4',
+    videoUrl: '/assets/videos/zen-vortex.mp4',
     posterUrl: new URL('../assets/0_1_640_N.webp', import.meta.url).href,
     fallbackColor: BRAND_COLORS.primary,
     description: '金色能量流动'
@@ -34,7 +34,7 @@ export const BACKGROUND_ASSETS: Record<string, BackgroundAsset> = {
   // 能量场背景 - 深紫流动
   energy_field: {
     id: 'energy_field',
-    videoUrl: 'https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4',
+    videoUrl: '/assets/videos/zen-vortex.mp4',
     posterUrl: new URL('../assets/0_1_640_N.webp', import.meta.url).href,
     fallbackColor: BRAND_COLORS.secondary,
     description: '紫色能量场'
@@ -43,7 +43,7 @@ export const BACKGROUND_ASSETS: Record<string, BackgroundAsset> = {
   // 共振背景 - 蓝色波纹
   resonance_wave: {
     id: 'resonance_wave',
-    videoUrl: 'https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4',
+    videoUrl: '/assets/videos/zen-vortex.mp4',
     posterUrl: new URL('../assets/0_1_640_N.webp', import.meta.url).href,
     fallbackColor: BRAND_COLORS.accent,
     description: '蓝色共振波'

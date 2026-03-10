@@ -61,7 +61,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       <PortalBackground
-        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/fe2rqfs27y-1772615676760.mp4"
+        videoSrc="/assets/videos/zen-vortex.mp4"
         posterImg="/assets/ecb075f8800e9ca0b7ffce2ee54c75ac.jpg"
       />
 
@@ -80,7 +80,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
             transform: 'translate3d(0,0,0)'
           }}
         >
-          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/tq3r5bzzfbj-1772600548434.mp4" type="video/mp4" />
+          <source src="/assets/videos/zen-vortex.mp4" type="video/mp4" />
         </video>
 
         <div className="portal-glow-effect" />

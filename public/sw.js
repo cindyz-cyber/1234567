@@ -16,7 +16,7 @@
  * - 强制返回 404 响应
  */
 
-const CACHE_NAME = 'maya-healing-v-kill-share-journey-2026-03-10';
+const CACHE_NAME = 'maya-healing-v-production-2026-03-10';
 const BLOCKED_PATHS = ['/share/', '/admin/share-config'];
 
 // 所有需要缓存的背景资源
