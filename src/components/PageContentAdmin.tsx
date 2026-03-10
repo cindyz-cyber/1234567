@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Save, RefreshCw, Search, CreditCard as Edit2, ArrowLeft } from 'lucide-react';
+import { Save, RefreshCw, Search, CreditCard as Edit2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 interface ContentItem {
   id: string;
@@ -13,6 +13,13 @@ interface ContentItem {
   updated_at: string;
 }
 
+interface PageVisibility {
+  id: string;
+  scene_token: string;
+  page_name: string;
+  is_visible: boolean;
+}
+
 interface PageGroup {
   [key: string]: ContentItem[];
 }
@@ -22,6 +29,7 @@ export default function PageContentAdmin() {
   const [sceneToken, setSceneToken] = useState('default');
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [editedContents, setEditedContents] = useState<{ [key: string]: string }>({});
+  const [pageVisibility, setPageVisibility] = useState<{ [key: string]: boolean }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,6 +42,7 @@ export default function PageContentAdmin() {
   const loadContents = async () => {
     setIsLoading(true);
     try {
+      // 加载文案配置
       const { data, error } = await supabase
         .from('page_content_config')
         .select('*')
@@ -51,9 +60,24 @@ export default function PageContentAdmin() {
       });
       setEditedContents(edited);
 
+      // 加载页面可见性配置
+      const { data: visibilityData, error: visibilityError } = await supabase
+        .from('page_visibility_config')
+        .select('*')
+        .eq('scene_token', sceneToken);
+
+      if (visibilityError) throw visibilityError;
+
+      const visibility: { [key: string]: boolean } = {};
+      visibilityData?.forEach(item => {
+        visibility[item.page_name] = item.is_visible;
+      });
+      setPageVisibility(visibility);
+
       console.log(`✅ 加载了 ${data?.length || 0} 条文案配置`);
+      console.log(`✅ 加载了 ${visibilityData?.length || 0} 条页面可见性配置`);
     } catch (error) {
-      console.error('❌ 加载文案配置失败:', error);
+      console.error('❌ 加载配置失败:', error);
       showMessage('error', '加载失败，请重试');
     } finally {
       setIsLoading(false);
@@ -94,6 +118,59 @@ export default function PageContentAdmin() {
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
     setTimeout(() => setMessage(null), 3000);
+  };
+
+  const togglePageVisibility = async (pageName: string) => {
+    try {
+      const currentVisibility = pageVisibility[pageName] ?? true;
+      const newVisibility = !currentVisibility;
+
+      console.log(`🔄 切换页面可见性: ${pageName}, 当前: ${currentVisibility}, 新状态: ${newVisibility}`);
+
+      // 先尝试更新
+      const { data: existingData, error: selectError } = await supabase
+        .from('page_visibility_config')
+        .select('id')
+        .eq('scene_token', sceneToken)
+        .eq('page_name', pageName)
+        .maybeSingle();
+
+      if (selectError) throw selectError;
+
+      if (existingData) {
+        // 记录存在，更新
+        const { error: updateError } = await supabase
+          .from('page_visibility_config')
+          .update({ is_visible: newVisibility })
+          .eq('scene_token', sceneToken)
+          .eq('page_name', pageName);
+
+        if (updateError) throw updateError;
+      } else {
+        // 记录不存在，插入
+        const { error: insertError } = await supabase
+          .from('page_visibility_config')
+          .insert({
+            scene_token: sceneToken,
+            page_name: pageName,
+            is_visible: newVisibility
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      // 更新本地状态
+      setPageVisibility({
+        ...pageVisibility,
+        [pageName]: newVisibility
+      });
+
+      showMessage('success', newVisibility ? `✅ 已显示「${pageNameMap[pageName] || pageName}」` : `🔒 已隐藏「${pageNameMap[pageName] || pageName}」`);
+      console.log(`✅ 页面可见性已更新`);
+    } catch (error) {
+      console.error('❌ 切换页面可见性失败:', error);
+      showMessage('error', '操作失败，请重试');
+    }
   };
 
   const groupedContents = contents.reduce((acc: PageGroup, item) => {
@@ -208,14 +285,35 @@ export default function PageContentAdmin() {
               </button>
             </div>
           ) : (
-            Object.keys(filteredGroups).map(pageName => (
-              <div key={pageName} className="page-group">
-                <h2 className="page-group-title">
-                  {pageNameMap[pageName] || pageName}
-                  <span className="item-count">
-                    {filteredGroups[pageName].length} 项
-                  </span>
-                </h2>
+            Object.keys(filteredGroups).map(pageName => {
+              const isVisible = pageVisibility[pageName] ?? true;
+              return (
+                <div key={pageName} className="page-group">
+                  <div className="page-group-header">
+                    <h2 className="page-group-title">
+                      {pageNameMap[pageName] || pageName}
+                      <span className="item-count">
+                        {filteredGroups[pageName].length} 项
+                      </span>
+                    </h2>
+                    <button
+                      onClick={() => togglePageVisibility(pageName)}
+                      className={`visibility-toggle ${isVisible ? 'visible' : 'hidden'}`}
+                      title={isVisible ? '点击隐藏此页面' : '点击显示此页面'}
+                    >
+                      {isVisible ? (
+                        <>
+                          <Eye size={16} />
+                          显示中
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff size={16} />
+                          已隐藏
+                        </>
+                      )}
+                    </button>
+                  </div>
                 <div className="content-grid">
                   {filteredGroups[pageName].map(item => (
                     <div key={item.id} className="content-item">
@@ -247,7 +345,8 @@ export default function PageContentAdmin() {
                   ))}
                 </div>
               </div>
-            ))
+            );
+            })
           )}
         </div>
       )}
@@ -500,6 +599,16 @@ export default function PageContentAdmin() {
           padding: 24px;
         }
 
+        .page-group-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 20px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid rgba(247, 231, 206, 0.1);
+        }
+
         .page-group-title {
           display: flex;
           align-items: center;
@@ -508,9 +617,43 @@ export default function PageContentAdmin() {
           font-weight: 300;
           color: #F7E7CE;
           letter-spacing: 0.15em;
-          margin-bottom: 20px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid rgba(247, 231, 206, 0.1);
+          flex: 1;
+        }
+
+        .visibility-toggle {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: 1px solid;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .visibility-toggle.visible {
+          background: rgba(34, 197, 94, 0.1);
+          border-color: rgba(34, 197, 94, 0.3);
+          color: #4ade80;
+        }
+
+        .visibility-toggle.visible:hover {
+          background: rgba(34, 197, 94, 0.2);
+          border-color: rgba(34, 197, 94, 0.5);
+        }
+
+        .visibility-toggle.hidden {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: rgba(239, 68, 68, 0.3);
+          color: #f87171;
+        }
+
+        .visibility-toggle.hidden:hover {
+          background: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.5);
         }
 
         .item-count {

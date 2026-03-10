@@ -7,6 +7,7 @@ import DynamicStepBackground from './DynamicStepBackground';
 import { playBackgroundMusicLoop, playShareBackgroundMusic, isVideoUrl } from '../utils/audioManager';
 import { shareBackgroundPreloader } from '../utils/shareBackgroundPreloader';
 import { getPageContent } from '../utils/pageContentService';
+import { loadPageVisibility, getNextVisiblePage, type PageName } from '../utils/pageVisibilityService';
 
 // 🚀 代码分割：懒加载非首屏组件
 const EmotionScan = lazy(() => import('./EmotionScan'));
@@ -63,6 +64,7 @@ export default function ShareJournal() {
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
   const [preloadedAudio, setPreloadedAudio] = useState<HTMLAudioElement | null>(null);
   const [pageContents, setPageContents] = useState<{ [key: string]: { [key: string]: string } }>({});
+  const [pageVisibility, setPageVisibility] = useState<{ [key: string]: boolean }>({});
   const cardRef = useRef<HTMLDivElement>(null);
 
   // 🔍 调试：监听 backgroundMusic 状态变化
@@ -313,6 +315,17 @@ export default function ShareJournal() {
         console.warn('⚠️ [ShareJournal] 文案配置加载失败，将使用默认值:', err);
       }
 
+      // 👁️ 加载页面可见性配置
+      console.log('👁️ [ShareJournal] 开始加载页面可见性配置...');
+      try {
+        const visibility = await loadPageVisibility(sceneToken);
+        setPageVisibility(visibility);
+        console.log('✅ [ShareJournal] 页面可见性配置加载完成');
+        console.log('📊 [ShareJournal] 可见性配置:', visibility);
+      } catch (err) {
+        console.warn('⚠️ [ShareJournal] 可见性配置加载失败，所有页面默认可见:', err);
+      }
+
       setIsValidating(false);
     } catch (error) {
       console.error('❌ Validation error:', error);
@@ -323,6 +336,20 @@ export default function ShareJournal() {
 
   const updateState = (updates: Partial<JournalState>) => {
     setState(prev => ({ ...prev, ...updates }));
+  };
+
+  // 👁️ 导航到下一个可见的页面
+  const navigateToNextVisiblePage = (currentPage: PageName) => {
+    const nextPage = getNextVisiblePage(currentPage, pageVisibility);
+
+    if (nextPage) {
+      console.log(`👁️ 从 ${currentPage} 导航到下一个可见页面: ${nextPage}`);
+      setCurrentStep(nextPage as JournalStep);
+    } else {
+      console.log(`👁️ ${currentPage} 后无更多可见页面，结束流程`);
+      // 如果没有下一个页面，默认到 card
+      setCurrentStep('card');
+    }
   };
 
   const handleNamingComplete = async (higherSelfName: string, userName: string) => {
@@ -337,7 +364,7 @@ export default function ShareJournal() {
       console.log('✅ 音频已在 validateAccess 中预加载完成，无需重复创建');
       console.log('💡 直接使用现有实例，避免创建重复的 Audio 对象');
       console.groupEnd();
-      setCurrentStep('home');
+      navigateToNextVisiblePage('naming');
       return;
     }
 
@@ -399,12 +426,12 @@ export default function ShareJournal() {
   const handleHomeStart = async () => {
     console.log('🎯 User started journey from home page');
     console.log('🎵 音频将在 GoldenTransition 阶段加载（三级优先级策略）');
-    setCurrentStep('emotion');
+    navigateToNextVisiblePage('home');
   };
 
   const handleEmotionComplete = (emotions: string[], bodyStates: string[]) => {
     updateState({ selectedEmotions: emotions });
-    setCurrentStep('journal');
+    navigateToNextVisiblePage('emotion');
   };
 
   const handleJournalComplete = async (content: string) => {
@@ -421,7 +448,7 @@ export default function ShareJournal() {
       console.warn('Database save failed (non-critical):', err);
     }
 
-    setCurrentStep('transition');
+    navigateToNextVisiblePage('journal');
   };
 
   const handleTransitionComplete = (transitionMusic: HTMLAudioElement | null) => {
@@ -450,7 +477,7 @@ export default function ShareJournal() {
     console.log('🔄 切换到 dialogue 步骤');
     console.groupEnd();
 
-    setCurrentStep('dialogue');
+    navigateToNextVisiblePage('transition');
   };
 
   const handleDialogueComplete = (advice: string, audio: HTMLAudioElement | null) => {
@@ -473,7 +500,7 @@ export default function ShareJournal() {
     // 验证存储
     console.log('🔍 [ShareJournal] 验证存储: state.higherSelfAdvice 即将更新为:', advice);
 
-    setCurrentStep('answer');
+    navigateToNextVisiblePage('dialogue');
   };
 
   const handleAnswerComplete = () => {
