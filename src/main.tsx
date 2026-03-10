@@ -88,6 +88,7 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/share/journal" element={<ShareJournal />} />
+        <Route path="/share/:sceneId" element={<ShareJournal />} />
         <Route path="/admin/share-config" element={<ShareConfigAdmin />} />
         <Route path="/admin/page-content" element={<PageContentAdmin />} />
         <Route path="/*" element={<App />} />

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { supabase } from '../lib/supabase';
 import NamingRitual from './NamingRitual';
@@ -47,6 +48,9 @@ interface JournalState {
 }
 
 export default function ShareJournal() {
+  // 🔥 路径参数抓取（必须在所有 hooks 最前面）
+  const { sceneId } = useParams<{ sceneId?: string }>();
+
   const [currentStep, setCurrentStep] = useState<JournalStep>('naming');
   const [config, setConfig] = useState<H5ShareConfig | null>(null);
   const [isValidating, setIsValidating] = useState(true);
@@ -135,21 +139,27 @@ export default function ShareJournal() {
   const validateAccess = async () => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      const rawSceneToken = urlParams.get('scene');
+      const querySceneToken = urlParams.get('scene');
+
+      // 🔥 优先从路径参数抓取场景标识，其次从查询参数
+      const rawSceneToken = sceneId || querySceneToken;
 
       // 🔥 强制处理 URL 参数空格
       const sceneToken = rawSceneToken ? rawSceneToken.trim() : null;
 
-      console.group('🎬 场景匹配验证 - 强制参数优先级');
-      console.log('📡 原始参数:', rawSceneToken);
-      console.log('🧹 处理后参数:', sceneToken);
-      console.log('💡 URL 格式要求: ?scene=xxx&token=yyy');
+      console.group('🎬 场景匹配验证 - 多路径支持');
+      console.log('📍 路径参数 (sceneId):', sceneId || '未提供');
+      console.log('📡 查询参数 (scene):', querySceneToken || '未提供');
+      console.log('🧹 最终场景标识:', sceneToken);
+      console.log('💡 支持格式1: /share/:sceneId');
+      console.log('💡 支持格式2: /share/journal?scene=xxx');
       console.log('🚫 严禁回退到 default 场景');
       console.groupEnd();
 
       if (!sceneToken) {
-        console.error('❌ 缺少 scene 参数！');
-        console.error('💡 正确 URL 格式: ?scene=xxx&token=yyy');
+        console.error('❌ 缺少场景标识！');
+        console.error('💡 正确 URL 格式1: /share/journeyzen2026');
+        console.error('💡 正确 URL 格式2: /share/journal?scene=journeyzen2026');
         console.error('🚫 不会尝试加载默认场景');
         setCurrentStep('blocked');
         setIsValidating(false);
@@ -238,20 +248,9 @@ export default function ShareJournal() {
 
       // 🔒 is_active 检查已在前面（第195行）执行，此处无需重复
 
-      const urlToken = urlParams.get('token');
-
-      console.log('🔑 Token from URL query:', urlToken);
-      console.log('🔑 Required token (daily_token):', data.daily_token);
-
-      if (!urlToken || urlToken !== data.daily_token) {
-        console.warn('⚠️ Token validation failed');
-        console.warn('💡 正确格式: ?scene=xxx&token=yyy');
-        setCurrentStep('blocked');
-        setIsValidating(false);
-        return;
-      }
-
-      console.log('✅ Token validated successfully');
+      // 🔥 简化访问：已移除 token 校验，仅通过场景标识控制访问
+      console.log('✅ 场景验证通过，无需 token 校验');
+      console.log('💡 访问策略：仅通过场景标识控制，简化用户访问流程');
       console.log('🎵 开始预加载场景资源...');
 
       // 🚀 元数据优先策略：首屏仅获取音频时长信息，严禁下载完整文件
