@@ -320,6 +320,19 @@ export default function ShareJournal() {
         setPageVisibility(visibility);
         console.log('✅ [ShareJournal] 页面可见性配置加载完成');
         console.log('📊 [ShareJournal] 可见性配置:', visibility);
+
+        // 🔥 智能初始页面：如果 naming 页面被隐藏，自动跳转到第一个可见页面
+        if (visibility['naming'] === false) {
+          const firstVisiblePage = getNextVisiblePage('naming', visibility);
+          if (firstVisiblePage) {
+            console.log('🚀 [ShareJournal] naming 页面已隐藏，自动跳转到:', firstVisiblePage);
+            setCurrentStep(firstVisiblePage as JournalStep);
+          } else {
+            console.warn('⚠️ [ShareJournal] 所有页面都被隐藏，保持 naming 状态');
+          }
+        } else {
+          console.log('✅ [ShareJournal] naming 页面可见，保持默认流程');
+        }
       } catch (err) {
         console.warn('⚠️ [ShareJournal] 可见性配置加载失败，所有页面默认可见:', err);
       }
