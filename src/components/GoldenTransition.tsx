@@ -41,9 +41,9 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     const initializeAudio = async () => {
       console.log('⚡ [GoldenTransition] 开始音频初始化流程');
 
-      // 🎯 统一音频策略：只使用 globalAudio，忽略 backgroundMusicUrl
+      // 优先使用全局音频对象（在 validateAccess 中提前创建）
       if (globalAudio) {
-        console.log('✅ 使用全局音频对象（唯一音频源）');
+        console.log('✅ 使用全局音频对象（已在 validateAccess 中初始化）');
 
         // 🚀 性能优化：首次触发音频加载（从 preload="none" 切换到实际加载）
         if (globalAudio.preload === 'none') {
@@ -129,9 +129,39 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
         } finally {
           console.groupEnd();
         }
+      }
+      // 如果 backgroundMusicUrl 是视频，不加载音频（视频作为背景）
+      else if (isMediaUrlVideo) {
+        console.log('🎬 检测到 MP4 视频作为背景媒体，跳过音频加载');
+        console.log('📊 视频将在背景中静音播放');
+      }
+      // 回退：如果没有全局音频对象，按原逻辑加载
+      else if (backgroundMusicUrl) {
+        console.log('⚠️ 无全局音频对象，直接加载场景音频...');
+        console.log('📡 场景音频 URL:', backgroundMusicUrl);
+        console.log('🚫 已禁用主 App 降级');
+
+        // 🔥 强制禁用主 App 降级
+        backgroundMusic = await playShareBackgroundMusic(backgroundMusicUrl, false);
+
+        if (backgroundMusic) {
+          console.log('✅ [GoldenTransition] 场景音频加载成功并开始播放');
+          console.log('⏱️ 当前播放位置:', backgroundMusic.currentTime, '秒');
+          console.log('🔊 音量:', backgroundMusic.volume);
+          console.log('▶️ 播放状态:', !backgroundMusic.paused ? '播放中' : '暂停');
+
+          // 🔥 确保从 0 秒播放
+          if (backgroundMusic.currentTime > 0.5) {
+            console.warn('⚠️ 检测到播放位置异常，强制归零');
+            backgroundMusic.currentTime = 0;
+          }
+        } else {
+          console.error('❌ [GoldenTransition] 场景音频加载失败');
+          console.error('💡 请检查 bg_music_url 是否正确配置');
+        }
       } else {
-        console.warn('⚠️ 未配置全局音频对象，将在无背景音乐的情况下运行');
-        console.warn('💡 GoldenTransition 现在只使用 globalAudio，不再从 backgroundMusicUrl 加载音频');
+        console.warn('⚠️ 未配置 backgroundMusicUrl，将在无背景音乐的情况下运行');
+        console.warn('💡 请到后台 /admin/share-config 配置 bg_music_url');
       }
 
       fadeOutTimer = window.setTimeout(() => {

@@ -50,7 +50,7 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
   return (
     <div className="min-h-screen flex items-center justify-center px-6 breathing-fade relative overflow-hidden">
       <PortalBackground
-        videoSrc="/assets/videos/zen-vortex.mp4"
+        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
         posterImg={posterImage}
       />
 

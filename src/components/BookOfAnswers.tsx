@@ -103,7 +103,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
   const [selectedWisdom, setSelectedWisdom] = useState<string>(''); // 🔥 翻牌时的随机文案
   const posterCardRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoBgUrl] = useState('/assets/videos/zen-vortex.mp4');
+  const [videoBgUrl] = useState('https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/kh6mvlniog-1772856285046.mp4');
 
   // 🔥 验证传入的高我建议
   useEffect(() => {
@@ -307,7 +307,7 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
             transform: 'translate3d(0,0,0)'
           }}
         >
-          <source src="/assets/videos/zen-vortex.mp4" type="video/mp4" />
+          <source src="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/0e1txddh4g17-1772692096278.mp4" type="video/mp4" />
         </video>
         <div className="book-background-overlay" />
       </div>

@@ -12,7 +12,6 @@ import SampleUploadPanel from './components/SampleUploadPanel';
 import VideoUploader from './components/VideoUploader';
 import GoldenDust from './components/GoldenDust';
 import VideoBackground from './components/VideoBackground';
-import BlockedPage from './components/BlockedPage';
 import { supabase } from './lib/supabase';
 import { stopAllAudio } from './utils/audioManager';
 import { preloadCoreBackgrounds } from './utils/backgroundAssets';
@@ -40,33 +39,6 @@ interface UserNames {
 }
 
 function App() {
-  // 🚨 KILL SWITCH 升级版：域名 + 路径双重拦截（最高优先级）
-  const hostname = window.location.hostname;
-  const currentPath = window.location.pathname;
-
-  // 定义最新生产环境标识（请根据实际情况修改）
-  const PRODUCTION_NETLIFY_PREFIX = 'main--'; // 例如: main--yourapp.netlify.app
-
-  // 检查是否为旧版 Netlify 预览链接
-  const isOldNetlifyPreview = hostname.includes('netlify.app') && !hostname.startsWith(PRODUCTION_NETLIFY_PREFIX);
-
-  // 检查是否为黑名单路径（拦截所有 /share/* 路径）
-  const BLOCKED_PATHS = ['/share/', '/admin/share-config'];
-  const isBlockedPath = BLOCKED_PATHS.some(blocked => currentPath.includes(blocked));
-
-  // 任一条件触发立即拦截
-  const shouldBlock = isOldNetlifyPreview || isBlockedPath;
-
-  if (shouldBlock) {
-    console.error('🚨 [KILL SWITCH] 检测到违规访问:', {
-      hostname,
-      currentPath,
-      isOldNetlifyPreview,
-      isBlockedPath,
-      reason: isOldNetlifyPreview ? '旧版预览链接' : '黑名单路径'
-    });
-  }
-
   const [loading, setLoading] = useState(true);
   const [userNames, setUserNames] = useState<UserNames | null>(null);
   const [currentStep, setCurrentStep] = useState<FlowStep>('home');
@@ -76,7 +48,6 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
   const [transitionAudioUrl, setTransitionAudioUrl] = useState<string | null>(null);
-  const [globalAudio, setGlobalAudio] = useState<HTMLAudioElement | null>(null);
   const [journeyData, setJourneyData] = useState<JourneyData>({
     emotions: [],
     bodyStates: [],
@@ -89,13 +60,6 @@ function App() {
   }, [currentStep]);
 
   useEffect(() => {
-    // 🚨 KILL SWITCH: 如果检测到任何违规情况，立即停止所有初始化
-    if (shouldBlock) {
-      console.error('🚨 [App] 检测到违规访问，停止初始化:', { hostname, currentPath });
-      setLoading(false);
-      return;
-    }
-
     const timeout = setTimeout(() => {
       console.warn('Loading timeout - forcing app to render');
       setLoading(false);
@@ -108,16 +72,9 @@ function App() {
     loadProfile();
 
     return () => clearTimeout(timeout);
-  }, [shouldBlock, hostname, currentPath]);
+  }, []);
 
   async function loadProfile() {
-    // 🚨 KILL SWITCH: 如果检测到违规访问，禁止数据库请求
-    if (shouldBlock) {
-      console.error('🚨 [App.loadProfile] 违规访问，拒绝执行数据库请求');
-      setLoading(false);
-      return;
-    }
-
     try {
       const storedUserName = localStorage.getItem('userName');
       const storedHigherSelfName = localStorage.getItem('higherSelfName');
@@ -146,7 +103,7 @@ function App() {
         }
       }
 
-      // 加载 GoldenTransition 的音频文件并预加载全局音频对象
+      // 加载 GoldenTransition 的音频文件
       try {
         const { data: audioFiles, error: audioError } = await supabase
           .from('audio_files')
@@ -160,15 +117,6 @@ function App() {
           const audioUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/audio-files/${audioFiles.file_path}`;
           console.log('🎵 加载 GoldenTransition 音频:', audioUrl);
           setTransitionAudioUrl(audioUrl);
-
-          // 🔥 预创建全局音频对象（preload="none"，不立即下载）
-          console.log('🎯 [App] 创建全局音频对象（preload="none"）');
-          const audio = new Audio(audioUrl);
-          audio.preload = 'none'; // 不立即下载，等待 GoldenTransition 触发
-          audio.loop = false;
-          audio.volume = 0.5;
-          setGlobalAudio(audio);
-          console.log('✅ [App] 全局音频对象已创建，等待 GoldenTransition 激活');
         }
       } catch (audioError) {
         console.warn('加载音频文件失败 (non-critical):', audioError);
@@ -345,12 +293,6 @@ function App() {
     }
   }
 
-  // 🚨 KILL SWITCH 升级版: 强制渲染拦截页面（优先级最高）
-  if (shouldBlock) {
-    console.error('🚨 [App] 渲染拦截页面:', { hostname, currentPath });
-    return <BlockedPage />;
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'transparent' }}>
@@ -422,7 +364,6 @@ function App() {
             higherSelfName={userNames.higherSelfName}
             onComplete={handleTransitionComplete}
             backgroundMusicUrl={transitionAudioUrl}
-            globalAudio={globalAudio}
           />
         </Suspense>
       );

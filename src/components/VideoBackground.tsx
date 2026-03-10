@@ -13,7 +13,7 @@ export default function VideoBackground({ videoUrl }: VideoBackgroundProps = {})
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const asset = BACKGROUND_ASSETS.golden_flow;
-  const defaultHomeVideo = '/assets/videos/zen-vortex.mp4';
+  const defaultHomeVideo = 'https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/imuqqrh3qnl-1773037470946.mp4';
   const finalVideoUrl = videoUrl || defaultHomeVideo || asset?.sources?.[0]?.url;
 
   console.group('🎥 视频背景加载');
