@@ -8,9 +8,16 @@ interface InnerWhisperJournalProps {
   bodyStates?: string[];
   onBack?: () => void;
   onNext?: (journalContent?: string) => void;
+  content?: {
+    title?: string;
+    placeholder?: string;
+    voice_hint?: string;
+    voice_listening?: string;
+    submit_button?: string;
+  };
 }
 
-export default function InnerWhisperJournal({ emotions = [], bodyStates = [], onBack, onNext }: InnerWhisperJournalProps) {
+export default function InnerWhisperJournal({ emotions = [], bodyStates = [], onBack, onNext, content = {} }: InnerWhisperJournalProps) {
   const [journalText, setJournalText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -284,7 +291,7 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
           textShadow: '0 0 20px rgba(247, 231, 206, 0.6), 0 0 40px rgba(235, 200, 98, 0.3)',
           marginBottom: '48px'
         }}>
-          内在的低语
+          {content.title || '内在的低语'}
         </h1>
 
         <div className="journal-container max-w-3xl w-full relative">
@@ -293,7 +300,7 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
               ref={textareaRef}
               value={journalText}
               onChange={(e) => setJournalText(e.target.value)}
-              placeholder="在此记录你内心深处的声音..."
+              placeholder={content.placeholder || '在此记录你内心深处的声音...'}
               className="journal-textarea"
               rows={12}
             />
@@ -332,7 +339,10 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
               marginTop: '8px',
               textShadow: '0 0 10px rgba(247, 231, 206, 0.3)'
             }}>
-              {isListening ? '🎤 正在聆听...' : '点击喇叭开始语音输入'}
+              {isListening
+                ? (content.voice_listening || '🎤 正在聆听...')
+                : (content.voice_hint || '点击喇叭开始语音输入')
+              }
             </div>
           </div>
 
@@ -342,7 +352,7 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
               disabled={!journalText.trim() || isSaving}
               className="w-full"
             >
-              {isSaving ? '保存中...' : '完成书写'}
+              {isSaving ? '保存中...' : (content.submit_button || '完成书写')}
             </GoldButton>
           </div>
         </div>

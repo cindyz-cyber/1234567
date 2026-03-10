@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Upload, Trash2, Play, Pause, CheckCircle, Circle, Database } from 'lucide-react';
+import { Upload, Trash2, Play, Pause, CheckCircle, Circle, Database, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import KnowledgeBaseSeeder from './KnowledgeBaseSeeder';
+import PageContentAdmin from './PageContentAdmin';
 import { playAudioFromZero } from '../utils/audioManager';
 
 interface AudioFile {
@@ -21,7 +22,7 @@ export default function AdminPanel() {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
-  const [activeView, setActiveView] = useState<'audio' | 'knowledge'>('audio');
+  const [activeView, setActiveView] = useState<'audio' | 'knowledge' | 'content'>('audio');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void } | null>(null);
 
@@ -298,7 +299,7 @@ export default function AdminPanel() {
   if (activeView === 'knowledge') {
     return (
       <div>
-        <div className="fixed top-8 left-8 z-50">
+        <div className="fixed top-8 left-8 z-50 flex gap-3">
           <button
             onClick={() => setActiveView('audio')}
             className="px-6 py-3 rounded-lg transition-all flex items-center gap-2"
@@ -312,8 +313,57 @@ export default function AdminPanel() {
             <Upload size={20} />
             音频管理
           </button>
+          <button
+            onClick={() => setActiveView('content')}
+            className="px-6 py-3 rounded-lg transition-all flex items-center gap-2"
+            style={{
+              background: 'rgba(235, 200, 98, 0.2)',
+              border: '1px solid rgba(235, 200, 98, 0.5)',
+              color: '#EBC862',
+              letterSpacing: '0.2em'
+            }}
+          >
+            <FileText size={20} />
+            文案配置
+          </button>
         </div>
         <KnowledgeBaseSeeder />
+      </div>
+    );
+  }
+
+  if (activeView === 'content') {
+    return (
+      <div>
+        <div className="fixed top-8 left-8 z-50 flex gap-3">
+          <button
+            onClick={() => setActiveView('audio')}
+            className="px-6 py-3 rounded-lg transition-all flex items-center gap-2"
+            style={{
+              background: 'rgba(235, 200, 98, 0.2)',
+              border: '1px solid rgba(235, 200, 98, 0.5)',
+              color: '#EBC862',
+              letterSpacing: '0.2em'
+            }}
+          >
+            <Upload size={20} />
+            音频管理
+          </button>
+          <button
+            onClick={() => setActiveView('knowledge')}
+            className="px-6 py-3 rounded-lg transition-all flex items-center gap-2"
+            style={{
+              background: 'rgba(235, 200, 98, 0.2)',
+              border: '1px solid rgba(235, 200, 98, 0.5)',
+              color: '#EBC862',
+              letterSpacing: '0.2em'
+            }}
+          >
+            <Database size={20} />
+            知识库录入
+          </button>
+        </div>
+        <PageContentAdmin />
       </div>
     );
   }
@@ -326,13 +376,22 @@ export default function AdminPanel() {
             <h1 className="text-4xl font-light mb-2">音频管理后台</h1>
             <p className="text-slate-400">上传和管理35秒引导音频</p>
           </div>
-          <button
-            onClick={() => setActiveView('knowledge')}
-            className="px-6 py-3 rounded-lg transition-all flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border-2 border-amber-500/50 hover:from-amber-500/30 hover:to-yellow-500/30"
-          >
-            <Database size={20} />
-            知识库录入
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setActiveView('knowledge')}
+              className="px-6 py-3 rounded-lg transition-all flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border-2 border-amber-500/50 hover:from-amber-500/30 hover:to-yellow-500/30"
+            >
+              <Database size={20} />
+              知识库录入
+            </button>
+            <button
+              onClick={() => setActiveView('content')}
+              className="px-6 py-3 rounded-lg transition-all flex items-center gap-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-2 border-blue-500/50 hover:from-blue-500/30 hover:to-cyan-500/30"
+            >
+              <FileText size={20} />
+              页面文案配置
+            </button>
+          </div>
         </div>
 
         <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 mb-8 border border-slate-700">

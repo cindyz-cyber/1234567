@@ -6,6 +6,7 @@ import HomePage from './HomePage';
 import DynamicStepBackground from './DynamicStepBackground';
 import { playBackgroundMusicLoop, playShareBackgroundMusic, isVideoUrl } from '../utils/audioManager';
 import { shareBackgroundPreloader } from '../utils/shareBackgroundPreloader';
+import { getPageContent } from '../utils/pageContentService';
 
 // 🚀 代码分割：懒加载非首屏组件
 const EmotionScan = lazy(() => import('./EmotionScan'));
@@ -61,6 +62,7 @@ export default function ShareJournal() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
   const [preloadedAudio, setPreloadedAudio] = useState<HTMLAudioElement | null>(null);
+  const [pageContents, setPageContents] = useState<{ [key: string]: { [key: string]: string } }>({});
   const cardRef = useRef<HTMLDivElement>(null);
 
   // 🔍 调试：监听 backgroundMusic 状态变化
@@ -281,6 +283,23 @@ export default function ShareJournal() {
       }
 
       await shareBackgroundPreloader.preloadAllAssets(data);
+
+      // 📝 加载所有页面的文案配置
+      console.log('📝 [ShareJournal] 开始加载页面文案配置...');
+      try {
+        const pages = ['home', 'naming', 'emotion', 'journal', 'answer', 'card'];
+        const contents: { [key: string]: { [key: string]: string } } = {};
+
+        for (const pageName of pages) {
+          contents[pageName] = await getPageContent(sceneToken, pageName);
+        }
+
+        setPageContents(contents);
+        console.log('✅ [ShareJournal] 页面文案配置加载完成');
+        console.log('📊 [ShareJournal] 加载的页面数:', Object.keys(contents).length);
+      } catch (err) {
+        console.warn('⚠️ [ShareJournal] 文案配置加载失败，将使用默认值:', err);
+      }
 
       setIsValidating(false);
     } catch (error) {
@@ -656,6 +675,7 @@ export default function ShareJournal() {
               <InnerWhisperJournal
                 emotions={state.selectedEmotions}
                 onNext={handleJournalComplete}
+                content={pageContents.journal}
               />
             </Suspense>
           </DynamicStepBackground>
@@ -803,7 +823,7 @@ export default function ShareJournal() {
                       letterSpacing: '0.1em',
                       margin: 0,
                       textShadow: '0 0 20px rgba(200, 220, 255, 0.5)'
-                    }}>✨ 你的专属能量卡已生成，请长按发送给微信好友</p>
+                    }}>{pageContents.card?.share_hint || '✨ 你的专属能量卡已生成，请长按发送给微信好友'}</p>
                   </div>
 
                   <img
@@ -860,7 +880,7 @@ export default function ShareJournal() {
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(200, 220, 255, 0.1)'
                       }}
                     >
-                      关闭
+                      {pageContents.card?.close_button || '关闭'}
                     </button>
 
                     <button
@@ -898,7 +918,7 @@ export default function ShareJournal() {
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(200, 220, 255, 0.15)'
                       }}
                     >
-                      开启新的觉察之旅
+                      {pageContents.card?.restart_button || '开启新的觉察之旅'}
                     </button>
                   </div>
                 </div>
@@ -947,7 +967,7 @@ export default function ShareJournal() {
                     marginBottom: '20px',
                     textShadow: '0px 2px 6px rgba(0, 0, 0, 0.4), 0px 0px 20px rgba(255, 255, 255, 0.3)'
                   }}>
-                    觉察时刻
+                    {pageContents.card?.title || '觉察时刻'}
                   </h1>
                   <p style={{
                     fontSize: '24px',
@@ -975,7 +995,7 @@ export default function ShareJournal() {
                     opacity: 0.9,
                     fontWeight: 500
                   }}>
-                    我的觉察
+                    {pageContents.card?.journal_section_title || '我的觉察'}
                   </h3>
                   <p style={{
                     fontSize: '26px',
@@ -1003,7 +1023,7 @@ export default function ShareJournal() {
                     textAlign: 'center',
                     fontWeight: 500
                   }}>
-                    高我的指引
+                    {pageContents.card?.advice_section_title || '高我的指引'}
                   </h3>
                   <p style={{
                     fontSize: '30px',
@@ -1050,7 +1070,7 @@ export default function ShareJournal() {
                   marginBottom: '12px',
                   textShadow: '0px 2px 6px rgba(0, 0, 0, 0.4)'
                 }}>
-                  植本逻辑
+                  {pageContents.card?.footer_brand || '植本逻辑'}
                 </p>
                 <p style={{
                   fontSize: '20px',
@@ -1058,7 +1078,7 @@ export default function ShareJournal() {
                   letterSpacing: '0.2em',
                   textShadow: '0px 2px 4px rgba(0, 0, 0, 0.35)'
                 }}>
-                  觉察 · 疗愈 · 成长
+                  {pageContents.card?.footer_tagline || '觉察 · 疗愈 · 成长'}
                 </p>
               </div>
             </div>
