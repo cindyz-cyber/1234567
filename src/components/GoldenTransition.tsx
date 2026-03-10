@@ -9,10 +9,13 @@ interface GoldenTransitionProps {
   backgroundVideoUrl?: string | null;
   globalAudio?: HTMLAudioElement | null;
   isMusicVideo?: boolean;
+  autoAdvance?: boolean;
 }
 
-export default function GoldenTransition({ userName, higherSelfName, onComplete, backgroundMusicUrl, backgroundVideoUrl, globalAudio, isMusicVideo = false }: GoldenTransitionProps) {
+export default function GoldenTransition({ userName, higherSelfName, onComplete, backgroundMusicUrl, backgroundVideoUrl, globalAudio, isMusicVideo = false, autoAdvance = true }: GoldenTransitionProps) {
   const [fadeOut, setFadeOut] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+  const [currentBackgroundMusic, setCurrentBackgroundMusic] = useState<HTMLAudioElement | null>(null);
   const defaultVideoUrl = 'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
 
   // 智能视频 URL 选择：
@@ -114,6 +117,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           }, 100);
 
           backgroundMusic = globalAudio;
+          setCurrentBackgroundMusic(globalAudio);
         } catch (err) {
           console.error('❌ App 播放失败，尝试静默恢复:', err);
           // 如果报错，尝试静音播放以绕过浏览器限制
@@ -123,6 +127,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
             globalAudio.muted = false;
             console.log('✅ 静默播放恢复成功');
             backgroundMusic = globalAudio;
+            setCurrentBackgroundMusic(globalAudio);
           } catch (muteErr) {
             console.error('❌ 静默播放也失败:', muteErr);
           }
@@ -155,6 +160,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
             console.warn('⚠️ 检测到播放位置异常，强制归零');
             backgroundMusic.currentTime = 0;
           }
+          setCurrentBackgroundMusic(backgroundMusic);
         } else {
           console.error('❌ [GoldenTransition] 场景音频加载失败');
           console.error('💡 请检查 bg_music_url 是否正确配置');
@@ -164,16 +170,29 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
         console.warn('💡 请到后台 /admin/share-config 配置 bg_music_url');
       }
 
-      fadeOutTimer = window.setTimeout(() => {
-        console.log('🌅 [GoldenTransition] 开始淡出动画');
-        setFadeOut(true);
-      }, transitionDuration - 1000);
+      // 如果启用自动跳转，使用定时器
+      if (autoAdvance) {
+        fadeOutTimer = window.setTimeout(() => {
+          console.log('🌅 [GoldenTransition] 开始淡出动画');
+          setFadeOut(true);
+        }, transitionDuration - 1000);
 
-      completeTimer = window.setTimeout(() => {
-        console.log('✅ [GoldenTransition] 过渡完成，传递音频对象给下一步');
-        console.log('🎵 传递的音频对象:', backgroundMusic ? '有效' : '无');
-        onComplete(backgroundMusic);
-      }, transitionDuration);
+        completeTimer = window.setTimeout(() => {
+          console.log('✅ [GoldenTransition] 过渡完成，传递音频对象给下一步');
+          console.log('🎵 传递的音频对象:', backgroundMusic ? '有效' : '无');
+          onComplete(backgroundMusic);
+        }, transitionDuration);
+      } else {
+        // 手动模式：显示按钮
+        const buttonTimer = window.setTimeout(() => {
+          console.log('🎯 [GoldenTransition] 显示继续按钮');
+          setShowButton(true);
+        }, 3000); // 3秒后显示按钮
+
+        return () => {
+          clearTimeout(buttonTimer);
+        };
+      }
     };
 
     // 立即执行音频初始化
@@ -184,7 +203,16 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
       if (fadeOutTimer) clearTimeout(fadeOutTimer);
       if (completeTimer) clearTimeout(completeTimer);
     };
-  }, [onComplete, backgroundMusicUrl, backgroundVideoUrl, isMediaUrlVideo, globalAudio]);
+  }, [onComplete, backgroundMusicUrl, backgroundVideoUrl, isMediaUrlVideo, globalAudio, autoAdvance]);
+
+  const handleContinue = () => {
+    console.log('✅ [GoldenTransition] 用户点击继续按钮');
+    console.log('🎵 传递的音频对象:', currentBackgroundMusic ? '有效' : '无');
+    setFadeOut(true);
+    setTimeout(() => {
+      onComplete(currentBackgroundMusic);
+    }, 1000);
+  };
 
   return (
     <div
@@ -295,6 +323,41 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
       >
         正在连接你的 <span className="highlight-name">{higherSelfName}</span>
       </p>
+
+      {!autoAdvance && showButton && (
+        <button
+          onClick={handleContinue}
+          className="continue-button"
+          style={{
+            marginTop: '48px',
+            padding: '16px 48px',
+            fontSize: '16px',
+            fontWeight: 300,
+            letterSpacing: '0.3em',
+            color: '#000000',
+            backgroundColor: 'rgba(247, 231, 206, 0.95)',
+            border: '2px solid rgba(255, 230, 120, 0.8)',
+            borderRadius: '50px',
+            cursor: 'pointer',
+            fontFamily: 'Georgia, "Times New Roman", serif',
+            boxShadow: '0 4px 20px rgba(255, 230, 120, 0.4)',
+            transition: 'all 0.3s ease',
+            animation: 'buttonFadeIn 0.8s ease-out',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)';
+            e.currentTarget.style.boxShadow = '0 6px 30px rgba(255, 230, 120, 0.6)';
+            e.currentTarget.style.backgroundColor = 'rgba(255, 240, 220, 1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 4px 20px rgba(255, 230, 120, 0.4)';
+            e.currentTarget.style.backgroundColor = 'rgba(247, 231, 206, 0.95)';
+          }}
+        >
+          继续
+        </button>
+      )}
 
       <style>{`
         .top-vignette {
@@ -534,6 +597,21 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           50% {
             opacity: 0.8;
           }
+        }
+
+        @keyframes buttonFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .continue-button:active {
+          transform: scale(0.98) !important;
         }
       `}</style>
     </div>

@@ -486,10 +486,10 @@ export default function ShareJournal() {
       console.warn('💡 将使用现有的 backgroundMusic 状态（若有）');
     }
 
-    console.log('🔄 切换到 dialogue 步骤');
+    console.log('🔄 直接切换到 dialogue 步骤（高我对话）');
     console.groupEnd();
 
-    navigateToNextVisiblePage('transition');
+    setCurrentStep('dialogue');
   };
 
   const handleDialogueComplete = (advice: string, audio: HTMLAudioElement | null) => {
@@ -810,6 +810,7 @@ export default function ShareJournal() {
               backgroundVideoUrl={config?.bg_transition_url || config?.bg_video_url}
               globalAudio={audioToPass}
               isMusicVideo={isMusicVideo}
+              autoAdvance={false}
             />
           </Suspense>
         );
