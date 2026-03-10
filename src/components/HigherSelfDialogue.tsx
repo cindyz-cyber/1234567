@@ -105,7 +105,7 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
       <div className="dialogue-content-container">
         <div className="dialogue-inner">
           <h2 className="dialogue-greeting">
-            亲爱的 <span className="user-name-highlight">{userName}</span>，下面是我想对你说的话：
+            亲爱的，请留下你的感受
           </h2>
 
           <div className="zen-dialogue-box">

@@ -437,7 +437,8 @@ export default function ShareJournal() {
   const handleHomeStart = async () => {
     console.log('🎯 User started journey from home page');
     console.log('🎵 音频将在 GoldenTransition 阶段加载（三级优先级策略）');
-    navigateToNextVisiblePage('home');
+    console.log('✨ 直接进入 golden transition 页面');
+    setCurrentStep('transition');
   };
 
   const handleEmotionComplete = (emotions: string[], bodyStates: string[]) => {
