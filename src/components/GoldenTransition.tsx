@@ -139,34 +139,8 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
       else if (isMediaUrlVideo) {
         console.log('🎬 检测到 MP4 视频作为背景媒体，跳过音频加载');
         console.log('📊 视频将在背景中静音播放');
-      }
-      // 回退：如果没有全局音频对象，按原逻辑加载
-      else if (backgroundMusicUrl) {
-        console.log('⚠️ 无全局音频对象，直接加载场景音频...');
-        console.log('📡 场景音频 URL:', backgroundMusicUrl);
-        console.log('🚫 已禁用主 App 降级');
-
-        // 🔥 强制禁用主 App 降级
-        backgroundMusic = await playShareBackgroundMusic(backgroundMusicUrl, false);
-
-        if (backgroundMusic) {
-          console.log('✅ [GoldenTransition] 场景音频加载成功并开始播放');
-          console.log('⏱️ 当前播放位置:', backgroundMusic.currentTime, '秒');
-          console.log('🔊 音量:', backgroundMusic.volume);
-          console.log('▶️ 播放状态:', !backgroundMusic.paused ? '播放中' : '暂停');
-
-          // 🔥 确保从 0 秒播放
-          if (backgroundMusic.currentTime > 0.5) {
-            console.warn('⚠️ 检测到播放位置异常，强制归零');
-            backgroundMusic.currentTime = 0;
-          }
-          setCurrentBackgroundMusic(backgroundMusic);
-        } else {
-          console.error('❌ [GoldenTransition] 场景音频加载失败');
-          console.error('💡 请检查 bg_music_url 是否正确配置');
-        }
       } else {
-        console.warn('⚠️ 未配置 backgroundMusicUrl，将在无背景音乐的情况下运行');
+        console.warn('⚠️ 未配置音频，将在无背景音乐的情况下运行');
         console.warn('💡 请到后台 /admin/share-config 配置 bg_music_url');
       }
 
