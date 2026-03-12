@@ -157,20 +157,13 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
     loadConfig();
   }, []);
 
-  // 🔥 组件卸载时清理音频（仅在非 ShareJournal 场景）
-  useEffect(() => {
-    return () => {
-      // 检测是否在 ShareJournal 引流页
-      const isShareJournalPage = window.location.pathname.includes('share/journal');
-
-      if (!isShareJournalPage) {
-        console.log('🎵 [BookOfAnswers] 旅程结束，停止所有音频');
-        stopAllAudio();
-      } else {
-        console.log('🔒 [BookOfAnswers] 检测到 ShareJournal 页面，保持音频播放');
-      }
-    };
-  }, []);
+  // 🔥 移除自动清理逻辑：避免 React 严格模式双重挂载导致音乐被误杀
+  // 音频清理应在用户点击"关闭"或"重新开始"按钮时手动调用
+  // useEffect(() => {
+  //   return () => {
+  //     stopAllAudio();
+  //   };
+  // }, []);
 
   // 🔥 带权重的随机选择算法
   const selectWeightedWisdom = (): string => {
