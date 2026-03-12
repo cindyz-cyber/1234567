@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createAndPlayAudioFromZero, isVideoUrl, playAudioFromZero, stopAllAudio, unregisterAudio } from '../utils/audioManager';
 import { supabase } from '../lib/supabase';
 
@@ -17,6 +17,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
   const [fadeOut, setFadeOut] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [currentBackgroundMusic, setCurrentBackgroundMusic] = useState<HTMLAudioElement | null>(null);
+  const audioInstanceRef = useRef<HTMLAudioElement | null>(null);
   const defaultVideoUrl = 'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
 
   // 智能视频 URL 选择：
@@ -45,7 +46,6 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
       stopAllAudio();
     }
 
-    let backgroundMusic: HTMLAudioElement | null = null;
     let fadeOutTimer: number | undefined;
     let completeTimer: number | undefined;
     const transitionDuration = 10000;
@@ -128,7 +128,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
             }
           }, 100);
 
-          backgroundMusic = globalAudio;
+          audioInstanceRef.current = globalAudio;
           setCurrentBackgroundMusic(globalAudio);
         } catch (err) {
           console.error('❌ App 播放失败，尝试静默恢复:', err);
@@ -138,7 +138,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
             await globalAudio.play();
             globalAudio.muted = false;
             console.log('✅ 静默播放恢复成功');
-            backgroundMusic = globalAudio;
+            audioInstanceRef.current = globalAudio;
             setCurrentBackgroundMusic(globalAudio);
           } catch (muteErr) {
             console.error('❌ 静默播放也失败:', muteErr);
@@ -181,14 +181,14 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           console.log('📡 音频 URL:', audioUrl);
 
           // 🔥 使用 createAndPlayAudioFromZero 创建新实例并从 0 秒开始播放
-          backgroundMusic = await createAndPlayAudioFromZero(audioUrl);
+          audioInstanceRef.current = await createAndPlayAudioFromZero(audioUrl);
 
-          if (backgroundMusic) {
+          if (audioInstanceRef.current) {
             console.log('✅ [GoldenTransition] 音频从 0 秒开始播放成功');
-            console.log('⏱️ 当前播放位置:', backgroundMusic.currentTime, '秒');
-            console.log('🔊 音量:', backgroundMusic.volume);
-            console.log('▶️ 播放状态:', !backgroundMusic.paused ? '播放中' : '暂停');
-            setCurrentBackgroundMusic(backgroundMusic);
+            console.log('⏱️ 当前播放位置:', audioInstanceRef.current.currentTime, '秒');
+            console.log('🔊 音量:', audioInstanceRef.current.volume);
+            console.log('▶️ 播放状态:', !audioInstanceRef.current.paused ? '播放中' : '暂停');
+            setCurrentBackgroundMusic(audioInstanceRef.current);
           } else {
             console.error('❌ [GoldenTransition] 音频播放失败');
             console.error('💡 请检查后台音频管理是否已上传音频文件');
@@ -216,8 +216,8 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
 
         completeTimer = window.setTimeout(() => {
           console.log('✅ [GoldenTransition] 过渡完成，传递音频对象给下一步');
-          console.log('🎵 传递的音频对象:', backgroundMusic ? '有效' : '无');
-          onComplete(backgroundMusic);
+          console.log('🎵 传递的音频对象:', audioInstanceRef.current ? '有效' : '无');
+          onComplete(audioInstanceRef.current);
         }, transitionDuration);
       } else {
         // 手动模式：显示按钮
@@ -241,21 +241,21 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
       if (completeTimer) clearTimeout(completeTimer);
 
       // 🔥 关键修复：清理音频实例，防止 React 严格模式重复挂载时泄漏
-      if (backgroundMusic) {
+      if (audioInstanceRef.current) {
         console.log('🧹 清理音频实例并从 audioManager 注销');
-        console.log('   音频 URL:', backgroundMusic.src.substring(0, 50));
+        console.log('   音频 URL:', audioInstanceRef.current.src.substring(0, 50));
 
         // 🔥 第一步：从全局管理器注销
-        unregisterAudio(backgroundMusic);
+        unregisterAudio(audioInstanceRef.current);
         console.log('   ✅ 已从 audioManager 注销');
 
         // 🔥 第二步：停止并清理
-        backgroundMusic.pause();
-        backgroundMusic.currentTime = 0;
-        backgroundMusic.src = '';
+        audioInstanceRef.current.pause();
+        audioInstanceRef.current.currentTime = 0;
+        audioInstanceRef.current.src = '';
         console.log('   ✅ 音频已停止并清空 src');
 
-        backgroundMusic = null;
+        audioInstanceRef.current = null;
       }
     };
   }, [onComplete, backgroundMusicUrl, backgroundVideoUrl, isMediaUrlVideo, globalAudio, autoAdvance]);
