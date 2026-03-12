@@ -96,16 +96,16 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
         <p
           className="text-center serif-text"
           style={{
-            color: '#000000',
+            color: '#FFFFFF',
             fontSize: '15px',
             fontWeight: 400,
             letterSpacing: '0.4em',
-            textShadow: '0 2px 8px rgba(255, 255, 255, 0.3)',
+            textShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
             fontFamily: 'Georgia, "Times New Roman", serif',
             opacity: 1,
           }}
         >
-          请点击金球，进入Cindy冥想空间
+          想和"{higherSelfName}"聊一聊吗?
         </p>
       </div>
 
