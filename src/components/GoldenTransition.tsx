@@ -19,6 +19,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
   const [currentBackgroundMusic, setCurrentBackgroundMusic] = useState<HTMLAudioElement | null>(null);
   const audioInstanceRef = useRef<HTMLAudioElement | null>(null);
   const isInitializingRef = useRef(false); // 🔥 初始化锁
+  const transitionCompletedRef = useRef(false); // 🔥 过渡完成标记
   const defaultVideoUrl = 'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
 
   // 智能视频 URL 选择：
@@ -243,6 +244,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
         completeTimer = window.setTimeout(() => {
           console.log('✅ [GoldenTransition] 过渡完成，传递音频对象给下一步');
           console.log('🎵 传递的音频对象:', audioInstanceRef.current ? '有效' : '无');
+          transitionCompletedRef.current = true; // 🔥 标记过渡成功完成
           onComplete(audioInstanceRef.current);
         }, transitionDuration);
       } else {
@@ -262,13 +264,14 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     initializeAudio();
 
     return () => {
-      console.log('🧹 [GoldenTransition] 组件卸载，清理定时器和音频');
+      console.log('🧹 [GoldenTransition] 组件卸载，清理定时器');
       if (fadeOutTimer) clearTimeout(fadeOutTimer);
       if (completeTimer) clearTimeout(completeTimer);
 
-      // 🔥 关键修复：清理音频实例，防止 React 严格模式重复挂载时泄漏
-      if (audioInstanceRef.current) {
-        console.log('🧹 清理音频实例并从 audioManager 注销');
+      // 🔥 关键修复：只在非正常完成时才清理音频
+      // 如果 transitionCompletedRef.current = true，说明音频已经传递给 App，不应销毁
+      if (audioInstanceRef.current && !transitionCompletedRef.current) {
+        console.log('⚠️ [GoldenTransition] 异常卸载（未完成过渡），清理音频');
         console.log('   音频 URL:', audioInstanceRef.current.src.substring(0, 50));
 
         // 🔥 第一步：从全局管理器注销
@@ -282,6 +285,9 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
         console.log('   ✅ 音频已停止并清空 src');
 
         audioInstanceRef.current = null;
+      } else if (transitionCompletedRef.current) {
+        console.log('✅ [GoldenTransition] 正常完成过渡，音频已传递给 App，不执行清理');
+        console.log('🎵 音频实例:', audioInstanceRef.current ? '保持播放' : '无');
       }
     };
   }, [onComplete, backgroundMusicUrl, backgroundVideoUrl, isMediaUrlVideo, globalAudio, autoAdvance]);
@@ -289,6 +295,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
   const handleContinue = () => {
     console.log('✅ [GoldenTransition] 用户点击继续按钮');
     console.log('🎵 传递的音频对象:', currentBackgroundMusic ? '有效' : '无');
+    transitionCompletedRef.current = true; // 🔥 标记过渡成功完成
     setFadeOut(true);
     setTimeout(() => {
       onComplete(currentBackgroundMusic);

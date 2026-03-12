@@ -157,6 +157,21 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
     loadConfig();
   }, []);
 
+  // 🔥 组件卸载时清理音频（仅在非 ShareJournal 场景）
+  useEffect(() => {
+    return () => {
+      // 检测是否在 ShareJournal 引流页
+      const isShareJournalPage = window.location.pathname.includes('share/journal');
+
+      if (!isShareJournalPage) {
+        console.log('🎵 [BookOfAnswers] 旅程结束，停止所有音频');
+        stopAllAudio();
+      } else {
+        console.log('🔒 [BookOfAnswers] 检测到 ShareJournal 页面，保持音频播放');
+      }
+    };
+  }, []);
+
   // 🔥 带权重的随机选择算法
   const selectWeightedWisdom = (): string => {
     // 计算总权重（权重越高=越稀有=概率越低，因此需要反转）
