@@ -85,8 +85,15 @@ function App() {
           higherSelfName: storedHigherSelfName,
         });
 
+        console.log('🔍 检查管理员权限:', {
+          storedUserName,
+          storedHigherSelfName,
+          userNameLower: storedUserName.toLowerCase(),
+          higherSelfNameLower: storedHigherSelfName.toLowerCase(),
+        });
+
         if (storedUserName.toLowerCase() === 'cindy' && storedHigherSelfName.toLowerCase() === 'cin') {
-          console.log('Admin credentials detected, granting admin access');
+          console.log('✅ Admin credentials detected, granting admin access');
           setIsAdmin(true);
         } else {
           try {
@@ -449,6 +456,24 @@ function App() {
       {currentTab === 'uploader' && isAdmin && <VideoUploader />}
 
       <Navigation currentTab={currentTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
+
+      {/* 调试信息 */}
+      <div style={{
+        position: 'fixed',
+        top: '10px',
+        left: '10px',
+        background: 'rgba(0,0,0,0.8)',
+        color: 'white',
+        padding: '10px',
+        borderRadius: '8px',
+        fontSize: '12px',
+        zIndex: 9999,
+      }}>
+        <div>用户名: {userNames?.userName}</div>
+        <div>高我名: {userNames?.higherSelfName}</div>
+        <div>管理员: {isAdmin ? '是' : '否'}</div>
+        <div>当前标签: {currentTab}</div>
+      </div>
 
       {showPremiumModal && (
         <PremiumModal
