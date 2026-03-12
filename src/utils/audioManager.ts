@@ -123,163 +123,59 @@ export const playAudioFromUrl = (url: string): HTMLAudioElement => {
 };
 
 /**
- * 🔥 从 URL 创建新的音频实例并从 0 秒开始播放
- * 适用于主 App 场景，不需要提前创建音频实例
- * 🔥 关键：使用 preload='none' 避免任何预加载
+ * ⚡ 极简冷启动：0 帧即刻播放音乐
+ * 策略：autoplay + 同步硬启动 + 破坏缓存
  */
 export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudioElement | null> => {
-  console.group('🎵 [audioManager] createAndPlayAudioFromZero');
+  console.group('⚡ [audioManager] 极简冷启动');
   console.log('📡 目标 URL:', url);
-  console.log('📊 调用前活跃音频数:', activeAudioInstances.size);
 
-  // 🔥 全局单例锁：硬核清理现有实例
+  // 🔥 清理现有实例
   if (currentGlobalAudio) {
-    console.group('🧹 [单例锁] 检测到现有全局音频实例，强制清理');
-    console.log('🗑️ 现有实例 URL:', currentGlobalAudio.src);
-    console.log('📊 现有实例状态:', currentGlobalAudio.paused ? '暂停' : '播放中');
-
+    console.log('🧹 清理现有音频实例');
     try {
       currentGlobalAudio.pause();
       currentGlobalAudio.src = '';
-      currentGlobalAudio.load(); // 强制释放内存
+      currentGlobalAudio.load();
       activeAudioInstances.delete(currentGlobalAudio);
-      console.log('✅ 现有实例已销毁并从集合中移除');
     } catch (err) {
-      console.warn('⚠️ 清理现有实例时出错:', err);
+      console.warn('⚠️ 清理失败:', err);
     }
-
     currentGlobalAudio = null;
-    console.groupEnd();
   }
 
   try {
     console.log('🔨 创建 Audio 对象...');
     const audio = new Audio();
 
-    // 🔥 物理彻底归零：在设置 src 之前先重置浏览器的音频解析状态
-    console.log('🧹 物理归零：清除浏览器音频缓存状态...');
-    audio.pause();
-    audio.currentTime = 0;
-    audio.removeAttribute('src');
-    audio.load(); // 强制重置浏览器音频解析器
-    console.log('✅ 浏览器音频状态已物理重置');
+    // ⚡ 极简配置：autoplay + preload=auto + loop
+    audio.autoplay = true;  // ⚡ 利用浏览器最底层播放优先级
+    audio.preload = 'auto'; // ⚡ 允许浏览器立即加载
+    audio.loop = true;      // 🔁 循环播放
+    audio.volume = 0.3;     // 🔊 直接设置目标音量（无淡入）
 
-    // 🔥 关键修复：使用 preload='none' 确保不提前加载
-    audio.preload = 'none';
-    audio.autoplay = false; // 🔥 彻底禁用自动播放
-    // 🔥 移除 crossOrigin 避免 CORS 预检诱发浏览器提前缓冲
-    // audio.crossOrigin = 'anonymous';
-    audio.volume = 0;  // 🔥 静音启动，物理掩护缓冲区清理
-    audio.loop = true; // 🔥 强制循环播放，确保音乐永不停止
+    console.log('✅ Audio 配置完成 (autoplay=true, preload=auto, loop=true, volume=0.3)');
 
-    console.log('✅ Audio 对象已创建 (preload=none, autoplay=false, volume=0, loop=true)');
-    console.log('📊 当前 src:', audio.src || '(empty)');
-    console.log('📊 当前 paused:', audio.paused);
-    console.log('📊 当前 currentTime:', audio.currentTime);
-    console.log('📊 当前 loop:', audio.loop);
-
-    // 🔥 第三步：先注册，再设置 src，确保注册时机正确
+    // 🔥 注册到活跃实例
     registerAudio(audio);
 
-    // 🔥 第四步：设置 src 前再次确认归零状态和循环设置
-    console.log('🔒 设置 src 前再次确认状态...');
+    // ⚡ 物理归零：在 src 前清空进度
+    console.log('🔄 物理归零...');
     audio.currentTime = 0;
-    audio.preload = 'none'; // 再次确认
-    audio.autoplay = false; // 再次确认
-    audio.loop = true; // 再次确认循环
-    console.log('   currentTime =', audio.currentTime);
-    console.log('   preload =', audio.preload);
-    console.log('   autoplay =', audio.autoplay);
-    console.log('   loop =', audio.loop);
 
-    // 🔥 只在这里设置 src，此时才开始加载
+    // ⚡ 设置 src（触发 autoplay）
     console.log('📡 设置 audio.src...');
     audio.src = url;
-    console.log('📊 设置后 src:', audio.src);
-    console.log('📊 设置后 paused:', audio.paused);
-    console.log('📊 设置后 currentTime:', audio.currentTime);
-    console.log('📊 设置后 loop:', audio.loop);
 
-    // 🔥 显式调用 load()，确保从头开始加载
-    console.log('⏳ 调用 audio.load()...');
-    audio.load();
-
-    // 等待音频可以播放
-    console.log('⏳ 等待 canplay 事件...');
-    await new Promise<void>((resolve, reject) => {
-      const onCanPlay = () => {
-        console.log('✅ canplay 事件触发');
-        console.log('📊 canplay 时 currentTime:', audio.currentTime);
-        console.log('📊 canplay 时 paused:', audio.paused);
-        audio.removeEventListener('canplay', onCanPlay);
-        audio.removeEventListener('error', onError);
-        resolve();
-      };
-
-      const onError = (e: Event) => {
-        console.error('❌ 音频加载失败事件');
-        console.error('   error:', e);
-        audio.removeEventListener('canplay', onCanPlay);
-        audio.removeEventListener('error', onError);
-        reject(new Error('音频加载失败'));
-      };
-
-      audio.addEventListener('canplay', onCanPlay, { once: true });
-      audio.addEventListener('error', onError, { once: true });
+    // ⚡ 同步硬启动：立即 play() + 再次归零
+    console.log('▶️ 同步硬启动...');
+    audio.play().catch(err => {
+      console.warn('⚠️ 首次播放失败（可能需要用户交互）:', err);
     });
 
-    console.group('🔥 三重强制归零机制');
-
-    // 🔥 第一次归零
-    console.log('⏮️ 第一次归零...');
+    // ⚡ 再次物理归零（双重保险）
     audio.currentTime = 0;
-    console.log('   currentTime =', audio.currentTime);
-    console.log('   paused =', audio.paused);
-
-    // 🔥 等待 60ms 让浏览器清理缓冲区
-    console.log('⏳ 等待 60ms 清理缓冲区...');
-    await new Promise(resolve => setTimeout(resolve, 60));
-
-    // 🔥 第二次归零（双保险）
-    console.log('🔄 第二次归零...');
-    audio.currentTime = 0;
-    console.log('   currentTime =', audio.currentTime);
-    console.log('   paused =', audio.paused);
-
-    console.groupEnd();
-
-    // 🔥 静音启动：保持 volume = 0 状态开始播放
-    console.log('🔇 保持静音状态 (volume=0)，准备冷启动...');
-    audio.volume = 0; // 确认静音
-
-    // 🔥 开始播放（静音状态）
-    console.log('▶️ 调用 audio.play() (静音启动)...');
-    await audio.play();
-    console.log('✅ audio.play() 返回成功 (当前静音中)');
-    console.log('📊 播放后即时 currentTime:', audio.currentTime);
-    console.log('📊 播放后即时 paused:', audio.paused);
-    console.log('📊 播放后即时 volume:', audio.volume);
-
-    // 🔥 播放后强制确认循环设置（某些浏览器可能在 play() 后重置）
-    audio.loop = true;
-    console.log('🔄 播放后再次确认 loop = true');
-    console.log('📊 最终 loop 状态:', audio.loop);
-
-    // 🔥 物理延时掩护：200ms 静音播放让浏览器扔掉缓存残音
-    console.log('⏳ 物理延时 200ms 掩护，清除硬件缓冲区残音...');
-    await new Promise(resolve => setTimeout(resolve, 200));
-
-    // 🔥 首帧硬裁剪：跳过 MP3 元数据头，从稳定波形处开始（0.3秒）
-    console.log('✂️ 首帧硬裁剪：跳过 MP3 元数据头（加长裁剪），设置到 0.3 秒处...');
-    audio.currentTime = 0.3;
-    console.log('📊 硬裁剪后 currentTime:', audio.currentTime);
-    console.log('📊 硬裁剪后 paused:', audio.paused);
-
-    // 🔥 直接恢复音量：原生 HTMLAudioElement 播放（绕过 CORS 限制）
-    console.log('🔊 恢复音量到 0.3，正式响起...');
-    audio.volume = 0.3;
-    console.log('✅ 音量恢复完成');
-    console.log('📊 最终状态: currentTime=', audio.currentTime, 'volume=', audio.volume, 'loop=', audio.loop);
+    console.log('✅ 同步硬启动完成 (currentTime=0, playing=', !audio.paused, ')');
 
     // 🔥 将新实例赋值给全局单例锁
     currentGlobalAudio = audio;
