@@ -107,24 +107,8 @@ function App() {
         }
       }
 
-      // 加载 GoldenTransition 的音频文件
-      try {
-        const { data: audioFiles, error: audioError } = await supabase
-          .from('audio_files')
-          .select('file_path')
-          .eq('is_active', true)
-          .eq('file_type', 'guidance')
-          .limit(1)
-          .maybeSingle();
-
-        if (!audioError && audioFiles?.file_path) {
-          const audioUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/audio-files/${audioFiles.file_path}`;
-          console.log('🎵 加载 GoldenTransition 音频:', audioUrl);
-          setTransitionAudioUrl(audioUrl);
-        }
-      } catch (audioError) {
-        console.warn('加载音频文件失败 (non-critical):', audioError);
-      }
+      // 🔥 移除音频预加载逻辑
+      // GoldenTransition 会在需要时自己加载音频 URL
     } catch (error) {
       console.error('Error loading profile:', error);
     } finally {

@@ -93,6 +93,7 @@ export const playAudioFromUrl = (url: string): HTMLAudioElement => {
 /**
  * 🔥 从 URL 创建新的音频实例并从 0 秒开始播放
  * 适用于主 App 场景，不需要提前创建音频实例
+ * 🔥 关键：使用 preload='none' 避免任何预加载
  */
 export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudioElement | null> => {
   console.group('🎵 [audioManager] 创建新音频实例并从 0 秒播放');
@@ -100,20 +101,26 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
 
   try {
     const audio = new Audio();
-    audio.preload = 'metadata';
+
+    // 🔥 关键修复：使用 preload='none' 确保不提前加载
+    audio.preload = 'none';
     audio.crossOrigin = 'anonymous';
-    audio.src = url;
     audio.volume = 0.3;
     audio.loop = true;
 
+    // 🔥 先不设置 src，避免浏览器自动缓冲
+    console.log('⚙️ 音频对象已创建，preload=none（零网络请求）');
+
     registerAudio(audio);
 
-    console.log('⏳ 等待音频元数据加载...');
+    // 🔥 只在这里设置 src，此时才开始加载
+    audio.src = url;
+    console.log('📡 开始加载音频...');
 
     // 等待音频可以播放
     await new Promise<void>((resolve, reject) => {
       const onCanPlay = () => {
-        console.log('✅ 音频元数据加载完成');
+        console.log('✅ 音频已准备就绪');
         audio.removeEventListener('canplay', onCanPlay);
         audio.removeEventListener('error', onError);
         resolve();
@@ -128,31 +135,42 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
 
       audio.addEventListener('canplay', onCanPlay, { once: true });
       audio.addEventListener('error', onError, { once: true });
+
+      // 🔥 显式调用 load()，确保从头开始加载
       audio.load();
     });
 
-    // 确保从 0 秒开始播放
+    console.group('🔥 三重强制归零机制');
+
+    // 🔥 第一次归零
     audio.currentTime = 0;
     console.log('⏮️ 第一次归零: currentTime =', audio.currentTime);
 
-    // 等待 60ms 让浏览器清理缓冲区
+    // 🔥 等待 60ms 让浏览器清理缓冲区
+    console.log('⏳ 等待 60ms 清理缓冲区...');
     await new Promise(resolve => setTimeout(resolve, 60));
 
+    // 🔥 第二次归零（双保险）
     audio.currentTime = 0;
     console.log('🔄 第二次归零: currentTime =', audio.currentTime);
 
-    // 开始播放
+    console.groupEnd();
+
+    // 🔥 开始播放
+    console.log('▶️ 开始播放音频...');
     await audio.play();
     console.log('✅ 音频播放成功');
-    console.log('⏱️ 当前播放位置:', audio.currentTime, '秒');
+    console.log('⏱️ 播放后即时位置:', audio.currentTime, '秒');
 
-    // 播放后检查位置
+    // 🔥 播放后 100ms 检查位置（第三次归零）
     setTimeout(() => {
       if (audio.currentTime > 0.5) {
-        console.warn('⚠️ 检测到播放位置异常，第三次归零');
+        console.warn('⚠️ 检测到播放位置异常 (>0.5s)，第三次归零');
         audio.currentTime = 0;
+        console.log('✅ 第三次归零完成，currentTime =', audio.currentTime);
+      } else {
+        console.log('✅ 播放位置验证通过，currentTime =', audio.currentTime);
       }
-      console.log('✅ 最终播放位置:', audio.currentTime, '秒');
     }, 100);
 
     console.groupEnd();

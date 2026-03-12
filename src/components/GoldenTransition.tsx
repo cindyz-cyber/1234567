@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createAndPlayAudioFromZero, isVideoUrl, playAudioFromZero, stopAllAudio } from '../utils/audioManager';
+import { supabase } from '../lib/supabase';
 
 interface GoldenTransitionProps {
   userName: string;
@@ -54,7 +55,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
 
       // 🎯 音频加载优先级策略:
       // 1. ShareJournal H5 场景：使用全局音频对象 (globalAudio)
-      // 2. 主 App 场景：从 backgroundMusicUrl 创建新的音频实例，从0秒播放
+      // 2. 主 App 场景：从数据库加载音频 URL，创建新实例，从0秒播放
 
       if (globalAudio) {
         console.log('✅ [ShareJournal] 使用全局音频对象');
@@ -146,23 +147,54 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           console.groupEnd();
         }
       }
-      // 🎵 主 App 场景：从 backgroundMusicUrl 创建新的音频实例
-      else if (backgroundMusicUrl && !isMediaUrlVideo) {
-        console.log('✅ [主 App] 创建新的音频实例并从 0 秒播放');
-        console.log('📡 音频 URL:', backgroundMusicUrl);
+      // 🎵 主 App 场景：从数据库加载音频 URL，创建新的音频实例
+      else if (!isMediaUrlVideo) {
+        console.log('✅ [主 App] 从数据库加载音频 URL');
 
-        // 🔥 使用 createAndPlayAudioFromZero 创建新实例并从 0 秒开始播放
-        backgroundMusic = await createAndPlayAudioFromZero(backgroundMusicUrl);
+        // 🔥 按需加载：只在 GoldenTransition 页面才从数据库获取音频 URL
+        let audioUrl = backgroundMusicUrl;
 
-        if (backgroundMusic) {
-          console.log('✅ [GoldenTransition] 音频从 0 秒开始播放成功');
-          console.log('⏱️ 当前播放位置:', backgroundMusic.currentTime, '秒');
-          console.log('🔊 音量:', backgroundMusic.volume);
-          console.log('▶️ 播放状态:', !backgroundMusic.paused ? '播放中' : '暂停');
-          setCurrentBackgroundMusic(backgroundMusic);
+        if (!audioUrl) {
+          console.log('📡 未传入音频 URL，从数据库查询...');
+          try {
+            const { data: audioFiles, error: audioError } = await supabase
+              .from('audio_files')
+              .select('file_path')
+              .eq('is_active', true)
+              .eq('file_type', 'guidance')
+              .limit(1)
+              .maybeSingle();
+
+            if (!audioError && audioFiles?.file_path) {
+              audioUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/audio-files/${audioFiles.file_path}`;
+              console.log('✅ 从数据库加载音频成功:', audioUrl);
+            } else {
+              console.warn('⚠️ 数据库中未找到可用音频');
+            }
+          } catch (error) {
+            console.error('❌ 加载音频 URL 失败:', error);
+          }
+        }
+
+        if (audioUrl) {
+          console.log('🎵 创建新的音频实例并从 0 秒播放');
+          console.log('📡 音频 URL:', audioUrl);
+
+          // 🔥 使用 createAndPlayAudioFromZero 创建新实例并从 0 秒开始播放
+          backgroundMusic = await createAndPlayAudioFromZero(audioUrl);
+
+          if (backgroundMusic) {
+            console.log('✅ [GoldenTransition] 音频从 0 秒开始播放成功');
+            console.log('⏱️ 当前播放位置:', backgroundMusic.currentTime, '秒');
+            console.log('🔊 音量:', backgroundMusic.volume);
+            console.log('▶️ 播放状态:', !backgroundMusic.paused ? '播放中' : '暂停');
+            setCurrentBackgroundMusic(backgroundMusic);
+          } else {
+            console.error('❌ [GoldenTransition] 音频播放失败');
+            console.error('💡 请检查后台音频管理是否已上传音频文件');
+          }
         } else {
-          console.error('❌ [GoldenTransition] 音频播放失败');
-          console.error('💡 请检查后台音频管理是否已上传音频文件');
+          console.warn('⚠️ 未配置音频 URL，将在无背景音乐的情况下运行');
         }
       }
       // 如果 backgroundMusicUrl 是视频，不加载音频（视频作为背景）
