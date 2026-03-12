@@ -149,6 +149,7 @@ function App() {
     localStorage.removeItem('userName');
     localStorage.removeItem('higherSelfName');
     setUserNames(null);
+    setIsAdmin(false);
     setCurrentStep('home');
     setCurrentTab('breath');
   }
