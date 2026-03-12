@@ -91,6 +91,80 @@ export const playAudioFromUrl = (url: string): HTMLAudioElement => {
 };
 
 /**
+ * 🔥 从 URL 创建新的音频实例并从 0 秒开始播放
+ * 适用于主 App 场景，不需要提前创建音频实例
+ */
+export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudioElement | null> => {
+  console.group('🎵 [audioManager] 创建新音频实例并从 0 秒播放');
+  console.log('📡 音频 URL:', url);
+
+  try {
+    const audio = new Audio();
+    audio.preload = 'metadata';
+    audio.crossOrigin = 'anonymous';
+    audio.src = url;
+    audio.volume = 0.3;
+    audio.loop = true;
+
+    registerAudio(audio);
+
+    console.log('⏳ 等待音频元数据加载...');
+
+    // 等待音频可以播放
+    await new Promise<void>((resolve, reject) => {
+      const onCanPlay = () => {
+        console.log('✅ 音频元数据加载完成');
+        audio.removeEventListener('canplay', onCanPlay);
+        audio.removeEventListener('error', onError);
+        resolve();
+      };
+
+      const onError = () => {
+        console.error('❌ 音频加载失败');
+        audio.removeEventListener('canplay', onCanPlay);
+        audio.removeEventListener('error', onError);
+        reject(new Error('音频加载失败'));
+      };
+
+      audio.addEventListener('canplay', onCanPlay, { once: true });
+      audio.addEventListener('error', onError, { once: true });
+      audio.load();
+    });
+
+    // 确保从 0 秒开始播放
+    audio.currentTime = 0;
+    console.log('⏮️ 第一次归零: currentTime =', audio.currentTime);
+
+    // 等待 60ms 让浏览器清理缓冲区
+    await new Promise(resolve => setTimeout(resolve, 60));
+
+    audio.currentTime = 0;
+    console.log('🔄 第二次归零: currentTime =', audio.currentTime);
+
+    // 开始播放
+    await audio.play();
+    console.log('✅ 音频播放成功');
+    console.log('⏱️ 当前播放位置:', audio.currentTime, '秒');
+
+    // 播放后检查位置
+    setTimeout(() => {
+      if (audio.currentTime > 0.5) {
+        console.warn('⚠️ 检测到播放位置异常，第三次归零');
+        audio.currentTime = 0;
+      }
+      console.log('✅ 最终播放位置:', audio.currentTime, '秒');
+    }, 100);
+
+    console.groupEnd();
+    return audio;
+  } catch (error) {
+    console.error('❌ 创建音频失败:', error);
+    console.groupEnd();
+    return null;
+  }
+};
+
+/**
  * 🔥 双重强制归零播放器 - 确保音频从 0 秒开始
  * 参考 ShareJournal 的成功经验，实现强制重置逻辑
  * 🔥 增强版：60ms 延迟，专为 iOS Safari 优化

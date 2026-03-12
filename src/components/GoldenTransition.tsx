@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { playBackgroundMusicLoop, playShareBackgroundMusic, isVideoUrl, playAudioFromZero } from '../utils/audioManager';
+import { createAndPlayAudioFromZero, isVideoUrl, playAudioFromZero, stopAllAudio } from '../utils/audioManager';
 
 interface GoldenTransitionProps {
   userName: string;
@@ -28,13 +28,21 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     : (backgroundVideoUrl && backgroundVideoUrl.trim() !== '' ? backgroundVideoUrl : defaultVideoUrl);
 
   useEffect(() => {
-    console.log('🎬 [GoldenTransition] 组件挂载，立即初始化音频');
+    console.group('🎬 [GoldenTransition] 组件挂载');
     console.log('🎵 背景音乐 URL:', backgroundMusicUrl);
     console.log('🎥 背景视频 URL:', backgroundVideoUrl);
     console.log('🎵 全局音频对象:', globalAudio ? '有效' : '无');
     console.log('🎬 媒体类型判断 (内部): isMediaUrlVideo =', isMediaUrlVideo);
     console.log('🎯 音乐视频标识 (传入): isMusicVideo =', isMusicVideo);
     console.log('🔊 视频声音策略:', isMusicVideo ? '✅ 开启声音 (muted=false, volume=0.3)' : '🔇 静音播放 (muted=true)');
+    console.groupEnd();
+
+    // 🔥 关键修复：组件挂载时立即停止所有已存在的音频
+    // 防止之前页面的音频与当前页面音频同时播放
+    if (!globalAudio) {
+      console.log('🔇 [GoldenTransition] 主 App 场景 - 停止所有旧音频实例');
+      stopAllAudio();
+    }
 
     let backgroundMusic: HTMLAudioElement | null = null;
     let fadeOutTimer: number | undefined;
@@ -42,14 +50,14 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     const transitionDuration = 10000;
 
     const initializeAudio = async () => {
-      console.log('⚡ [GoldenTransition] 开始音频初始化流程');
+      console.group('⚡ [GoldenTransition] 音频初始化流程');
 
       // 🎯 音频加载优先级策略:
-      // 1. 优先使用全局音频对象 (ShareJournal H5 场景)
-      // 2. 如果没有全局音频,使用 backgroundMusicUrl (主 App 场景)
+      // 1. ShareJournal H5 场景：使用全局音频对象 (globalAudio)
+      // 2. 主 App 场景：从 backgroundMusicUrl 创建新的音频实例，从0秒播放
 
       if (globalAudio) {
-        console.log('✅ [ShareJournal] 使用全局音频对象（已在 validateAccess 中初始化）');
+        console.log('✅ [ShareJournal] 使用全局音频对象');
 
         // 🚀 性能优化：首次触发音频加载（从 preload="none" 切换到实际加载）
         if (globalAudio.preload === 'none') {
@@ -138,27 +146,22 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           console.groupEnd();
         }
       }
-      // 🎵 主 App 场景：从 backgroundMusicUrl 加载音频
+      // 🎵 主 App 场景：从 backgroundMusicUrl 创建新的音频实例
       else if (backgroundMusicUrl && !isMediaUrlVideo) {
-        console.log('✅ [主 App] 加载后台配置的音频文件');
+        console.log('✅ [主 App] 创建新的音频实例并从 0 秒播放');
         console.log('📡 音频 URL:', backgroundMusicUrl);
 
-        backgroundMusic = await playShareBackgroundMusic(backgroundMusicUrl, false);
+        // 🔥 使用 createAndPlayAudioFromZero 创建新实例并从 0 秒开始播放
+        backgroundMusic = await createAndPlayAudioFromZero(backgroundMusicUrl);
 
         if (backgroundMusic) {
-          console.log('✅ [GoldenTransition] 音频加载成功并开始播放');
+          console.log('✅ [GoldenTransition] 音频从 0 秒开始播放成功');
           console.log('⏱️ 当前播放位置:', backgroundMusic.currentTime, '秒');
           console.log('🔊 音量:', backgroundMusic.volume);
           console.log('▶️ 播放状态:', !backgroundMusic.paused ? '播放中' : '暂停');
-
-          // 🔥 确保从 0 秒播放
-          if (backgroundMusic.currentTime > 0.5) {
-            console.warn('⚠️ 检测到播放位置异常，强制归零');
-            backgroundMusic.currentTime = 0;
-          }
           setCurrentBackgroundMusic(backgroundMusic);
         } else {
-          console.error('❌ [GoldenTransition] 音频加载失败');
+          console.error('❌ [GoldenTransition] 音频播放失败');
           console.error('💡 请检查后台音频管理是否已上传音频文件');
         }
       }
