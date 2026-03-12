@@ -13,7 +13,6 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
   const handleCircleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     console.log('🟡 Yellow ball clicked!');
 
-    // 🔥 使用统一的音频预热函数
     warmupAudioContext().catch(err => {
       console.warn('⚠️ 音频预热失败（非致命）:', err);
     });
@@ -34,6 +33,11 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
     }, 400);
   };
 
+  const handleResetToNaming = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 breathing-fade relative">
       <div className="absolute top-0 left-0 w-full h-[30vh] z-20 pointer-events-none top-vignette" />
@@ -46,6 +50,13 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
           <span className="brand-letter" style={{ animationDelay: '1.5s' }}>察</span>
         </h1>
       </div>
+
+      <button
+        onClick={handleResetToNaming}
+        className="absolute top-4 right-4 z-40 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg backdrop-blur-sm border border-white/20 transition-all pointer-events-auto"
+      >
+        重新起名
+      </button>
 
       <div className="flex flex-col items-center gap-12">
         <button
