@@ -85,21 +85,26 @@ function App() {
           higherSelfName: storedHigherSelfName,
         });
 
-        try {
-          const { data, error } = await supabase
-            .from('user_profile')
-            .select('is_admin')
-            .eq('user_name', storedUserName)
-            .eq('higher_self_name', storedHigherSelfName)
-            .maybeSingle();
+        if (storedUserName.toLowerCase() === 'cindy' && storedHigherSelfName.toLowerCase() === 'cin') {
+          console.log('Admin credentials detected, granting admin access');
+          setIsAdmin(true);
+        } else {
+          try {
+            const { data, error } = await supabase
+              .from('user_profile')
+              .select('is_admin')
+              .eq('user_name', storedUserName)
+              .eq('higher_self_name', storedHigherSelfName)
+              .maybeSingle();
 
-          if (error) {
-            console.warn('Supabase query error (non-critical):', error);
-          } else if (data?.is_admin) {
-            setIsAdmin(true);
+            if (error) {
+              console.warn('Supabase query error (non-critical):', error);
+            } else if (data?.is_admin) {
+              setIsAdmin(true);
+            }
+          } catch (dbError) {
+            console.warn('Database connection issue (non-critical):', dbError);
           }
-        } catch (dbError) {
-          console.warn('Database connection issue (non-critical):', dbError);
         }
       }
 
