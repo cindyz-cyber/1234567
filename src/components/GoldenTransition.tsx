@@ -44,9 +44,12 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     const initializeAudio = async () => {
       console.log('⚡ [GoldenTransition] 开始音频初始化流程');
 
-      // 优先使用全局音频对象（在 validateAccess 中提前创建）
+      // 🎯 音频加载优先级策略:
+      // 1. 优先使用全局音频对象 (ShareJournal H5 场景)
+      // 2. 如果没有全局音频,使用 backgroundMusicUrl (主 App 场景)
+
       if (globalAudio) {
-        console.log('✅ 使用全局音频对象（已在 validateAccess 中初始化）');
+        console.log('✅ [ShareJournal] 使用全局音频对象（已在 validateAccess 中初始化）');
 
         // 🚀 性能优化：首次触发音频加载（从 preload="none" 切换到实际加载）
         if (globalAudio.preload === 'none') {
@@ -135,13 +138,38 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           console.groupEnd();
         }
       }
+      // 🎵 主 App 场景：从 backgroundMusicUrl 加载音频
+      else if (backgroundMusicUrl && !isMediaUrlVideo) {
+        console.log('✅ [主 App] 加载后台配置的音频文件');
+        console.log('📡 音频 URL:', backgroundMusicUrl);
+
+        backgroundMusic = await playShareBackgroundMusic(backgroundMusicUrl, false);
+
+        if (backgroundMusic) {
+          console.log('✅ [GoldenTransition] 音频加载成功并开始播放');
+          console.log('⏱️ 当前播放位置:', backgroundMusic.currentTime, '秒');
+          console.log('🔊 音量:', backgroundMusic.volume);
+          console.log('▶️ 播放状态:', !backgroundMusic.paused ? '播放中' : '暂停');
+
+          // 🔥 确保从 0 秒播放
+          if (backgroundMusic.currentTime > 0.5) {
+            console.warn('⚠️ 检测到播放位置异常，强制归零');
+            backgroundMusic.currentTime = 0;
+          }
+          setCurrentBackgroundMusic(backgroundMusic);
+        } else {
+          console.error('❌ [GoldenTransition] 音频加载失败');
+          console.error('💡 请检查后台音频管理是否已上传音频文件');
+        }
+      }
       // 如果 backgroundMusicUrl 是视频，不加载音频（视频作为背景）
       else if (isMediaUrlVideo) {
         console.log('🎬 检测到 MP4 视频作为背景媒体，跳过音频加载');
         console.log('📊 视频将在背景中静音播放');
       } else {
         console.warn('⚠️ 未配置音频，将在无背景音乐的情况下运行');
-        console.warn('💡 请到后台 /admin/share-config 配置 bg_music_url');
+        console.warn('💡 主 App: 请到音频管理后台上传音频');
+        console.warn('💡 ShareJournal: 请到后台 /admin/share-config 配置 bg_music_url');
       }
 
       // 如果启用自动跳转，使用定时器
