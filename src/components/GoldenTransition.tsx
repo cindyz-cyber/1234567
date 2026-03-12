@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createAndPlayAudioFromZero, isVideoUrl, playAudioFromZero, stopAllAudio } from '../utils/audioManager';
+import { createAndPlayAudioFromZero, isVideoUrl, playAudioFromZero, stopAllAudio, unregisterAudio } from '../utils/audioManager';
 import { supabase } from '../lib/supabase';
 
 interface GoldenTransitionProps {
@@ -236,9 +236,27 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     initializeAudio();
 
     return () => {
-      console.log('🧹 [GoldenTransition] 组件卸载，清理定时器');
+      console.log('🧹 [GoldenTransition] 组件卸载，清理定时器和音频');
       if (fadeOutTimer) clearTimeout(fadeOutTimer);
       if (completeTimer) clearTimeout(completeTimer);
+
+      // 🔥 关键修复：清理音频实例，防止 React 严格模式重复挂载时泄漏
+      if (backgroundMusic) {
+        console.log('🧹 清理音频实例并从 audioManager 注销');
+        console.log('   音频 URL:', backgroundMusic.src.substring(0, 50));
+
+        // 🔥 第一步：从全局管理器注销
+        unregisterAudio(backgroundMusic);
+        console.log('   ✅ 已从 audioManager 注销');
+
+        // 🔥 第二步：停止并清理
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+        backgroundMusic.src = '';
+        console.log('   ✅ 音频已停止并清空 src');
+
+        backgroundMusic = null;
+      }
     };
   }, [onComplete, backgroundMusicUrl, backgroundVideoUrl, isMediaUrlVideo, globalAudio, autoAdvance]);
 
