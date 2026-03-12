@@ -167,8 +167,9 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
     // 🔥 关键修复：使用 preload='none' 确保不提前加载
     audio.preload = 'none';
     audio.autoplay = false; // 🔥 彻底禁用自动播放
-    audio.crossOrigin = 'anonymous';
-    audio.volume = 0;  // 🔥 先静音，防止意外播放
+    // 🔥 移除 crossOrigin 避免 CORS 预检诱发浏览器提前缓冲
+    // audio.crossOrigin = 'anonymous';
+    audio.volume = 0;  // 🔥 静音启动，物理掩护缓冲区清理
     audio.loop = true; // 🔥 强制循环播放，确保音乐永不停止
 
     console.log('✅ Audio 对象已创建 (preload=none, autoplay=false, volume=0, loop=true)');
@@ -247,34 +248,38 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
 
     console.groupEnd();
 
-    // 🔥 恢复音量
-    console.log('🔊 恢复音量到 0.3...');
-    audio.volume = 0.3;
+    // 🔥 静音启动：保持 volume = 0 状态开始播放
+    console.log('🔇 保持静音状态 (volume=0)，准备冷启动...');
+    audio.volume = 0; // 确认静音
 
-    // 🔥 开始播放
-    console.log('▶️ 调用 audio.play()...');
+    // 🔥 开始播放（静音状态）
+    console.log('▶️ 调用 audio.play() (静音启动)...');
     await audio.play();
-    console.log('✅ audio.play() 返回成功');
+    console.log('✅ audio.play() 返回成功 (当前静音中)');
     console.log('📊 播放后即时 currentTime:', audio.currentTime);
     console.log('📊 播放后即时 paused:', audio.paused);
+    console.log('📊 播放后即时 volume:', audio.volume);
 
     // 🔥 播放后强制确认循环设置（某些浏览器可能在 play() 后重置）
     audio.loop = true;
     console.log('🔄 播放后再次确认 loop = true');
     console.log('📊 最终 loop 状态:', audio.loop);
 
-    // 🔥 播放后 100ms 检查位置（第三次归零）
-    setTimeout(() => {
-      console.log('🔍 100ms 后检查播放位置...');
-      console.log('   currentTime:', audio.currentTime);
-      if (audio.currentTime > 0.5) {
-        console.warn('⚠️ 检测到播放位置异常 (>0.5s)，第三次归零');
-        audio.currentTime = 0;
-        console.log('   ✅ 第三次归零完成，currentTime =', audio.currentTime);
-      } else {
-        console.log('   ✅ 播放位置验证通过');
-      }
-    }, 100);
+    // 🔥 物理延时掩护：200ms 静音播放让浏览器扔掉缓存残音
+    console.log('⏳ 物理延时 200ms 掩护，清除硬件缓冲区残音...');
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // 🔥 二次强制归零：在静音掩护下彻底重置到 0 帧
+    console.log('🔄 200ms 后二次强制归零...');
+    audio.currentTime = 0;
+    console.log('📊 二次归零后 currentTime:', audio.currentTime);
+    console.log('📊 二次归零后 paused:', audio.paused);
+
+    // 🔥 渐入音量：归零后立即恢复音量
+    console.log('🔊 恢复音量到 0.3，正式响起...');
+    audio.volume = 0.3;
+    console.log('✅ 音量恢复完成');
+    console.log('📊 最终状态: currentTime=', audio.currentTime, 'volume=', audio.volume, 'loop=', audio.loop);
 
     // 🔥 将新实例赋值给全局单例锁
     currentGlobalAudio = audio;

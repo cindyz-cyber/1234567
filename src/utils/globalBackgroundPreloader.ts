@@ -72,9 +72,23 @@ class GlobalBackgroundPreloader {
   }
 
   /**
+   * 🔥 物理阻断音频预加载（确保音频冷启动）
+   */
+  private isAudioFile(url: string): boolean {
+    const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
+    return audioExtensions.some(ext => url.toLowerCase().endsWith(ext));
+  }
+
+  /**
    * 动态注入 <link rel="preload"> 到 HTML Head
    */
   private injectPreloadLink(link: PreloadLink): void {
+    // 🔥 物理阻断：禁止音频文件预加载
+    if (this.isAudioFile(link.href)) {
+      console.warn(`🚫 阻断音频预加载: ${link.href.split('/').pop()} (确保冷启动)`);
+      return;
+    }
+
     // 避免重复注入
     if (this.injectedLinks.has(link.href)) {
       return;
