@@ -14,7 +14,12 @@ interface AudioFile {
 const activeAudioInstances = new Set<HTMLAudioElement>();
 
 export const registerAudio = (audio: HTMLAudioElement) => {
+  console.log('📝 [audioManager] 注册新音频实例');
+  console.log('   URL:', audio.src);
+  console.log('   当前活跃实例数:', activeAudioInstances.size);
+  console.trace('   调用栈:');
   activeAudioInstances.add(audio);
+  console.log('   注册后实例数:', activeAudioInstances.size);
 };
 
 export const unregisterAudio = (audio: HTMLAudioElement) => {
@@ -22,12 +27,22 @@ export const unregisterAudio = (audio: HTMLAudioElement) => {
 };
 
 export const stopAllAudio = () => {
-  console.group('🧹 音频内存清理 - 长音频专项优化');
+  console.group('🧹 [audioManager] 停止所有音频');
   console.log('📊 当前活跃音频实例数:', activeAudioInstances.size);
+  console.trace('🔍 调用栈:');
 
+  let stoppedCount = 0;
   activeAudioInstances.forEach((audio, index) => {
     try {
       const originalSrc = audio.src;
+      const wasPlaying = !audio.paused;
+      const currentTime = audio.currentTime;
+
+      console.log(`🎵 音频实例 ${index + 1}:`);
+      console.log('   URL:', originalSrc);
+      console.log('   状态:', wasPlaying ? '播放中' : '已暂停');
+      console.log('   位置:', currentTime, '秒');
+
       audio.loop = false;
       audio.pause();
       audio.currentTime = 0;
@@ -37,9 +52,10 @@ export const stopAllAudio = () => {
       audio.src = '';
       audio.load();
 
-      console.log(`✅ 音频实例 ${index + 1} 已销毁 (原URL: ${originalSrc.substring(0, 50)}...)`);
+      console.log(`   ✅ 已停止并释放`);
+      stoppedCount++;
     } catch (error) {
-      console.error('Error stopping audio:', error);
+      console.error('❌ 停止音频失败:', error);
     }
   });
   activeAudioInstances.clear();
@@ -48,7 +64,7 @@ export const stopAllAudio = () => {
     window.speechSynthesis.cancel();
   }
 
-  console.log('✅ 所有音频资源已释放，内存已清理');
+  console.log(`✅ 已停止 ${stoppedCount} 个音频实例，内存已清理`);
   console.groupEnd();
 };
 
@@ -96,38 +112,54 @@ export const playAudioFromUrl = (url: string): HTMLAudioElement => {
  * 🔥 关键：使用 preload='none' 避免任何预加载
  */
 export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudioElement | null> => {
-  console.group('🎵 [audioManager] 创建新音频实例并从 0 秒播放');
-  console.log('📡 音频 URL:', url);
+  console.group('🎵 [audioManager] createAndPlayAudioFromZero');
+  console.log('📡 目标 URL:', url);
+  console.log('📊 调用前活跃音频数:', activeAudioInstances.size);
 
   try {
+    console.log('🔨 创建 Audio 对象...');
     const audio = new Audio();
 
     // 🔥 关键修复：使用 preload='none' 确保不提前加载
     audio.preload = 'none';
     audio.crossOrigin = 'anonymous';
-    audio.volume = 0.3;
+    audio.volume = 0;  // 🔥 先静音，防止意外播放
     audio.loop = true;
 
-    // 🔥 先不设置 src，避免浏览器自动缓冲
-    console.log('⚙️ 音频对象已创建，preload=none（零网络请求）');
+    console.log('✅ Audio 对象已创建 (preload=none, volume=0)');
+    console.log('📊 当前 src:', audio.src || '(empty)');
+    console.log('📊 当前 paused:', audio.paused);
+    console.log('📊 当前 currentTime:', audio.currentTime);
 
+    // 🔥 先注册，确保可以被 stopAllAudio 清理
     registerAudio(audio);
 
     // 🔥 只在这里设置 src，此时才开始加载
+    console.log('📡 设置 audio.src...');
     audio.src = url;
-    console.log('📡 开始加载音频...');
+    console.log('📊 设置后 src:', audio.src);
+    console.log('📊 设置后 paused:', audio.paused);
+    console.log('📊 设置后 currentTime:', audio.currentTime);
+
+    // 🔥 显式调用 load()，确保从头开始加载
+    console.log('⏳ 调用 audio.load()...');
+    audio.load();
 
     // 等待音频可以播放
+    console.log('⏳ 等待 canplay 事件...');
     await new Promise<void>((resolve, reject) => {
       const onCanPlay = () => {
-        console.log('✅ 音频已准备就绪');
+        console.log('✅ canplay 事件触发');
+        console.log('📊 canplay 时 currentTime:', audio.currentTime);
+        console.log('📊 canplay 时 paused:', audio.paused);
         audio.removeEventListener('canplay', onCanPlay);
         audio.removeEventListener('error', onError);
         resolve();
       };
 
-      const onError = () => {
-        console.error('❌ 音频加载失败');
+      const onError = (e: Event) => {
+        console.error('❌ 音频加载失败事件');
+        console.error('   error:', e);
         audio.removeEventListener('canplay', onCanPlay);
         audio.removeEventListener('error', onError);
         reject(new Error('音频加载失败'));
@@ -135,48 +167,58 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
 
       audio.addEventListener('canplay', onCanPlay, { once: true });
       audio.addEventListener('error', onError, { once: true });
-
-      // 🔥 显式调用 load()，确保从头开始加载
-      audio.load();
     });
 
     console.group('🔥 三重强制归零机制');
 
     // 🔥 第一次归零
+    console.log('⏮️ 第一次归零...');
     audio.currentTime = 0;
-    console.log('⏮️ 第一次归零: currentTime =', audio.currentTime);
+    console.log('   currentTime =', audio.currentTime);
+    console.log('   paused =', audio.paused);
 
     // 🔥 等待 60ms 让浏览器清理缓冲区
     console.log('⏳ 等待 60ms 清理缓冲区...');
     await new Promise(resolve => setTimeout(resolve, 60));
 
     // 🔥 第二次归零（双保险）
+    console.log('🔄 第二次归零...');
     audio.currentTime = 0;
-    console.log('🔄 第二次归零: currentTime =', audio.currentTime);
+    console.log('   currentTime =', audio.currentTime);
+    console.log('   paused =', audio.paused);
 
     console.groupEnd();
 
+    // 🔥 恢复音量
+    console.log('🔊 恢复音量到 0.3...');
+    audio.volume = 0.3;
+
     // 🔥 开始播放
-    console.log('▶️ 开始播放音频...');
+    console.log('▶️ 调用 audio.play()...');
     await audio.play();
-    console.log('✅ 音频播放成功');
-    console.log('⏱️ 播放后即时位置:', audio.currentTime, '秒');
+    console.log('✅ audio.play() 返回成功');
+    console.log('📊 播放后即时 currentTime:', audio.currentTime);
+    console.log('📊 播放后即时 paused:', audio.paused);
 
     // 🔥 播放后 100ms 检查位置（第三次归零）
     setTimeout(() => {
+      console.log('🔍 100ms 后检查播放位置...');
+      console.log('   currentTime:', audio.currentTime);
       if (audio.currentTime > 0.5) {
         console.warn('⚠️ 检测到播放位置异常 (>0.5s)，第三次归零');
         audio.currentTime = 0;
-        console.log('✅ 第三次归零完成，currentTime =', audio.currentTime);
+        console.log('   ✅ 第三次归零完成，currentTime =', audio.currentTime);
       } else {
-        console.log('✅ 播放位置验证通过，currentTime =', audio.currentTime);
+        console.log('   ✅ 播放位置验证通过');
       }
     }, 100);
 
+    console.log('✅ createAndPlayAudioFromZero 完成');
+    console.log('📊 返回前活跃音频数:', activeAudioInstances.size);
     console.groupEnd();
     return audio;
   } catch (error) {
-    console.error('❌ 创建音频失败:', error);
+    console.error('❌ createAndPlayAudioFromZero 失败:', error);
     console.groupEnd();
     return null;
   }
