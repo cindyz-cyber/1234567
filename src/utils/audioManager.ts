@@ -148,13 +148,13 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
     console.log('🔨 创建 Audio 对象...');
     const audio = new Audio();
 
-    // ⚡ 极简配置：autoplay + preload=auto + loop
+    // ⚡ 极简配置：autoplay + preload=auto + loop + 静音启动
     audio.autoplay = true;  // ⚡ 利用浏览器最底层播放优先级
     audio.preload = 'auto'; // ⚡ 允许浏览器立即加载
     audio.loop = true;      // 🔁 循环播放
-    audio.volume = 0.3;     // 🔊 直接设置目标音量（无淡入）
+    audio.muted = true;     // 🔇 静音启动（倒带期间物理静音）
 
-    console.log('✅ Audio 配置完成 (autoplay=true, preload=auto, loop=true, volume=0.3)');
+    console.log('✅ Audio 配置完成 (autoplay=true, preload=auto, loop=true, muted=true)');
 
     // 🔥 注册到活跃实例
     registerAudio(audio);
@@ -167,15 +167,43 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
     console.log('📡 设置 audio.src...');
     audio.src = url;
 
-    // ⚡ 同步硬启动：立即 play() + 再次归零
-    console.log('▶️ 同步硬启动...');
+    // ⚡ 同步硬启动：静音播放
+    console.log('▶️ 同步硬启动（静音模式）...');
     audio.play().catch(err => {
       console.warn('⚠️ 首次播放失败（可能需要用户交互）:', err);
     });
 
-    // ⚡ 再次物理归零（双重保险）
+    // ⚡ 第一次物理归零（立即）
     audio.currentTime = 0;
-    console.log('✅ 同步硬启动完成 (currentTime=0, playing=', !audio.paused, ')');
+    console.log('✅ 第一次倒带完成 (currentTime=0, muted=true)');
+
+    // 🔥 静默倒带补丁：50ms 第二次倒带
+    setTimeout(() => {
+      if (audio.currentTime > 0.1) {
+        console.log('⚠️ 检测到进度漂移 (t=' + audio.currentTime.toFixed(3) + 's)，执行第二次倒带');
+        audio.currentTime = 0;
+        console.log('✅ 第二次倒带完成 (t=50ms)');
+      } else {
+        console.log('✅ 进度稳定 (t=' + audio.currentTime.toFixed(3) + 's)，跳过第二次倒带');
+      }
+    }, 50);
+
+    // 🔥 静默倒带补丁：150ms 第三次倒带 + 解除静音
+    setTimeout(() => {
+      if (audio.currentTime > 0.1) {
+        console.log('⚠️ 最终检测到进度漂移 (t=' + audio.currentTime.toFixed(3) + 's)，执行第三次倒带');
+        audio.currentTime = 0;
+        console.log('✅ 第三次倒带完成 (t=150ms)');
+      } else {
+        console.log('✅ 进度最终验证通过 (t=' + audio.currentTime.toFixed(3) + 's)');
+      }
+
+      // 🔊 解除静音，恢复音量
+      console.log('🔊 解除静音，恢复音量到 0.3...');
+      audio.muted = false;
+      audio.volume = 0.3;
+      console.log('✅ 静默倒带完成，音乐正式响起 (t=' + audio.currentTime.toFixed(3) + 's, volume=0.3)');
+    }, 150);
 
     // 🔥 将新实例赋值给全局单例锁
     currentGlobalAudio = audio;

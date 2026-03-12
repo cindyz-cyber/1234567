@@ -204,9 +204,11 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           console.log('🎵 创建新的音频实例并从 0 秒播放');
           console.log('📡 音频 URL:', audioUrl);
 
-          // 🔥 第二步：URL 随机因子 - 强制浏览器禁用缓存
-          const cacheBustedUrl = `${audioUrl}?t=${Date.now()}`;
-          console.log('🎲 缓存破坏 URL:', cacheBustedUrl);
+          // 🔥 双重随机化：时间戳 + 随机字符串 - 物理隔离缓存
+          const randomCache = Math.random().toString(36).substring(7);
+          const cacheBustedUrl = `${audioUrl}?cache=${randomCache}&t=${Date.now()}`;
+          console.log('🎲 双重随机化 URL:', cacheBustedUrl);
+          console.log('🔒 随机因子:', randomCache);
 
           // 🔥 使用 createAndPlayAudioFromZero 创建新实例并从 0 秒开始播放
           audioInstanceRef.current = await createAndPlayAudioFromZero(cacheBustedUrl);
