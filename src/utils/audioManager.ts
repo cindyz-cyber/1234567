@@ -131,8 +131,14 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
     console.log('📊 当前 paused:', audio.paused);
     console.log('📊 当前 currentTime:', audio.currentTime);
 
-    // 🔥 先注册，确保可以被 stopAllAudio 清理
+    // 🔥 第三步：先注册，再设置 src，确保注册时机正确
     registerAudio(audio);
+
+    // 🔥 第四步：设置 src 前再次确认归零状态
+    console.log('🔒 设置 src 前再次确认状态...');
+    audio.currentTime = 0;
+    console.log('   currentTime =', audio.currentTime);
+    console.log('   preload =', audio.preload);
 
     // 🔥 只在这里设置 src，此时才开始加载
     console.log('📡 设置 audio.src...');

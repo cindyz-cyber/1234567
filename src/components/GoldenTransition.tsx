@@ -53,6 +53,16 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     const initializeAudio = async () => {
       console.group('⚡ [GoldenTransition] 音频初始化流程');
 
+      // 🔥 第一步：创建前硬清理 - 物理隔绝双实例
+      console.log('🧹 创建前硬清理：停止所有音频并清空现有实例');
+      stopAllAudio();
+      if (audioInstanceRef.current) {
+        console.log('🗑️ 清理 audioInstanceRef.current');
+        audioInstanceRef.current.pause();
+        audioInstanceRef.current.src = '';
+        audioInstanceRef.current = null;
+      }
+
       // 🎯 音频加载优先级策略:
       // 1. ShareJournal H5 场景：使用全局音频对象 (globalAudio)
       // 2. 主 App 场景：从数据库加载音频 URL，创建新实例，从0秒播放
@@ -180,8 +190,12 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
           console.log('🎵 创建新的音频实例并从 0 秒播放');
           console.log('📡 音频 URL:', audioUrl);
 
+          // 🔥 第二步：URL 随机因子 - 强制浏览器禁用缓存
+          const cacheBustedUrl = `${audioUrl}?t=${Date.now()}`;
+          console.log('🎲 缓存破坏 URL:', cacheBustedUrl);
+
           // 🔥 使用 createAndPlayAudioFromZero 创建新实例并从 0 秒开始播放
-          audioInstanceRef.current = await createAndPlayAudioFromZero(audioUrl);
+          audioInstanceRef.current = await createAndPlayAudioFromZero(cacheBustedUrl);
 
           if (audioInstanceRef.current) {
             console.log('✅ [GoldenTransition] 音频从 0 秒开始播放成功');
