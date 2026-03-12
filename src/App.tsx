@@ -235,6 +235,8 @@ function App() {
     console.log('🏠 非引流页，执行正常返回主页逻辑');
     console.groupEnd();
 
+    // 🔥 生命周期终结：显式停止所有音频
+    console.log('🎵 [App.tsx] 旅程结束，执行音频生命周期清理');
     stopAllAudio();
     setJourneyData({
       emotions: [],
@@ -247,6 +249,8 @@ function App() {
   }
 
   function handleBackToHome() {
+    // 🔥 生命周期终结：显式停止所有音频
+    console.log('🎵 [App.tsx] 用户返回首页，执行音频生命周期清理');
     stopAllAudio();
     setJourneyData({
       emotions: [],

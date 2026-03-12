@@ -156,29 +156,40 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
     console.log('🔨 创建 Audio 对象...');
     const audio = new Audio();
 
+    // 🔥 物理彻底归零：在设置 src 之前先重置浏览器的音频解析状态
+    console.log('🧹 物理归零：清除浏览器音频缓存状态...');
+    audio.pause();
+    audio.currentTime = 0;
+    audio.removeAttribute('src');
+    audio.load(); // 强制重置浏览器音频解析器
+    console.log('✅ 浏览器音频状态已物理重置');
+
     // 🔥 关键修复：使用 preload='none' 确保不提前加载
     audio.preload = 'none';
     audio.autoplay = false; // 🔥 彻底禁用自动播放
     audio.crossOrigin = 'anonymous';
     audio.volume = 0;  // 🔥 先静音，防止意外播放
-    audio.loop = true;
+    audio.loop = true; // 🔥 强制循环播放，确保音乐永不停止
 
-    console.log('✅ Audio 对象已创建 (preload=none, autoplay=false, volume=0)');
+    console.log('✅ Audio 对象已创建 (preload=none, autoplay=false, volume=0, loop=true)');
     console.log('📊 当前 src:', audio.src || '(empty)');
     console.log('📊 当前 paused:', audio.paused);
     console.log('📊 当前 currentTime:', audio.currentTime);
+    console.log('📊 当前 loop:', audio.loop);
 
     // 🔥 第三步：先注册，再设置 src，确保注册时机正确
     registerAudio(audio);
 
-    // 🔥 第四步：设置 src 前再次确认归零状态
+    // 🔥 第四步：设置 src 前再次确认归零状态和循环设置
     console.log('🔒 设置 src 前再次确认状态...');
     audio.currentTime = 0;
     audio.preload = 'none'; // 再次确认
     audio.autoplay = false; // 再次确认
+    audio.loop = true; // 再次确认循环
     console.log('   currentTime =', audio.currentTime);
     console.log('   preload =', audio.preload);
     console.log('   autoplay =', audio.autoplay);
+    console.log('   loop =', audio.loop);
 
     // 🔥 只在这里设置 src，此时才开始加载
     console.log('📡 设置 audio.src...');
@@ -186,6 +197,7 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
     console.log('📊 设置后 src:', audio.src);
     console.log('📊 设置后 paused:', audio.paused);
     console.log('📊 设置后 currentTime:', audio.currentTime);
+    console.log('📊 设置后 loop:', audio.loop);
 
     // 🔥 显式调用 load()，确保从头开始加载
     console.log('⏳ 调用 audio.load()...');
@@ -245,6 +257,11 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
     console.log('✅ audio.play() 返回成功');
     console.log('📊 播放后即时 currentTime:', audio.currentTime);
     console.log('📊 播放后即时 paused:', audio.paused);
+
+    // 🔥 播放后强制确认循环设置（某些浏览器可能在 play() 后重置）
+    audio.loop = true;
+    console.log('🔄 播放后再次确认 loop = true');
+    console.log('📊 最终 loop 状态:', audio.loop);
 
     // 🔥 播放后 100ms 检查位置（第三次归零）
     setTimeout(() => {
