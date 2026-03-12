@@ -175,6 +175,10 @@ function App() {
   function handleInnerWhisperComplete(journalText: string) {
     console.log('📝 [App.tsx] 日记完成，内容长度:', journalText.length);
 
+    // 🔥 关键修复：进入 GoldenTransition 前，停止所有音频
+    console.log('🔇 [App.tsx] 停止所有音频，准备进入 GoldenTransition');
+    stopAllAudio();
+
     setJourneyData(prev => ({
       ...prev,
       journalContent: journalText
