@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { createAndPlayAudioFromZero, isVideoUrl, playAudioFromZero, stopAllAudio, unregisterAudio } from '../utils/audioManager';
+import { cancelAllBackgroundPreloads } from '../utils/globalBackgroundPreloader';
 import { supabase } from '../lib/supabase';
 
 interface GoldenTransitionProps {
@@ -47,6 +48,10 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
       console.log('🔇 [GoldenTransition] 主 App 场景 - 停止所有旧音频实例');
       stopAllAudio();
     }
+
+    // 🔥 强制取消所有背景预加载，释放带宽和 CPU 资源支撑音频解码
+    console.log('🛑 [GoldenTransition] 取消所有背景预加载，全力支撑音频解码');
+    cancelAllBackgroundPreloads();
 
     let fadeOutTimer: number | undefined;
     let completeTimer: number | undefined;

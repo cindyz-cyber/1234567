@@ -16,6 +16,11 @@ const activeAudioInstances = new Set<HTMLAudioElement>();
 // 🔥 全局单例锁：彻底消灭双重音频实例
 let currentGlobalAudio: HTMLAudioElement | null = null;
 
+// 🔥 Web Audio API 上下文（用于专业级淡入处理）
+let audioContext: AudioContext | null = null;
+let currentGainNode: GainNode | null = null;
+let currentMediaSource: MediaElementAudioSourceNode | null = null;
+
 export const registerAudio = (audio: HTMLAudioElement) => {
   console.log('📝 [audioManager] 注册新音频实例');
   console.log('   URL:', audio.src);
@@ -33,6 +38,27 @@ export const stopAllAudio = async () => {
   console.group('🧹 [audioManager] 停止所有音频');
   console.log('📊 当前活跃音频实例数:', activeAudioInstances.size);
   console.trace('🔍 调用栈:');
+
+  // 🔥 清理 Web Audio API 上下文
+  if (currentGainNode) {
+    console.log('🎚️ [Web Audio] 清理增益节点');
+    try {
+      currentGainNode.disconnect();
+    } catch (err) {
+      console.warn('⚠️ 清理增益节点时出错:', err);
+    }
+    currentGainNode = null;
+  }
+
+  if (currentMediaSource) {
+    console.log('🎚️ [Web Audio] 清理媒体源节点');
+    try {
+      currentMediaSource.disconnect();
+    } catch (err) {
+      console.warn('⚠️ 清理媒体源节点时出错:', err);
+    }
+    currentMediaSource = null;
+  }
 
   // 🔥 清理全局单例锁
   if (currentGlobalAudio) {
@@ -269,17 +295,53 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
     console.log('⏳ 物理延时 200ms 掩护，清除硬件缓冲区残音...');
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    // 🔥 二次强制归零：在静音掩护下彻底重置到 0 帧
-    console.log('🔄 200ms 后二次强制归零...');
-    audio.currentTime = 0;
-    console.log('📊 二次归零后 currentTime:', audio.currentTime);
-    console.log('📊 二次归零后 paused:', audio.paused);
+    // 🔥 首帧硬裁剪：跳过 MP3 元数据头，从有波形处开始（0.1秒）
+    console.log('✂️ 首帧硬裁剪：跳过 MP3 元数据头，设置到 0.1 秒处...');
+    audio.currentTime = 0.1;
+    console.log('📊 硬裁剪后 currentTime:', audio.currentTime);
+    console.log('📊 硬裁剪后 paused:', audio.paused);
 
-    // 🔥 渐入音量：归零后立即恢复音量
-    console.log('🔊 恢复音量到 0.3，正式响起...');
-    audio.volume = 0.3;
-    console.log('✅ 音量恢复完成');
-    console.log('📊 最终状态: currentTime=', audio.currentTime, 'volume=', audio.volume, 'loop=', audio.loop);
+    // 🔥 Web Audio API 专业级淡入（500ms）
+    console.log('🎚️ [Web Audio API] 初始化增益节点淡入...');
+    try {
+      // 创建或复用 AudioContext
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        console.log('✅ AudioContext 已创建');
+      }
+
+      // 创建媒体源节点（连接 <audio> 元素）
+      if (!currentMediaSource) {
+        currentMediaSource = audioContext.createMediaElementSource(audio);
+        console.log('✅ MediaElementSource 已创建');
+      }
+
+      // 创建增益节点（控制音量淡入）
+      currentGainNode = audioContext.createGain();
+      currentGainNode.gain.value = 0; // 从 0 开始
+      console.log('✅ GainNode 已创建，初始增益 = 0');
+
+      // 连接音频链：audio → gainNode → destination
+      currentMediaSource.connect(currentGainNode);
+      currentGainNode.connect(audioContext.destination);
+      console.log('✅ 音频链已连接: audio → gainNode → destination');
+
+      // 恢复原始音量（Web Audio 会接管音量控制）
+      audio.volume = 1.0;
+
+      // 淡入动画：0 → 0.3 (500ms)
+      const now = audioContext.currentTime;
+      currentGainNode.gain.setValueAtTime(0, now);
+      currentGainNode.gain.linearRampToValueAtTime(0.3, now + 0.5);
+      console.log('🎚️ 淡入动画已启动：0 → 0.3 (500ms)');
+      console.log('📊 最终状态: currentTime=', audio.currentTime, 'gain=0→0.3', 'loop=', audio.loop);
+    } catch (webAudioError) {
+      console.warn('⚠️ Web Audio API 初始化失败，降级到传统音量控制:', webAudioError);
+      // 降级方案：直接恢复音量
+      audio.volume = 0.3;
+      console.log('🔊 降级恢复音量到 0.3');
+      console.log('📊 最终状态: currentTime=', audio.currentTime, 'volume=', audio.volume, 'loop=', audio.loop);
+    }
 
     // 🔥 将新实例赋值给全局单例锁
     currentGlobalAudio = audio;

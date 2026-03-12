@@ -34,6 +34,7 @@ const isSlowConnection = (() => {
 class GlobalBackgroundPreloader {
   private injectedLinks = new Set<string>();
   private preloadQueue: PreloadLink[] = [];
+  private activePreloadElements: HTMLLinkElement[] = []; // 🔥 跟踪所有预加载元素
 
   /**
    * 扫描所有背景资源并生成预加载队列（智能筛选）
@@ -109,8 +110,39 @@ class GlobalBackgroundPreloader {
     // 添加到 Head
     document.head.appendChild(linkElement);
     this.injectedLinks.add(link.href);
+    this.activePreloadElements.push(linkElement); // 🔥 记录元素引用
 
     console.log(`📥 预加载注入: ${link.as} - ${link.href.split('/').pop()} (优先级: ${link.priority})`);
+  }
+
+  /**
+   * 🔥 强制取消所有背景预加载（音频播放时调用）
+   */
+  cancelAllBackgroundPreloads(): void {
+    console.group('🛑 [GlobalBackgroundPreloader] 强制取消所有预加载');
+    console.log('📊 当前活跃预加载元素数:', this.activePreloadElements.length);
+
+    let canceledCount = 0;
+    this.activePreloadElements.forEach((linkElement) => {
+      try {
+        // 从 DOM 中移除 <link> 元素，浏览器会停止加载
+        if (linkElement.parentNode) {
+          linkElement.parentNode.removeChild(linkElement);
+          canceledCount++;
+          console.log(`   ✅ 已移除: ${linkElement.href.split('/').pop()}`);
+        }
+      } catch (err) {
+        console.warn('   ⚠️ 移除失败:', err);
+      }
+    });
+
+    // 清空跟踪数组
+    this.activePreloadElements = [];
+    this.injectedLinks.clear();
+
+    console.log(`✅ 已取消 ${canceledCount} 个预加载任务`);
+    console.log('📊 释放带宽和 CPU 资源，全力支撑音频解码');
+    console.groupEnd();
   }
 
   /**
@@ -171,4 +203,11 @@ export const globalBackgroundPreloader = new GlobalBackgroundPreloader();
  */
 export async function initializeGlobalBackgroundPreload(): Promise<void> {
   return globalBackgroundPreloader.startGlobalPreload();
+}
+
+/**
+ * 🔥 在 GoldenTransition 挂载时调用，强制取消所有预加载
+ */
+export function cancelAllBackgroundPreloads(): void {
+  return globalBackgroundPreloader.cancelAllBackgroundPreloads();
 }
