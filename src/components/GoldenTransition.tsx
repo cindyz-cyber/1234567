@@ -18,6 +18,7 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
   const [showButton, setShowButton] = useState(false);
   const [currentBackgroundMusic, setCurrentBackgroundMusic] = useState<HTMLAudioElement | null>(null);
   const audioInstanceRef = useRef<HTMLAudioElement | null>(null);
+  const isInitializingRef = useRef(false); // 🔥 初始化锁
   const defaultVideoUrl = 'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
 
   // 智能视频 URL 选择：
@@ -51,11 +52,18 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
     const transitionDuration = 10000;
 
     const initializeAudio = async () => {
+      // 🔥 初始化锁：防止重复调用
+      if (isInitializingRef.current) {
+        console.warn('⚠️ [GoldenTransition] 已在初始化中，屏蔽重复调用');
+        return;
+      }
+
+      isInitializingRef.current = true;
       console.group('⚡ [GoldenTransition] 音频初始化流程');
 
       // 🔥 第一步：创建前硬清理 - 物理隔绝双实例
       console.log('🧹 创建前硬清理：停止所有音频并清空现有实例');
-      stopAllAudio();
+      await stopAllAudio(); // 🔥 改为同步等待
       if (audioInstanceRef.current) {
         console.log('🗑️ 清理 audioInstanceRef.current');
         audioInstanceRef.current.pause();
@@ -220,6 +228,10 @@ export default function GoldenTransition({ userName, higherSelfName, onComplete,
         console.warn('💡 主 App: 请到音频管理后台上传音频');
         console.warn('💡 ShareJournal: 请到后台 /admin/share-config 配置 bg_music_url');
       }
+
+      // 🔥 释放初始化锁
+      isInitializingRef.current = false;
+      console.groupEnd();
 
       // 如果启用自动跳转，使用定时器
       if (autoAdvance) {

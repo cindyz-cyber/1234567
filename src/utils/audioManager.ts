@@ -13,6 +13,9 @@ interface AudioFile {
 
 const activeAudioInstances = new Set<HTMLAudioElement>();
 
+// 🔥 全局单例锁：彻底消灭双重音频实例
+let currentGlobalAudio: HTMLAudioElement | null = null;
+
 export const registerAudio = (audio: HTMLAudioElement) => {
   console.log('📝 [audioManager] 注册新音频实例');
   console.log('   URL:', audio.src);
@@ -26,10 +29,23 @@ export const unregisterAudio = (audio: HTMLAudioElement) => {
   activeAudioInstances.delete(audio);
 };
 
-export const stopAllAudio = () => {
+export const stopAllAudio = async () => {
   console.group('🧹 [audioManager] 停止所有音频');
   console.log('📊 当前活跃音频实例数:', activeAudioInstances.size);
   console.trace('🔍 调用栈:');
+
+  // 🔥 清理全局单例锁
+  if (currentGlobalAudio) {
+    console.log('🔒 [单例锁] 清理全局单例');
+    try {
+      currentGlobalAudio.pause();
+      currentGlobalAudio.src = '';
+      currentGlobalAudio.load();
+    } catch (err) {
+      console.warn('⚠️ 清理全局单例时出错:', err);
+    }
+    currentGlobalAudio = null;
+  }
 
   let stoppedCount = 0;
   activeAudioInstances.forEach((audio, index) => {
@@ -116,17 +132,38 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
   console.log('📡 目标 URL:', url);
   console.log('📊 调用前活跃音频数:', activeAudioInstances.size);
 
+  // 🔥 全局单例锁：硬核清理现有实例
+  if (currentGlobalAudio) {
+    console.group('🧹 [单例锁] 检测到现有全局音频实例，强制清理');
+    console.log('🗑️ 现有实例 URL:', currentGlobalAudio.src);
+    console.log('📊 现有实例状态:', currentGlobalAudio.paused ? '暂停' : '播放中');
+
+    try {
+      currentGlobalAudio.pause();
+      currentGlobalAudio.src = '';
+      currentGlobalAudio.load(); // 强制释放内存
+      activeAudioInstances.delete(currentGlobalAudio);
+      console.log('✅ 现有实例已销毁并从集合中移除');
+    } catch (err) {
+      console.warn('⚠️ 清理现有实例时出错:', err);
+    }
+
+    currentGlobalAudio = null;
+    console.groupEnd();
+  }
+
   try {
     console.log('🔨 创建 Audio 对象...');
     const audio = new Audio();
 
     // 🔥 关键修复：使用 preload='none' 确保不提前加载
     audio.preload = 'none';
+    audio.autoplay = false; // 🔥 彻底禁用自动播放
     audio.crossOrigin = 'anonymous';
     audio.volume = 0;  // 🔥 先静音，防止意外播放
     audio.loop = true;
 
-    console.log('✅ Audio 对象已创建 (preload=none, volume=0)');
+    console.log('✅ Audio 对象已创建 (preload=none, autoplay=false, volume=0)');
     console.log('📊 当前 src:', audio.src || '(empty)');
     console.log('📊 当前 paused:', audio.paused);
     console.log('📊 当前 currentTime:', audio.currentTime);
@@ -137,8 +174,11 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
     // 🔥 第四步：设置 src 前再次确认归零状态
     console.log('🔒 设置 src 前再次确认状态...');
     audio.currentTime = 0;
+    audio.preload = 'none'; // 再次确认
+    audio.autoplay = false; // 再次确认
     console.log('   currentTime =', audio.currentTime);
     console.log('   preload =', audio.preload);
+    console.log('   autoplay =', audio.autoplay);
 
     // 🔥 只在这里设置 src，此时才开始加载
     console.log('📡 设置 audio.src...');
@@ -218,6 +258,10 @@ export const createAndPlayAudioFromZero = async (url: string): Promise<HTMLAudio
         console.log('   ✅ 播放位置验证通过');
       }
     }, 100);
+
+    // 🔥 将新实例赋值给全局单例锁
+    currentGlobalAudio = audio;
+    console.log('🔒 [单例锁] 新实例已设为全局单例');
 
     console.log('✅ createAndPlayAudioFromZero 完成');
     console.log('📊 返回前活跃音频数:', activeAudioInstances.size);
