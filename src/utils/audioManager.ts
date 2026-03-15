@@ -90,4 +90,14 @@ export function unregisterAudio(audio: HTMLAudioElement | null) {
 export function isVideoUrl(url: string | null | undefined): boolean {
   if (!url) return false;
   return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mov');
-}
+}/**
+ * ⚡ 预热音频上下文（补全 Netlify 缺失的函数）
+ */
+export const warmupAudioContext = async () => {
+  const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+  if (AudioContext) {
+    const ctx = new AudioContext();
+    if (ctx.state === 'suspended') await ctx.resume();
+  }
+  console.log('✅ 音频上下文已预热');
+};
