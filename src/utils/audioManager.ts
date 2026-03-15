@@ -59,8 +59,8 @@ export function isVideoUrl(url: string | null | undefined): boolean {
 }
 
 /**
- * 绝对物理锁：在 play() 前用 setInterval 每 5ms 将 currentTime 归零，持续 200ms，muted=true
- * 确保零秒起跳、无幽灵音频
+ * 绝对物理锁：在 play() 前用 setInterval 每 10ms 将 currentTime 归零，持续 500ms，muted=true
+ * 彻底绕过缓存与断点续传，确保零秒起跳（解决 30 分钟音频从 20 分钟处播放）
  */
 export async function createAndPlayAudioFromZero(
   src: string,
@@ -102,7 +102,7 @@ export async function createAndPlayAudioFromZero(
       try {
         audio.currentTime = 0;
       } catch (_) {}
-    }, 5);
-    setTimeout(unlock, 200);
+    }, 10);
+    setTimeout(unlock, 500);
   });
 }

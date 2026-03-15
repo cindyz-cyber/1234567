@@ -46,27 +46,25 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// 激活事件：清理旧版本缓存
+// 激活事件：清除所有缓存并彻底注销 Service Worker（避免大型音频断点续传缓存导致播放偏移）
 self.addEventListener('activate', (event) => {
-  console.log('🔄 Service Worker 激活中...');
+  console.log('🔄 Service Worker 激活中 - 即将注销并清除缓存...');
 
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => {
-            console.log('🗑️  删除旧缓存:', name);
-            return caches.delete(name);
-          })
+        cacheNames.map((name) => {
+          console.log('🗑️  删除缓存:', name);
+          return caches.delete(name);
+        })
       );
     }).then(() => {
-      console.log('✅ Service Worker 已激活，当前缓存:', CACHE_NAME);
+      console.log('✅ 所有缓存已清除，正在注销 Service Worker');
+      return self.registration.unregister();
+    }).then(() => {
+      console.log('✅ Service Worker 已注销');
     })
   );
-
-  // 立即接管所有页面
-  self.clients.claim();
 });
 
 // Fetch 事件：Cache First (缓存优先) 策略

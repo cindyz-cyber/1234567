@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import NamingRitual from './NamingRitual';
 import HomePage from './HomePage';
 import DynamicStepBackground from './DynamicStepBackground';
-import { playBackgroundMusicLoop, playShareBackgroundMusic, isVideoUrl } from '../utils/audioManager';
+import { isVideoUrl } from '../utils/audioManager';
 import { shareBackgroundPreloader } from '../utils/shareBackgroundPreloader';
 import { getPageContent } from '../utils/pageContentService';
 import { loadPageVisibility, getNextVisiblePage, type PageName } from '../utils/pageVisibilityService';
