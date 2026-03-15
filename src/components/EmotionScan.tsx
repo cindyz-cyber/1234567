@@ -1,4 +1,21 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+
+// --- Golden Transition 显示延迟控制工具 ---
+// 等待音频加载成功后，强制延迟至少 3 秒（3000ms）再继续过渡
+export const waitForGoldenTransitionMinimum = async (promise: Promise<any>) => {
+  const minTime = 3000; // 3 秒
+  const start = Date.now();
+
+  // 等待音频加载（或其他传入的异步任务）完成
+  const result = await promise;
+
+  const elapsed = Date.now() - start;
+  if (elapsed < minTime) {
+    await new Promise(resolve => setTimeout(resolve, minTime - elapsed));
+  }
+  // 3秒已保证，允许回调
+  return result;
+};
 import { ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
 import PortalBackground from './PortalBackground';

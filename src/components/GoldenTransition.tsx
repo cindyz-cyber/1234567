@@ -1,4 +1,22 @@
 import { useEffect, useState, useRef } from 'react';
+
+/**
+ * 等待音频加载成功后，延长 Golden Transition 展示时间至少 3 秒。
+ * 用法：await waitForGoldenTransitionMinimum(promise)
+ */
+export const waitForGoldenTransitionMinimum = async (promise: Promise<any>) => {
+  const minTime = 3000; // ms
+  const start = Date.now();
+
+  // 等待音频加载（或其他 promise）
+  const result = await promise;
+
+  const elapsed = Date.now() - start;
+  if (elapsed < minTime) {
+    await new Promise(resolve => setTimeout(resolve, minTime - elapsed));
+  }
+  return result;
+};
 import { createAndPlayAudioFromZero, isVideoUrl, playAudioFromZero, stopAllAudio, unregisterAudio } from '../utils/audioManager';
 import { cancelAllBackgroundPreloads } from '../utils/globalBackgroundPreloader';
 import { supabase } from '../lib/supabase';
