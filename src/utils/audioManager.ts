@@ -49,6 +49,46 @@ export const stopAllAudio = async () => {
 // --- 核心业务逻辑：战神级死亡重置 ---
 
 export const createAndPlayAudioFromZero = async (src: string, volume: number = 0.3): Promise<HTMLAudioElement | null> => {
+  // ⚡ [GoldenTransition] 开始极限归零锁定...
+  await stopAllAudio();
+  const audio = new Audio(src);
+  audio.preload = 'auto';
+  audio.loop = true;
+  audio.muted = true;
+  registerAudio(audio);
+
+  audio.src = src;
+  audio.pause();
+
+  // 💀 10次强制归零逻辑
+  for (let i = 0; i < 10; i++) {
+    audio.currentTime = 0;
+    await new Promise(res => setTimeout(res, 30)); 
+  }
+
+  try {
+    await audio.play();
+    audio.muted = false;
+    audio.volume = volume;
+    audio.currentTime = 0; 
+    currentGlobalAudio = audio;
+
+    // 💀 核心补丁：在组件层面再次暴力重置，防止 React 渲染干扰
+    audio.pause();
+    audio.currentTime = 0;
+
+    // 这里的延迟是为了躲开浏览器的渲染波峰
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    audio.currentTime = 0;
+    await audio.play();
+
+    console.log("✅ [GoldenTransition] 锁定成功，当前位置:", audio.currentTime);
+  } catch (err) {
+    console.error('播放失败:', err);
+  }
+  return audio;
+};
   await stopAllAudio();
   const audio = new Audio(src);
   audio.preload = 'auto';
