@@ -1,92 +1,115 @@
+import { useEffect, useState, useRef } from 'react';
+import { createAndPlayAudioFromZero, isVideoUrl, stopAllAudio } from '../utils/audioManager';
+import { cancelAllBackgroundPreloads } from '../utils/globalBackgroundPreloader';
 import { supabase } from '../lib/supabase';
 
-const activeAudioInstances = new Set<HTMLAudioElement>();
-let currentGlobalAudio: HTMLAudioElement | null = null;
-
-export const registerAudio = (audio: HTMLAudioElement) => activeAudioInstances.add(audio);
-export const unregisterAudio = (audio: HTMLAudioElement) => activeAudioInstances.delete(audio);
-
-export const stopAllAudio = async () => {
-  if (currentGlobalAudio) {
-    currentGlobalAudio.pause();
-    currentGlobalAudio.src = '';
-    currentGlobalAudio.load();
-    currentGlobalAudio = null;
-  }
-  activeAudioInstances.forEach(audio => {
-    try { audio.pause(); audio.src = ''; audio.load(); } catch (e) {}
-  });
-  activeAudioInstances.clear();
-};
-
-/**
- * ⚡ 战神级：物理归零并实时锁定
- */
-export async function createAndPlayAudioFromZero(src: string, volume: number = 0.3): Promise<HTMLAudioElement | null> {
-  await stopAllAudio();
-  const audio = new Audio(src);
-  audio.preload = 'auto';
-  audio.loop = true;
-  audio.muted = true; // ⚠️ 关键：先静音，防止跳秒时的爆音
-  registerAudio(audio);
-
-  audio.src = src;
-  
-  try {
-    await audio.play();
-    
-    // 💀 核心锁定：在播放开始后的 200ms 内，每 20ms 强行拉回 0 秒
-    let lockCount = 0;
-    const locker = setInterval(() => {
-      audio.currentTime = 0;
-      lockCount++;
-      if (lockCount > 10) {
-        clearInterval(locker);
-        audio.muted = false; // 锁定稳了再开声音
-        audio.volume = volume;
-        console.log("✅ [AudioManager] 归零锁定完成");
-      }
-    }, 20);
-
-    currentGlobalAudio = audio;
-  } catch (err) {
-    console.error('播放失败:', err);
-  }
-  return audio;
+interface GoldenTransitionProps {
+  userName: string;
+  higherSelfName: string;
+  onComplete: (backgroundMusic: HTMLAudioElement | null) => void;
+  backgroundMusicUrl?: string | null;
+  backgroundVideoUrl?: string | null;
+  globalAudio?: HTMLAudioElement | null;
+  isMusicVideo?: boolean;
+  autoAdvance?: boolean;
 }
 
-// 补全兼容接口，防止其他页面报错
-export const warmupAudioContext = async () => {
-  const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-  if (AudioContext) {
-    const ctx = new AudioContext();
-    if (ctx.state === 'suspended') await ctx.resume();
-  }
-};
-const initializeAudio = async () => {
-  if (isInitializingRef.current) return;
-  isInitializingRef.current = true;
-
-  // 1. 确定 URL（这里保留你之前的随机化 URL 逻辑）
-  const cacheBustedUrl = `${audioUrl}?t=${Date.now()}`;
-
-  // 2. 🚀 关键：只这一行，把所有脏活累活全丢给 Manager
-  // 因为 Manager 内部已经写好了：静音 -> 播放 -> 200ms 内强制归零锁定 -> 开声音
-  audioInstanceRef.current = await createAndPlayAudioFromZero(cacheBustedUrl);
+export default function GoldenTransition({ 
+  userName, higherSelfName, onComplete, backgroundMusicUrl, 
+  backgroundVideoUrl, globalAudio, isMusicVideo = false, autoAdvance = true 
+}: GoldenTransitionProps) {
+  const [fadeOut, setFadeOut] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+  const [currentBackgroundMusic, setCurrentBackgroundMusic] = useState<HTMLAudioElement | null>(null);
+  const audioInstanceRef = useRef<HTMLAudioElement | null>(null);
+  const isInitializingRef = useRef(false);
+  const transitionCompletedRef = useRef(false);
   
-  if (audioInstanceRef.current) {
-    setCurrentBackgroundMusic(audioInstanceRef.current);
-  }
+  const defaultVideoUrl = 'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
+  const isMediaUrlVideo = backgroundMusicUrl && isVideoUrl(backgroundMusicUrl);
+  const effectiveVideoUrl = isMediaUrlVideo ? backgroundMusicUrl : (backgroundVideoUrl || defaultVideoUrl);
 
-  isInitializingRef.current = false;
-  
-  // 3. 后面的定时器（fadeOutTimer）保持不动
-};
+  useEffect(() => {
+    // 1. 挂载时清理旧音频和预加载
+    stopAllAudio();
+    cancelAllBackgroundPreloads();
 
+    let fadeOutTimer: number;
+    let completeTimer: number;
+    const transitionDuration = 10000;
 
+    const initializeAudio = async () => {
+      if (isInitializingRef.current) return;
+      isInitializingRef.current = true;
 
-export function isVideoUrl(url: string | null | undefined): boolean {
-  if (!url) return false;
-  const cleanUrl = url.split('?')[0].toLowerCase();
-  return cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm') || cleanUrl.endsWith('.mov');
+      // 确定 URL
+      let audioUrl = backgroundMusicUrl;
+      if (!audioUrl && !globalAudio) {
+        const { data } = await supabase.from('audio_files').select('file_path').eq('is_active', true).eq('file_type', 'guidance').limit(1).maybeSingle();
+        if (data?.file_path) {
+          audioUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/audio-files/${data.file_path}`;
+        }
+      }
+
+      // 🚀 核心：直接调用管理器，让 manager 里的“战神逻辑”接管
+      if (audioUrl && !isMediaUrlVideo) {
+        const cacheBustedUrl = `${audioUrl}?t=${Date.now()}`;
+        audioInstanceRef.current = await createAndPlayAudioFromZero(cacheBustedUrl);
+        if (audioInstanceRef.current) {
+          setCurrentBackgroundMusic(audioInstanceRef.current);
+        }
+      }
+
+      isInitializingRef.current = false;
+
+      // 倒计时逻辑
+      if (autoAdvance) {
+        fadeOutTimer = window.setTimeout(() => setFadeOut(true), transitionDuration - 1000);
+        completeTimer = window.setTimeout(() => {
+          transitionCompletedRef.current = true;
+          onComplete(audioInstanceRef.current);
+        }, transitionDuration);
+      }
+    };
+
+    initializeAudio();
+
+    return () => {
+      if (fadeOutTimer) clearTimeout(fadeOutTimer);
+      if (completeTimer) clearTimeout(completeTimer);
+      if (audioInstanceRef.current && !transitionCompletedRef.current) {
+        audioInstanceRef.current.pause();
+        audioInstanceRef.current.src = '';
+      }
+    };
+  }, [onComplete, backgroundMusicUrl, backgroundVideoUrl, isMediaUrlVideo, globalAudio, autoAdvance]);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden" 
+         style={{ opacity: fadeOut ? 0 : 1, transition: 'opacity 2s ease' }}>
+      <div className="fixed inset-0 w-full h-full z-[-1] bg-[#020d0a]">
+        <video autoPlay loop muted={!isMusicVideo} playsInline className="w-full h-full object-cover opacity-60">
+          <source src={effectiveVideoUrl} type="video/mp4" />
+        </video>
+      </div>
+      
+      <div className="divine-golden-tree"></div>
+
+      <div className="text-center z-10">
+        <p className="text-[#F7E7CE] text-lg tracking-[0.4em] mb-4">带着问题，闭上眼， 打开心。。。</p>
+        <p className="text-[#F7E7CE] opacity-70 tracking-[0.3em]">正在连接你的 {higherSelfName}</p>
+      </div>
+
+      <style>{`
+        .divine-golden-tree { 
+          width: 280px; height: 280px; border-radius: 50%; 
+          border: 2px solid rgba(255, 230, 120, 0.8);
+          box-shadow: 0 0 50px rgba(255, 220, 100, 0.5);
+          margin-bottom: 2rem;
+          animation: pulse 4s infinite;
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+      `}</style>
+    </div>
+  );
 }
