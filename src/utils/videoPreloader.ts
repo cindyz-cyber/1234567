@@ -188,3 +188,5 @@ export const videoPreloader = new VideoPreloadService();
 export async function initializeVideoPreload(): Promise<void> {
   return videoPreloader.preloadAllVideos();
 }
+// 兼容性导出：确保无论 main.tsx 怎么叫，都能找到它
+export const VideoPreloader = videoPreloader;
