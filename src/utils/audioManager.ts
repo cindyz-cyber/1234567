@@ -3,34 +3,46 @@ import { supabase } from '../lib/supabase';
 const activeAudioInstances = new Set<HTMLAudioElement>();
 let currentGlobalAudio: HTMLAudioElement | null = null;
 
+/**
+ * 补全 Netlify 报错缺失的函数
+ */
+export const warmupAudioContext = async () => {
+  const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+  if (AudioContext) {
+    const ctx = new AudioContext();
+    if (ctx.state === 'suspended') await ctx.resume();
+  }
+};
+
+export const registerAudio = (audio: HTMLAudioElement) => activeAudioInstances.add(audio);
+export const unregisterAudio = (audio: HTMLAudioElement) => activeAudioInstances.delete(audio);
+
 export const stopAllAudio = async () => {
   activeAudioInstances.forEach(audio => {
-    audio.pause();
-    audio.src = '';
-    audio.load();
-    audio.remove(); // 物理移除
+    try {
+      audio.pause();
+      audio.src = '';
+      audio.load();
+    } catch (e) {}
   });
   activeAudioInstances.clear();
   currentGlobalAudio = null;
 };
 
 /**
- * ⚡ 战神级：物理拦截锁定
- * 确保音频在真正“获准”播放前，一秒钟都不能多跑
+ * ⚡ 物理拦截锁定版：彻底解决“偷跑 3-4 秒”的问题
  */
 export async function createAndPlayAudioFromZero(src: string, volume: number = 0.3): Promise<HTMLAudioElement | null> {
-  // 1. 先把所有可能在后台偷跑的噪音全杀了
+  // 1. 物理超度所有可能在后台跑的幽灵声音
   await stopAllAudio();
 
   const audio = new Audio();
   audio.preload = 'auto';
   audio.loop = true;
-  
-  // 🔥 关键：初始状态必须是暂停+静音
   audio.muted = true;
   audio.volume = 0;
   
-  // 2. 赋予地址但不准动
+  // 2. 核心：在静默状态下赋予地址，并反复按死在 0 秒
   audio.src = src;
   audio.pause(); 
   audio.currentTime = 0;
@@ -38,24 +50,24 @@ export async function createAndPlayAudioFromZero(src: string, volume: number = 0
   activeAudioInstances.add(audio);
 
   try {
-    // 3. 💀 暴力锁定：即使它想播，我也每 10ms 把它的进度拽回 0
+    // 3. 💀 物理拦截：每 10ms 拽回一次，持续 200ms
     let lockInterval = setInterval(() => {
       audio.currentTime = 0;
     }, 10);
 
-    // 4. 等待 150ms 确保浏览器彻底认领了“从 0 开始”的指令
-    await new Promise(resolve => setTimeout(resolve, 150));
+    // 等待浏览器缓冲区稳定
+    await new Promise(resolve => setTimeout(resolve, 200));
 
-    // 5. 正式启动
+    // 4. 正式启动播放
     await audio.play();
     
-    // 6. 确认起跳成功后再解锁
+    // 5. 确认起跳后放开音量
     setTimeout(() => {
       clearInterval(lockInterval);
       audio.muted = false;
       audio.volume = volume;
-      audio.currentTime = 0; // 最后一推
-      console.log("✅ [AudioManager] 拦截结束，精准 0 秒起跳");
+      audio.currentTime = 0; 
+      console.log("🔥 [AudioManager] 拦截结束，精准 0 秒起跳");
     }, 50);
 
     currentGlobalAudio = audio;
@@ -65,4 +77,15 @@ export async function createAndPlayAudioFromZero(src: string, volume: number = 0
   return audio;
 }
 
-// 补全兼容接口... (保留 warmupAudioContext 和 isVideoUrl)
+// 兼容老代码的接口
+export const playAudioFromZero = async (audio: HTMLAudioElement) => {
+  if (!audio) return;
+  audio.currentTime = 0;
+  await audio.play();
+};
+
+export function isVideoUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  const cleanUrl = url.split('?')[0].toLowerCase();
+  return cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm') || cleanUrl.endsWith('.mov');
+}
