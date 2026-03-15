@@ -1,0 +1,529 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Share2 } from 'lucide-react';
+import {
+  calculateKin,
+  calculateEnergyProfile,
+  calculateFamilyCollision,
+  generateEnergyReport,
+  generateDeepPortrait,
+  detectRelationshipSynergy,
+  type KinData,
+  type EnergyProfile,
+  type RelationshipSynergy
+} from '../utils/mayaCalendar';
+import { generateEnergyReport as generateNewEnergyReport } from '../utils/energyPortraitEngine';
+import ImmersiveDatePicker from './ImmersiveDatePicker';
+import QuantumResonanceAdder, { type ResonancePerson } from './QuantumResonanceAdder';
+import CalibrationButton from './CalibrationButton';
+import EnergyRadarChart from './EnergyRadarChart';
+import EnergyPortraitReport from './EnergyPortraitReport';
+
+interface PersonData {
+  birthDate: Date | null;
+  kinData: KinData | null;
+  profile: EnergyProfile | null;
+  midnightType?: 'early' | 'late' | null;
+}
+
+export default function EnergyPerson() {
+  const [myData, setMyData] = useState<PersonData>({
+    birthDate: null,
+    kinData: null,
+    profile: null,
+    midnightType: null
+  });
+
+  const [resonancePersons, setResonancePersons] = useState<ResonancePerson[]>([]);
+  const [finalProfile, setFinalProfile] = useState<EnergyProfile | null>(null);
+  const [showReport, setShowReport] = useState(false);
+  const [synergies, setSynergies] = useState<RelationshipSynergy[]>([]);
+  const [useNewReport, setUseNewReport] = useState(true);
+  const [generatedReport, setGeneratedReport] = useState<any | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const previousResonancePersonsRef = useRef<ResonancePerson[]>([]);
+
+  useEffect(() => {
+    if (!myData.kinData) return;
+
+    let profile = calculateEnergyProfile(myData.kinData);
+    const detectedSynergies: RelationshipSynergy[] = [];
+
+    resonancePersons.forEach((person) => {
+      if (person.birthDate && person.kinData) {
+        const relationMap: Record<string, 'father' | 'mother' | 'child'> = {
+          'father': 'father',
+          'mother': 'mother',
+          'child': 'child',
+          'partner': 'child',
+          'other': 'child'
+        };
+
+        const relation = relationMap[person.relationship] || 'child';
+
+        profile = calculateFamilyCollision(
+          profile,
+          myData.kinData,
+          calculateEnergyProfile(person.kinData),
+          person.kinData,
+          relation
+        );
+
+        const synergy = detectRelationshipSynergy(myData.kinData, person.kinData, relation);
+        detectedSynergies.push(synergy);
+      }
+    });
+
+    setFinalProfile(profile);
+    setSynergies(detectedSynergies);
+  }, [myData.kinData, resonancePersons]);
+
+  // 当 resonancePersons 发生变化且已经显示报告时，自动重新生成报告
+  useEffect(() => {
+    const hasChanged = JSON.stringify(resonancePersons) !== JSON.stringify(previousResonancePersonsRef.current);
+
+    if (hasChanged && showReport && generatedReport && myData.kinData && myData.birthDate && !isGeneratingReport) {
+      const familyData = resonancePersons
+        .filter(p => p.kinData && p.birthDate)
+        .map(p => ({
+          name: p.name || '家人',
+          kin: p.kinData!.kin,
+          birthDate: p.birthDate!,
+          hour: p.midnightType === 'early' ? 0 : p.midnightType === 'late' ? 23 : undefined
+        }));
+
+      const userHour = myData.midnightType === 'early' ? 0 : myData.midnightType === 'late' ? 23 : undefined;
+
+      console.log('🔄 检测到家人数据变化，自动重新生成报告');
+
+      setIsGeneratingReport(true);
+      generateNewEnergyReport(
+        myData.kinData.kin,
+        familyData,
+        myData.birthDate,
+        userHour
+      ).then(report => {
+        report.midnightType = myData.kinData!.midnightType || null;
+        report.secondaryKin = myData.kinData!.secondaryKin;
+        report.toneName = myData.kinData!.toneName;
+        report.sealName = myData.kinData!.sealName;
+
+        console.log('✅ 自动重新生成报告完成，包含量子共振数据:', {
+          kin: report.kin,
+          resonanceCount: report.quantumResonances?.length || 0,
+          resonances: report.quantumResonances?.map(r => ({
+            member: r.familyMember,
+            type: r.typeLabel,
+            strength: r.synergyStrength
+          }))
+        });
+
+        setGeneratedReport(report);
+      }).catch(error => {
+        console.error('Failed to auto-regenerate report:', error);
+      }).finally(() => {
+        setIsGeneratingReport(false);
+      });
+    }
+
+    previousResonancePersonsRef.current = resonancePersons;
+  }, [resonancePersons, showReport, generatedReport, myData, isGeneratingReport]);
+
+  const handleMyDateSelect = async (dateString: string, midnightType: 'early' | 'late' | null) => {
+    if (!dateString) return;
+
+    const birthDate = new Date(dateString);
+    const kinData = calculateKin(birthDate, midnightType);
+
+    // 如果是子时，需要用加权合成的能量
+    let profile: EnergyProfile;
+
+    if (midnightType && kinData.secondaryKin) {
+      // 子时双Kin合成
+      const primaryProfile = calculateEnergyProfile(kinData);
+      const secondaryKinData = calculateKin(birthDate, null);
+      secondaryKinData.kin = kinData.secondaryKin;
+      const secondaryProfile = calculateEnergyProfile(secondaryKinData);
+
+      const primaryWeight = midnightType === 'early' ? 0.4 : 0.6;
+      const secondaryWeight = midnightType === 'early' ? 0.6 : 0.4;
+
+      profile = {
+        heart: Math.round(primaryProfile.heart * primaryWeight + secondaryProfile.heart * secondaryWeight),
+        throat: Math.round(primaryProfile.throat * primaryWeight + secondaryProfile.throat * secondaryWeight),
+        pineal: Math.round(primaryProfile.pineal * primaryWeight + secondaryProfile.pineal * secondaryWeight)
+      };
+    } else {
+      profile = calculateEnergyProfile(kinData);
+    }
+
+    setMyData({ birthDate, kinData, profile, midnightType });
+    // 不自动生成报告，等待用户手动点击"生成报告"按钮
+  };
+
+  const handleResonanceDateSelect = async (
+    id: string,
+    dateString: string,
+    midnightType: 'early' | 'late' | null
+  ) => {
+    if (!dateString) return;
+
+    const birthDate = new Date(dateString);
+    const kinData = calculateKin(birthDate, midnightType);
+
+    setResonancePersons((prev) =>
+      prev.map((person) =>
+        person.id === id
+          ? { ...person, birthDate, kinData, midnightType }
+          : person
+      )
+    );
+
+    // 不自动生成报告，等待用户手动点击"生成完整报告"按钮
+  };
+
+  const handleGenerateReport = async () => {
+    if (!myData.kinData || !myData.birthDate) return;
+
+    setIsGeneratingReport(true);
+    try {
+      // 准备家人信息（包含完整日期数据）
+      const familyData = resonancePersons
+        .filter(p => p.kinData && p.birthDate)
+        .map(p => ({
+          name: p.name || '家人',
+          kin: p.kinData!.kin,
+          birthDate: p.birthDate!,
+          hour: p.midnightType === 'early' ? 0 : p.midnightType === 'late' ? 23 : undefined
+        }));
+
+      // 计算用户的小时（根据子时类型）
+      const userHour = myData.midnightType === 'early' ? 0 : myData.midnightType === 'late' ? 23 : undefined;
+
+      console.log('🔍 前端调用数据检查：', {
+        userKin: myData.kinData.kin,
+        userBirthDate: myData.birthDate,
+        userHour,
+        familyCount: familyData.length,
+        familyData: familyData.map(f => ({
+          name: f.name,
+          kin: f.kin,
+          hasDate: !!f.birthDate,
+          hour: f.hour
+        }))
+      });
+
+      // 使用三层架构生成报告
+      const report = await generateNewEnergyReport(
+        myData.kinData.kin,
+        familyData,
+        myData.birthDate,
+        userHour
+      );
+
+      // 添加子时信息
+      report.midnightType = myData.kinData.midnightType || null;
+      report.secondaryKin = myData.kinData.secondaryKin;
+      report.toneName = myData.kinData.toneName;
+      report.sealName = myData.kinData.sealName;
+
+      console.log('✅ 报告生成完成，包含量子共振数据:', {
+        kin: report.kin,
+        resonanceCount: report.quantumResonances?.length || 0,
+        resonances: report.quantumResonances?.map(r => ({
+          member: r.familyMember,
+          type: r.typeLabel,
+          strength: r.synergyStrength
+        }))
+      });
+
+      setGeneratedReport(report);
+      setShowReport(true);
+    } catch (error) {
+      console.error('Failed to generate report:', error);
+      alert('生成报告失败，请重试');
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!myData.kinData || !finalProfile) return;
+
+    const motherKin = resonancePersons.find(p => p.relationship === 'mother')?.kinData;
+    const fatherKin = resonancePersons.find(p => p.relationship === 'father')?.kinData;
+
+    const report = generateEnergyReport(
+      myData.kinData,
+      finalProfile,
+      motherKin || undefined,
+      fatherKin || undefined,
+      synergies
+    );
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '我的先天能量版本',
+          text: report
+        });
+      } catch (err) {
+        console.log('Share cancelled');
+      }
+    } else {
+      navigator.clipboard.writeText(report);
+      alert('报告已复制到剪贴板');
+    }
+  };
+
+  return (
+    <div className="min-h-screen pb-32 px-6 relative overflow-hidden">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        crossOrigin="anonymous"
+        className="fixed top-0 left-0 w-full h-full object-cover"
+        style={{
+          zIndex: -20,
+          backgroundColor: 'rgba(10, 20, 30, 0.5)',
+          WebkitTransform: 'translate3d(0,0,0)',
+          transform: 'translate3d(0,0,0)'
+        }}
+      >
+        <source src="https://cdn.midjourney.com/video/73a6b711-fbab-490c-a0b9-f3e811e37ead/3.mp4" type="video/mp4" />
+      </video>
+
+      <div
+        className="fixed top-0 left-0 w-full h-full"
+        style={{
+          background: 'linear-gradient(135deg, rgba(10, 31, 28, 0.3) 0%, rgba(2, 10, 9, 0.4) 100%)',
+          pointerEvents: 'none',
+          zIndex: -10
+        }}
+      />
+
+      <div className="max-w-4xl mx-auto relative z-10">
+        {isGeneratingReport ? (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <div
+                className="w-12 h-12 rounded-full border-2 animate-spin mx-auto mb-4"
+                style={{
+                  borderColor: '#EBC862',
+                  borderTopColor: 'transparent',
+                  opacity: 0.8,
+                  boxShadow: '0 0 20px rgba(235, 200, 98, 0.4)'
+                }}
+              />
+              <p
+                className="text-lg"
+                style={{
+                  color: '#F7E7CE',
+                  opacity: 0.6,
+                  letterSpacing: '0.1em'
+                }}
+              >
+                正在生成能量画像...
+              </p>
+            </div>
+          </div>
+        ) : !showReport ? (
+          <>
+            <div className="text-center mb-12">
+              <h1
+                className="text-5xl font-light mb-4"
+                style={{
+                  color: '#F7E7CE',
+                  textShadow: '0 0 30px rgba(247, 231, 206, 0.3)',
+                  letterSpacing: '0.05em'
+                }}
+              >
+                能量自测
+              </h1>
+              <p
+                className="text-lg"
+                style={{
+                  color: '#F7E7CE',
+                  opacity: 0.6,
+                  letterSpacing: '0.1em'
+                }}
+              >
+                解码你的先天能量版本
+              </p>
+            </div>
+
+            <div className="mb-8">
+              <ImmersiveDatePicker
+                label="我的出生日期"
+                value={myData.birthDate}
+                kinData={myData.kinData}
+                midnightType={myData.midnightType}
+                onChange={handleMyDateSelect}
+              />
+            </div>
+
+            <div className="mb-12">
+              <QuantumResonanceAdder
+                onPersonsChange={setResonancePersons}
+                onDateSelect={handleResonanceDateSelect}
+              />
+            </div>
+
+            {finalProfile && myData.kinData && (
+              <div className="flex justify-center mt-8">
+                <CalibrationButton
+                  onClick={handleGenerateReport}
+                  label={isGeneratingReport ? "生成中..." : "生成完整报告"}
+                />
+              </div>
+            )}
+          </>
+        ) : useNewReport && generatedReport ? (
+          <EnergyPortraitReport
+            report={generatedReport}
+            onBack={() => {
+              setShowReport(false);
+              setGeneratedReport(null);
+            }}
+          />
+        ) : (
+          <>
+            <div className="text-center mb-12">
+              <h1
+                className="text-4xl font-light mb-4"
+                style={{
+                  color: '#F7E7CE',
+                  textShadow: '0 0 30px rgba(247, 231, 206, 0.3)',
+                  letterSpacing: '0.05em'
+                }}
+              >
+                你的能量画像
+              </h1>
+              <p
+                className="text-lg"
+                style={{
+                  color: '#F7E7CE',
+                  opacity: 0.6,
+                  letterSpacing: '0.1em'
+                }}
+              >
+                Kin {myData.kinData?.kin} · {myData.kinData?.toneName}的{myData.kinData?.sealName}
+              </p>
+            </div>
+
+            {finalProfile && myData.kinData && (
+              <>
+                <div
+                  className="mb-8 p-8 rounded-2xl"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(247, 231, 206, 0.08) 0%, rgba(247, 231, 206, 0.03) 100%)',
+                    border: '1px solid rgba(247, 231, 206, 0.2)',
+                    backdropFilter: 'blur(20px)'
+                  }}
+                >
+                  <h2 className="text-2xl text-center mb-6" style={{ color: '#F7E7CE', letterSpacing: '0.1em' }}>
+                    核心计算维度
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-4 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                      <div className="text-sm opacity-60 mb-2" style={{ color: '#F7E7CE' }}>核心印记</div>
+                      <div className="text-xl font-light" style={{ color: '#EBC862' }}>
+                        {myData.kinData.toneName}的{myData.kinData.sealName}
+                      </div>
+                      <div className="text-sm mt-1 opacity-70" style={{ color: '#F7E7CE' }}>
+                        Kin {myData.kinData.kin}
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                      <div className="text-sm opacity-60 mb-2" style={{ color: '#F7E7CE' }}>所属波符</div>
+                      <div className="text-xl font-light" style={{ color: '#EBC862' }}>
+                        {myData.kinData.wavespellName}波符
+                      </div>
+                      <div className="text-sm mt-1 opacity-70" style={{ color: '#F7E7CE' }}>
+                        第{myData.kinData.wavespell}波符
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                      <div className="text-sm opacity-60 mb-2" style={{ color: '#F7E7CE' }}>隐藏推动力</div>
+                      <div className="text-xl font-light" style={{ color: '#EBC862' }}>
+                        {myData.kinData.hiddenPowerName}
+                      </div>
+                      <div className="text-sm mt-1 opacity-70" style={{ color: '#F7E7CE' }}>
+                        Kin {myData.kinData.hiddenPower}
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                      <div className="text-sm opacity-60 mb-2" style={{ color: '#F7E7CE' }}>调性特质</div>
+                      <div className="text-xl font-light" style={{ color: '#EBC862' }}>
+                        第{myData.kinData.tone}调性
+                      </div>
+                      <div className="text-sm mt-1 opacity-70" style={{ color: '#F7E7CE' }}>
+                        {myData.kinData.toneType}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <EnergyRadarChart profile={finalProfile} synergies={synergies} kinData={myData.kinData} />
+
+                <div
+                  className="mt-8 p-8 rounded-2xl"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(235, 200, 98, 0.08) 0%, rgba(235, 200, 98, 0.03) 100%)',
+                    border: '1px solid rgba(235, 200, 98, 0.2)',
+                    backdropFilter: 'blur(20px)'
+                  }}
+                >
+                  <div
+                    className="whitespace-pre-wrap font-sans"
+                    style={{
+                      color: '#F7E7CE',
+                      lineHeight: '1.8',
+                      fontSize: '0.95rem'
+                    }}
+                    dangerouslySetInnerHTML={{ __html: generateDeepPortrait(myData.kinData, finalProfile, synergies).replace(/\n/g, '<br/>').replace(/###/g, '<h3 style="color: #EBC862; margin: 1.5rem 0 1rem 0; font-size: 1.3rem;">').replace(/<h3/g, '</h3><h3').slice(6) }}
+                  />
+                </div>
+
+                <div
+                  className="mt-8 p-8 rounded-2xl"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(247, 231, 206, 0.1)',
+                    backdropFilter: 'blur(20px)'
+                  }}
+                >
+                  <pre
+                    className="whitespace-pre-wrap font-sans"
+                    style={{
+                      color: '#F7E7CE',
+                      lineHeight: '1.8',
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {generateEnergyReport(
+                      myData.kinData,
+                      finalProfile,
+                      resonancePersons.find(p => p.relationship === 'mother')?.kinData || undefined,
+                      resonancePersons.find(p => p.relationship === 'father')?.kinData || undefined,
+                      synergies
+                    )}
+                  </pre>
+                </div>
+
+                <div className="flex gap-4 justify-center mt-8">
+                  <CalibrationButton onClick={handleShare} label="分享能量" icon={<Share2 size={20} />} />
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
