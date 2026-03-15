@@ -100,4 +100,30 @@ export const warmupAudioContext = async () => {
     if (ctx.state === 'suspended') await ctx.resume();
   }
   console.log('✅ 音频上下文已预热');
+};/**
+* ⚡ 兼容性补丁：为 AdminPanel 和 HomePage 补全缺失函数
+*/
+
+// 1. 修复 Netlify 报错：playAudioFromZero
+export const playAudioFromZero = async (audio: HTMLAudioElement) => {
+ if (!audio) return;
+ audio.pause();
+ audio.currentTime = 0;
+ await audio.play();
+ console.log('✅ playAudioFromZero 执行完毕');
+};
+
+// 2. 确保 registerAudio 存在（防止其他组件报错）
+export const registerAudio = (audio: HTMLAudioElement) => {
+ // 即使现在不统计实例，也要保留函数接口
+ console.log('📝 Audio registered');
+};
+
+// 3. 确保 warmupAudioContext 存在
+export const warmupAudioContext = async () => {
+ const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+ if (AudioContext) {
+   const ctx = new AudioContext();
+   if (ctx.state === 'suspended') await ctx.resume();
+ }
 };
