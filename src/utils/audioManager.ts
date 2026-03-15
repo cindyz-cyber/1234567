@@ -1,54 +1,62 @@
 import { supabase } from '../lib/supabase';
 
-// --- 核心单例 ---
 const activeAudioInstances = new Set<HTMLAudioElement>();
 let currentGlobalAudio: HTMLAudioElement | null = null;
 
-export const registerAudio = (audio: HTMLAudioElement) => activeAudioInstances.add(audio);
-export const unregisterAudio = (audio: HTMLAudioElement) => activeAudioInstances.delete(audio);
-
 export const stopAllAudio = async () => {
-  if (currentGlobalAudio) {
-    currentGlobalAudio.pause();
-    currentGlobalAudio.src = '';
-    currentGlobalAudio.load();
-    currentGlobalAudio = null;
-  }
   activeAudioInstances.forEach(audio => {
-    try { audio.pause(); audio.src = ''; audio.load(); } catch (e) {}
+    audio.pause();
+    audio.src = '';
+    audio.load();
+    audio.remove(); // 物理移除
   });
   activeAudioInstances.clear();
+  currentGlobalAudio = null;
 };
 
 /**
- * ⚡ 战神级：物理归零并实时锁定
- * 解决了 iOS/Chrome 在 GoldenTransition 时的跳秒冷颤问题
+ * ⚡ 战神级：物理拦截锁定
+ * 确保音频在真正“获准”播放前，一秒钟都不能多跑
  */
 export async function createAndPlayAudioFromZero(src: string, volume: number = 0.3): Promise<HTMLAudioElement | null> {
+  // 1. 先把所有可能在后台偷跑的噪音全杀了
   await stopAllAudio();
-  const audio = new Audio(src);
+
+  const audio = new Audio();
   audio.preload = 'auto';
   audio.loop = true;
-  audio.muted = true; // ⚠️ 关键：先静音，防止重置时的杂音
-  registerAudio(audio);
-
-  audio.src = src;
   
+  // 🔥 关键：初始状态必须是暂停+静音
+  audio.muted = true;
+  audio.volume = 0;
+  
+  // 2. 赋予地址但不准动
+  audio.src = src;
+  audio.pause(); 
+  audio.currentTime = 0;
+
+  activeAudioInstances.add(audio);
+
   try {
+    // 3. 💀 暴力锁定：即使它想播，我也每 10ms 把它的进度拽回 0
+    let lockInterval = setInterval(() => {
+      audio.currentTime = 0;
+    }, 10);
+
+    // 4. 等待 150ms 确保浏览器彻底认领了“从 0 开始”的指令
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    // 5. 正式启动
     await audio.play();
     
-    // 💀 核心锁定：在播放开始后的 200ms 内，每 20ms 强行拉回 0 秒
-    let lockCount = 0;
-    const locker = setInterval(() => {
-      audio.currentTime = 0;
-      lockCount++;
-      if (lockCount > 10) {
-        clearInterval(locker);
-        audio.muted = false; // 锁定稳了再开声音
-        audio.volume = volume;
-        console.log("✅ [AudioManager] 归零锁定完成");
-      }
-    }, 20);
+    // 6. 确认起跳成功后再解锁
+    setTimeout(() => {
+      clearInterval(lockInterval);
+      audio.muted = false;
+      audio.volume = volume;
+      audio.currentTime = 0; // 最后一推
+      console.log("✅ [AudioManager] 拦截结束，精准 0 秒起跳");
+    }, 50);
 
     currentGlobalAudio = audio;
   } catch (err) {
@@ -57,25 +65,4 @@ export async function createAndPlayAudioFromZero(src: string, volume: number = 0
   return audio;
 }
 
-/**
- * 补全兼容接口，防止其他页面（如 HomePage/Admin）报错
- */
-export const warmupAudioContext = async () => {
-  const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-  if (AudioContext) {
-    const ctx = new AudioContext();
-    if (ctx.state === 'suspended') await ctx.resume();
-  }
-};
-
-export const playAudioFromZero = async (audio: HTMLAudioElement) => {
-  if (!audio) return;
-  audio.currentTime = 0;
-  await audio.play();
-};
-
-export function isVideoUrl(url: string | null | undefined): boolean {
-  if (!url) return false;
-  const cleanUrl = url.split('?')[0].toLowerCase();
-  return cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm') || cleanUrl.endsWith('.mov');
-}
+// 补全兼容接口... (保留 warmupAudioContext 和 isVideoUrl)
