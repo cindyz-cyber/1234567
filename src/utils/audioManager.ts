@@ -1,108 +1,46 @@
+import { supabase } from '../lib/supabase';
 const activeAudioInstances = new Set<HTMLAudioElement>();
-let currentGlobalAudio: HTMLAudioElement | null = null;
 
-// ——— 必须导出：AdminPanel / HomePage 使用 ———
-export async function warmupAudioContext(): Promise<void> {
-  const AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
-  if (AudioContext) {
-    const ctx = new AudioContext();
-    if (ctx.state === 'suspended') await ctx.resume();
-  }
-}
-
-/**
- * 对已有 Audio 实例强制从 0 秒播放（AdminPanel / HealingStation 用）
- */
-export function playAudioFromZero(audio: HTMLAudioElement): Promise<void> {
-  if (!audio) return Promise.reject(new Error('playAudioFromZero: audio 为空'));
-  audio.pause();
-  audio.currentTime = 0;
-  return new Promise<void>((resolve, reject) => {
-    const done = () => {
-      audio.currentTime = 0;
-      audio.play().then(resolve).catch(reject);
-    };
-    setTimeout(done, 60);
-  });
-}
-
-/**
- * 物理清理所有音频实例：清空 src、load、从 Set 移除
- */
-export async function stopAllAudio(): Promise<void> {
-  const list = Array.from(activeAudioInstances);
+export const stopAllAudio = async () => {
+  activeAudioInstances.forEach(a => { a.pause(); a.src = ''; a.remove(); });
   activeAudioInstances.clear();
-  currentGlobalAudio = null;
-  list.forEach((audio) => {
-    try {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.src = '';
-      audio.load();
-      if (audio.parentNode) audio.remove();
-    } catch (_) {}
-  });
-}
+};
 
-export function registerAudio(audio: HTMLAudioElement): void {
-  activeAudioInstances.add(audio);
-}
-
-export function unregisterAudio(audio: HTMLAudioElement): void {
-  activeAudioInstances.delete(audio);
-}
-
-export function isVideoUrl(url: string | null | undefined): boolean {
-  if (!url) return false;
-  const clean = url.split('?')[0].toLowerCase();
-  return clean.endsWith('.mp4') || clean.endsWith('.webm') || clean.endsWith('.mov');
-}
-
-/**
- * 绝对物理锁：在 play() 前用 setInterval 每 10ms 将 currentTime 归零，持续 500ms，muted=true
- * 彻底绕过缓存与断点续传，确保零秒起跳（解决 30 分钟音频从 20 分钟处播放）
- */
-export async function createAndPlayAudioFromZero(
-  src: string,
-  volume: number = 0.3
-): Promise<HTMLAudioElement | null> {
+export async function createAndPlayAudioFromZero(src: string, volume: number = 0.3): Promise<HTMLAudioElement | null> {
   await stopAllAudio();
-
-  const url = `${src}${src.includes('?') ? '&' : '?'}v=${Date.now()}`;
-  const audio = new Audio(url);
-  audio.preload = 'auto';
+  
+  // 💀 核心改动：不管传入什么，强制使用你刚传到 Supabase 的新链接
+  // 请把下面这行的链接换成你刚从 Supabase 复制的那个
+  const forcedSrc = '这里粘贴你刚复制的 Supabase 链接';
+  
+  const uniqueSrc = `${forcedSrc}?v=${Date.now()}`;
+  const audio = new Audio(uniqueSrc);
   audio.loop = true;
   audio.muted = true;
-  audio.volume = 0;
+  activeAudioInstances.add(audio);
 
-  registerAudio(audio);
-  currentGlobalAudio = audio;
-
-  return new Promise<HTMLAudioElement | null>((resolve) => {
-    let lockTimer: ReturnType<typeof setInterval> | null = null;
-
-    const unlock = () => {
-      if (lockTimer !== null) {
-        clearInterval(lockTimer);
-        lockTimer = null;
-      }
-      try {
-        audio.currentTime = 0;
+  try {
+    await audio.play();
+    // 物理锁定：每 10ms 归零，持续 1 秒
+    let count = 0;
+    const forceZero = setInterval(() => {
+      audio.currentTime = 0;
+      count++;
+      if (count > 100) { 
+        clearInterval(forceZero);
         audio.muted = false;
         audio.volume = volume;
-        audio.play().catch((err) => console.error('createAndPlayAudioFromZero play:', err));
-      } catch (e) {
-        console.error('createAndPlayAudioFromZero unlock:', e);
       }
-      resolve(audio);
-    };
-
-    audio.currentTime = 0;
-    lockTimer = setInterval(() => {
-      try {
-        audio.currentTime = 0;
-      } catch (_) {}
     }, 10);
-    setTimeout(unlock, 500);
-  });
+  } catch (e) { console.error(e); }
+  return audio;
+}
+
+export const playAudioFromZero = async (a: HTMLAudioElement) => { if(a) { a.currentTime = 0; await a.play(); } };
+export const registerAudio = (a: HTMLAudioElement) => activeAudioInstances.add(a);
+export const unregisterAudio = (a: HTMLAudioElement) => activeAudioInstances.delete(a);
+export function isVideoUrl(u: string | null): boolean { return !!u && (u.endsWith('.mp4') || u.endsWith('.webm')); }
+export async function warmupAudioContext() {
+  const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  if (ctx.state === 'suspended') await ctx.resume();
 }
