@@ -11,7 +11,7 @@ export async function createAndPlayAudioFromZero(src: string, volume: number = 0
   
   // 💀 核心改动：不管传入什么，强制使用你刚传到 Supabase 的新链接
   // 请把下面这行的链接换成你刚从 Supabase 复制的那个
-  const forcedSrc = '这里粘贴你刚复制的 Supabase 链接';
+  const forcedSrc = 'https://sqjedjwkfjawikbsvllz.supabase.co/storage/v1/object/public/audio/final_zero_healing.mp3';';
   
   const uniqueSrc = `${forcedSrc}?v=${Date.now()}`;
   const audio = new Audio(uniqueSrc);
