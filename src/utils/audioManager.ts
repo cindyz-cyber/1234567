@@ -9,46 +9,36 @@ export const stopAllAudio = async () => {
 export async function createAndPlayAudioFromZero(src: string, volume: number = 0.3): Promise<HTMLAudioElement | null> {
   await stopAllAudio();
   
-  const forcedSrc = 'https://sqjedjwkfjawikbsvllz.supabase.co/storage/v1/object/public/audio/final_zero_healing.mp3';
+  // ✅ 链接已修正为：background.mp3
+  const forcedSrc = 'https://sqjedjwkfjawikbsvllz.supabase.co/storage/v1/object/public/audio/background.mp3';
   
-  // 加上时间戳，确保每次都是全新请求
-  const uniqueSrc = `${forcedSrc}?v=${Date.now()}`;
   const audio = new Audio();
-  
-  // 🔑 核心修复 1: 必须允许跨域，否则移动端会报错停止加载
   audio.crossOrigin = "anonymous"; 
-  audio.src = uniqueSrc;
+  audio.src = `${forcedSrc}?v=${Date.now()}`; // 杀掉所有缓存记忆
   audio.loop = true;
-  
-  // 🔑 核心修复 2: 初始音量设为 0 但不使用 muted 属性，绕过某些浏览器的静音逻辑
-  audio.volume = 0; 
   activeAudioInstances.add(audio);
 
-  try {
-    await audio.play();
-    
-    let count = 0;
-    const forceZero = setInterval(() => {
-      audio.currentTime = 0;
-      count++;
-      
-      // 在锁定期间逐渐尝试打开声音
-      if (count > 20) {
+  const attemptPlay = () => {
+    audio.play().then(() => {
+      audio.muted = false;
+      audio.volume = volume;
+      audio.currentTime = 0; // 核心：播放瞬间强制归零
+      console.log("✅ SUCCESS: Playing from 0s");
+    }).catch(e => {
+      console.error("❌ Playback blocked, waiting for click...", e);
+      // 如果被浏览器拦截，监听一次点击来解锁
+      const unlock = () => {
+        audio.play();
+        audio.muted = false;
         audio.volume = volume;
-      }
+        audio.currentTime = 0;
+        document.removeEventListener('click', unlock);
+      };
+      document.addEventListener('click', unlock);
+    });
+  };
 
-      if (count > 100) { 
-        clearInterval(forceZero);
-        audio.currentTime = 0; // 最后确认一次在 0 秒
-        console.log("✅ Audio successfully locked at 0s and playing");
-      }
-    }, 10);
-  } catch (e) { 
-    console.error("Audio Playback Error:", e);
-    // 自动重试逻辑
-    setTimeout(() => { audio.play(); audio.volume = volume; }, 1000);
-  }
-  
+  attemptPlay();
   return audio;
 }
 
