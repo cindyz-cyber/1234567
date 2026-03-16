@@ -9,30 +9,46 @@ export const stopAllAudio = async () => {
 export async function createAndPlayAudioFromZero(src: string, volume: number = 0.3): Promise<HTMLAudioElement | null> {
   await stopAllAudio();
   
-  // 💀 核心改动：不管传入什么，强制使用你刚传到 Supabase 的新链接
-  // 请把下面这行的链接换成你刚从 Supabase 复制的那个
   const forcedSrc = 'https://sqjedjwkfjawikbsvllz.supabase.co/storage/v1/object/public/audio/final_zero_healing.mp3';
   
+  // 加上时间戳，确保每次都是全新请求
   const uniqueSrc = `${forcedSrc}?v=${Date.now()}`;
-  const audio = new Audio(uniqueSrc);
+  const audio = new Audio();
+  
+  // 🔑 核心修复 1: 必须允许跨域，否则移动端会报错停止加载
+  audio.crossOrigin = "anonymous"; 
+  audio.src = uniqueSrc;
   audio.loop = true;
-  audio.muted = true;
+  
+  // 🔑 核心修复 2: 初始音量设为 0 但不使用 muted 属性，绕过某些浏览器的静音逻辑
+  audio.volume = 0; 
   activeAudioInstances.add(audio);
 
   try {
     await audio.play();
-    // 物理锁定：每 10ms 归零，持续 1 秒
+    
     let count = 0;
     const forceZero = setInterval(() => {
       audio.currentTime = 0;
       count++;
-      if (count > 100) { 
-        clearInterval(forceZero);
-        audio.muted = false;
+      
+      // 在锁定期间逐渐尝试打开声音
+      if (count > 20) {
         audio.volume = volume;
       }
+
+      if (count > 100) { 
+        clearInterval(forceZero);
+        audio.currentTime = 0; // 最后确认一次在 0 秒
+        console.log("✅ Audio successfully locked at 0s and playing");
+      }
     }, 10);
-  } catch (e) { console.error(e); }
+  } catch (e) { 
+    console.error("Audio Playback Error:", e);
+    // 自动重试逻辑
+    setTimeout(() => { audio.play(); audio.volume = volume; }, 1000);
+  }
+  
   return audio;
 }
 
