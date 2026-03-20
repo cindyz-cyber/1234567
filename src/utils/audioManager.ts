@@ -1,4 +1,3 @@
-import { supabase } from '../lib/supabase';
 const activeAudioInstances = new Set<HTMLAudioElement>();
 
 export const stopAllAudio = async () => {

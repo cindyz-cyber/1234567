@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { stopAllAudio } from '../utils/audioManager';
 import html2canvas from 'html2canvas';
 import { supabase } from '../lib/supabase';
 
 interface BookOfAnswersProps {
-  onComplete: () => void;
+  onComplete?: () => void;
   backgroundAudio?: HTMLAudioElement | null;
   onBack?: () => void;
   isGenerating?: boolean;
   userName?: string;
   kinData?: any;
-  higherSelfAdvice: string; // 🔥 必填：真实的高我建议
+  higherSelfAdvice?: string; // 🔥 必填：真实的高我建议（或从 location.state 获取）
 }
 
 // 🔥 智慧文库：50+ 条植本逻辑深度文案
@@ -94,7 +95,19 @@ const WISDOMS: WisdomEntry[] = [
   { text: '觉醒的痛苦，好过沉睡的安逸', weight: 5 },
 ];
 
-export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isGenerating = false, userName, kinData, higherSelfAdvice }: BookOfAnswersProps) {
+export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isGenerating = false, userName: propUserName, kinData: propKinData, higherSelfAdvice: propHigherSelfAdvice }: BookOfAnswersProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const routeState = location.state as {
+    userName?: string;
+    higherSelfName?: string;
+    journalContent?: string;
+    higherSelfAdvice?: string;
+    kinData?: any;
+  } | null;
+  const userName = propUserName ?? routeState?.userName ?? '';
+  const kinData = propKinData ?? routeState?.kinData ?? null;
+  const higherSelfAdvice = propHigherSelfAdvice ?? routeState?.higherSelfAdvice ?? '';
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
   const [showPoster, setShowPoster] = useState(false);
   const [posterImage, setPosterImage] = useState<string | null>(null);
@@ -951,6 +964,11 @@ export default function BookOfAnswers({ onComplete, backgroundAudio, onBack, isG
                 onClick={() => {
                   setShowPoster(false);
                   setPosterImage(null);
+                  if (onComplete) {
+                    onComplete();
+                  } else {
+                    navigate('/share', { state: routeState });
+                  }
                 }}
               >
                 关闭

@@ -449,13 +449,20 @@ export default function ShareJournal() {
   const handleJournalComplete = async (content: string) => {
     updateState({ journalContent: content });
 
+    // Marketing / anonymous share: skip DB. Logged-in users: keep persistence.
     try {
-      await supabase?.from('journal_entries')?.insert({
-        journal_content: content,
-        source: 'web_share',
-        emotions: state.selectedEmotions,
-        body_states: []
-      });
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session) {
+        await supabase.from('journal_entries').insert({
+          journal_content: content,
+          source: 'web_share',
+          emotions: state.selectedEmotions,
+          body_states: []
+        });
+        console.log('✅ [ShareJournal] journal_entries saved (authenticated)');
+      } else {
+        console.log('ℹ️ [ShareJournal] Skipping journal DB save (no session / marketing share)');
+      }
     } catch (err) {
       console.warn('Database save failed (non-critical):', err);
     }

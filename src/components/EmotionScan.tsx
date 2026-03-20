@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { flowPath, useFlowMode } from '../hooks/useFlowMode';
 
 // --- Golden Transition 显示延迟控制工具 ---
 // 等待音频加载成功后，强制延迟至少 3 秒（3000ms）再继续过渡
@@ -31,7 +33,7 @@ interface Particle {
 }
 
 interface EmotionScanProps {
-  onNext: (emotions: string[], bodyStates: string[]) => void;
+  onNext?: (emotions: string[], bodyStates: string[]) => void;
   onBack?: () => void;
 }
 
@@ -66,6 +68,18 @@ const getCircularPosition = (angle: number, radius: number, radiusVariation: num
 };
 
 export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
+  const navigate = useNavigate();
+  const { flowBase } = useFlowMode();
+  const location = useLocation();
+  const routeState = location.state as { userName?: string; higherSelfName?: string } | null;
+
+  const handleNavigateNext = (emotions: string[], bodyStates: string[], journalContentFromWriting?: string) => {
+    if (onNext) {
+      onNext(emotions, bodyStates);
+    } else {
+      navigate(flowPath(flowBase, '/journal'), { state: { ...routeState, emotions, bodyStates, journalContentFromWriting } });
+    }
+  };
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
   const [selectedBodyStates, setSelectedBodyStates] = useState<string[]>([]);
   const [journalContent, setJournalContent] = useState('');
@@ -83,6 +97,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
 
   useEffect(() => {
     console.log('🎭 EmotionScan mounted');
+    const nextStepPoster = new Image();
+    nextStepPoster.src = '/assets/79757b3cae9165b1c14088a60f3c4d94.jpg';
     return () => console.log('🎭 EmotionScan unmounted');
   }, []);
 
@@ -227,7 +243,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
     if (selectedEmotions.length > 0 && selectedBodyStates.length > 0) {
       setIsSubmitting(true);
       setTimeout(() => {
-        onNext(selectedEmotions, selectedBodyStates);
+        handleNavigateNext(selectedEmotions, selectedBodyStates);
       }, 800);
     }
   };
@@ -257,7 +273,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
     if (journalContent.trim()) {
       setIsSubmitting(true);
       setTimeout(() => {
-        onNext(selectedEmotions, selectedBodyStates);
+        handleNavigateNext(selectedEmotions, selectedBodyStates, journalContent.trim());
       }, 1200);
     }
   };
@@ -277,7 +293,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         posterImg={posterImage}
         overlayGradient="linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(2, 13, 10, 0.25) 50%, rgba(0, 0, 0, 0.22) 100%)"
       />
-      <div className="min-h-screen flex flex-col px-6 py-12 breathing-fade relative" style={{ position: 'relative', zIndex: 1 }}>
+      <div className="min-h-screen flex flex-col px-6 py-8 breathing-fade relative" style={{ position: 'relative', zIndex: 1 }}>
 
       {particles.map(particle => (
         <div
@@ -306,8 +322,8 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         </button>
       )}
       {step === 'emotion' ? (
-        <div className="flex-1 flex flex-col justify-center items-center max-w-6xl mx-auto w-full relative" style={{ paddingTop: '60px', paddingBottom: '60px' }}>
-          <div className="mb-16 text-center transition-all duration-500">
+        <div className="flex-1 flex flex-col justify-center items-center max-w-6xl mx-auto w-full relative" style={{ paddingTop: '28px', paddingBottom: '28px' }}>
+          <div className="mb-8 text-center transition-all duration-500">
             <p className="text-sm title-text" style={{
               color: '#FFFFFF',
               fontWeight: 500,
@@ -320,7 +336,7 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             </p>
           </div>
 
-          <div className="mandala-container relative w-full" style={{ height: '400px', marginBottom: '80px' }}>
+          <div className="mandala-container relative w-full" style={{ height: '330px', marginBottom: '28px' }}>
             {emotionPositions.map((emotion, index) => (
               <button
                 key={emotion.label}
@@ -423,7 +439,21 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             </div>
           )}
 
-          <div className="mandala-container relative w-full" style={{ height: '350px', marginBottom: '50px' }}>
+          <div className="w-full text-center mb-2">
+            <p
+              className="text-xs body-states-title"
+              style={{
+                color: 'rgba(255, 255, 255, 0.9)',
+                fontWeight: 500,
+                letterSpacing: '0.2em',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.9)',
+              }}
+            >
+              身体的反馈是？
+            </p>
+          </div>
+
+          <div className="mandala-container relative w-full" style={{ height: '290px', marginBottom: '20px' }}>
             {bodyPositions.map((state, index) => (
               <button
                 key={state.label}
@@ -533,6 +563,10 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
             >
               {isSubmitting ? '正在继续...' : '继续'}
             </GoldButton>
+          </div>
+
+          <div className="scroll-hint" aria-hidden="true">
+            <ChevronLeft size={22} color="rgba(247, 231, 206, 0.7)" />
           </div>
         </div>
       ) : (
@@ -1163,6 +1197,28 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
         .continue-button-wrapper {
           position: relative;
           z-index: 100;
+        }
+
+        .scroll-hint {
+          position: fixed;
+          bottom: 8px;
+          left: 50%;
+          transform: translateX(-50%) rotate(-90deg);
+          z-index: 120;
+          opacity: 0.45;
+          animation: scrollHintPulse 1.8s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        @keyframes scrollHintPulse {
+          0%, 100% {
+            opacity: 0.25;
+            transform: translateX(-50%) rotate(-90deg) translateY(0);
+          }
+          50% {
+            opacity: 0.65;
+            transform: translateX(-50%) rotate(-90deg) translateY(6px);
+          }
         }
 
         .other-bubble .golden-particle-inner,

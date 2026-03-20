@@ -1,13 +1,17 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { flowPath, useFlowMode } from '../hooks/useFlowMode';
 import GoldButton from './GoldButton';
 import PortalBackground from './PortalBackground';
 import posterImage from '../assets/0_1_640_N.webp';
 
 interface NamingRitualProps {
-  onComplete: (higherSelfName: string, userName: string) => void;
+  onComplete?: (higherSelfName: string, userName: string) => void;
 }
 
 export default function NamingRitual({ onComplete }: NamingRitualProps) {
+  const navigate = useNavigate();
+  const { flowBase } = useFlowMode();
   const [higherSelfName, setHigherSelfName] = useState('');
   const [userName, setUserName] = useState('');
   const [step, setStep] = useState(1);
@@ -43,7 +47,11 @@ export default function NamingRitual({ onComplete }: NamingRitualProps) {
     console.groupEnd();
 
     if (userName.trim()) {
-      onComplete(higherSelfName.trim(), userName.trim());
+      if (onComplete) {
+        onComplete(higherSelfName.trim(), userName.trim());
+      } else {
+        navigate(flowPath(flowBase, '/home'), { state: { higherSelfName: higherSelfName.trim(), userName: userName.trim() } });
+      }
     }
   };
 

@@ -1,19 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { flowPath, useFlowMode } from '../hooks/useFlowMode';
 import { Volume2, VolumeX, ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
 import PortalBackground from './PortalBackground';
 import posterImage from '../assets/0_1_640_N.webp';
 
 interface HigherSelfDialogueProps {
-  userName: string;
-  higherSelfName: string;
-  journalContent: string;
+  userName?: string;
+  higherSelfName?: string;
+  journalContent?: string;
   backgroundMusic?: HTMLAudioElement | null;
-  onComplete: (response: string, audio: HTMLAudioElement | null) => void;
+  onComplete?: (response: string, audio: HTMLAudioElement | null) => void;
   onBack?: () => void;
 }
 
-export default function HigherSelfDialogue({ userName, higherSelfName, journalContent, backgroundMusic: incomingBackgroundMusic, onComplete, onBack }: HigherSelfDialogueProps) {
+export default function HigherSelfDialogue({ userName: propUserName, higherSelfName: propHigherSelfName, journalContent: propJournalContent, backgroundMusic: incomingBackgroundMusic, onComplete, onBack }: HigherSelfDialogueProps) {
+  const navigate = useNavigate();
+  const { flowBase } = useFlowMode();
+  const location = useLocation();
+  const routeState = location.state as {
+    userName?: string;
+    higherSelfName?: string;
+    emotions?: string[];
+    bodyStates?: string[];
+    journalContent?: string;
+  } | null;
+  const userName = propUserName ?? routeState?.userName ?? '';
+  const higherSelfName = propHigherSelfName ?? routeState?.higherSelfName ?? '';
+  const journalContent = propJournalContent ?? routeState?.journalContent ?? '';
   const [response, setResponse] = useState('');
   const [displayedResponse, setDisplayedResponse] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -53,7 +68,19 @@ export default function HigherSelfDialogue({ userName, higherSelfName, journalCo
     if (response.trim()) {
       setRippleTriggered(true);
       setTimeout(() => {
-        onComplete(response.trim(), backgroundMusic);
+        if (onComplete) {
+          onComplete(response.trim(), backgroundMusic);
+        } else {
+          navigate(flowPath(flowBase, '/answers'), {
+            state: {
+              ...routeState,
+              userName,
+              higherSelfName,
+              journalContent,
+              higherSelfAdvice: response.trim(),
+            },
+          });
+        }
       }, 800);
     }
   };

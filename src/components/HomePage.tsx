@@ -1,13 +1,23 @@
 import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { flowPath, useFlowMode } from '../hooks/useFlowMode';
 import { warmupAudioContext } from '../utils/audioManager';
+import PortalBackground from './PortalBackground';
+import posterImage from '../assets/0_1_640_N.webp';
 
 interface HomePageProps {
-  userName: string;
-  higherSelfName: string;
-  onStartJourney: () => void;
+  userName?: string;
+  higherSelfName?: string;
+  onStartJourney?: () => void;
 }
 
-export default function HomePage({ userName, higherSelfName, onStartJourney }: HomePageProps) {
+export default function HomePage({ userName: propUserName, higherSelfName: propHigherSelfName, onStartJourney }: HomePageProps) {
+  const navigate = useNavigate();
+  const { flowBase } = useFlowMode();
+  const location = useLocation();
+  const state = location.state as { userName?: string; higherSelfName?: string } | null;
+  const userName = propUserName ?? state?.userName ?? '';
+  const higherSelfName = propHigherSelfName ?? state?.higherSelfName ?? '';
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
 
   const handleCircleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -29,7 +39,11 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
 
     setTimeout(() => {
       console.log('🟡 Calling onStartJourney after delay');
-      onStartJourney();
+      if (onStartJourney) {
+        onStartJourney();
+      } else {
+        navigate(flowPath(flowBase, '/emotions'), { state: { userName, higherSelfName } });
+      }
     }, 400);
   };
 
@@ -40,6 +54,10 @@ export default function HomePage({ userName, higherSelfName, onStartJourney }: H
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 breathing-fade relative">
+      <PortalBackground
+        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/2s48cs4awyy-1772595618844.mp4"
+        posterImg={posterImage}
+      />
       <div className="absolute top-0 left-0 w-full h-[30vh] z-20 pointer-events-none top-vignette" />
 
       <div className="absolute top-[8vh] left-0 w-full z-30 flex justify-center pointer-events-none">

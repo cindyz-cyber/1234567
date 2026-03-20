@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Mic, MicOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { flowPath, useFlowMode } from '../hooks/useFlowMode';
 import GoldButton from './GoldButton';
 
 interface InnerWhisperJournalProps {
@@ -18,9 +20,22 @@ interface InnerWhisperJournalProps {
 }
 
 export default function InnerWhisperJournal({ emotions = [], bodyStates = [], onBack, onNext, content = {} }: InnerWhisperJournalProps) {
-  const [journalText, setJournalText] = useState('');
+  const navigate = useNavigate();
+  const { isAppFlow, flowBase } = useFlowMode();
+  const location = useLocation();
+  const routeState = location.state as {
+    userName?: string;
+    higherSelfName?: string;
+    emotions?: string[];
+    bodyStates?: string[];
+    journalContentFromWriting?: string;
+  } | null;
+  const effectiveEmotions = emotions.length > 0 ? emotions : (routeState?.emotions ?? []);
+  const effectiveBodyStates = bodyStates.length > 0 ? bodyStates : (routeState?.bodyStates ?? []);
+  const [journalText, setJournalText] = useState(routeState?.journalContentFromWriting ?? '');
   const [isListening, setIsListening] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isBgVideoLoaded, setIsBgVideoLoaded] = useState(false);
   const [pulseIntensity, setPulseIntensity] = useState(0);
   const recognitionRef = useRef<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -208,18 +223,55 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
 
     setIsSaving(true);
     try {
-      // 🔥 移除中间保存步骤，最终数据由 App.tsx 在高我对话完成时保存
-      // 这样避免数据库字段不匹配错误，并确保数据完整性
-
       console.log('📝 [InnerWhisperJournal] 日记内容已完成，长度:', journalText.length);
+
+      // App shell (`/app/*`) + logged-in user: persist journal (marketing `/` flow skips DB)
+      if (!onNext && isAppFlow && typeof supabase?.auth?.getSession === 'function') {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session) {
+            await supabase.from('journal_entries').insert({
+              journal_content: journalText,
+              source: 'app_flow',
+              emotions: effectiveEmotions,
+              body_states: effectiveBodyStates,
+            });
+            console.log('✅ [InnerWhisperJournal] Saved to journal_entries (app flow + session)');
+          }
+        } catch (dbErr) {
+          console.warn('⚠️ [InnerWhisperJournal] DB save skipped or failed:', dbErr);
+        }
+      }
 
       if (onNext) {
         onNext(journalText);
+      } else {
+        navigate(flowPath(flowBase, '/transition'), {
+          state: {
+            ...routeState,
+            userName: routeState?.userName,
+            higherSelfName: routeState?.higherSelfName,
+            emotions: effectiveEmotions,
+            bodyStates: effectiveBodyStates,
+            journalContent: journalText,
+          },
+        });
       }
     } catch (error) {
       console.error('Error saving journal:', error);
       if (onNext) {
         onNext(journalText);
+      } else {
+        navigate(flowPath(flowBase, '/transition'), {
+          state: {
+            ...routeState,
+            userName: routeState?.userName,
+            higherSelfName: routeState?.higherSelfName,
+            emotions: effectiveEmotions,
+            bodyStates: effectiveBodyStates,
+            journalContent: journalText,
+          },
+        });
       }
     } finally {
       setIsSaving(false);
@@ -227,12 +279,12 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden inner-whisper-entry" style={{ backgroundColor: '#020d0a' }}>
       <div
         className="fixed inset-0 w-full h-full"
         style={{
           zIndex: 1,
-          backgroundColor: 'rgba(2, 13, 10, 0.5)',
+          backgroundColor: '#020d0a',
           WebkitTransform: 'translate3d(0,0,0)',
           transform: 'translate3d(0,0,0)'
         }}
@@ -251,10 +303,13 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
             WebkitTransform: 'translate3d(0,0,0)',
             transform: 'translate3d(0,0,0)',
             willChange: 'transform',
-            backgroundColor: 'rgba(2, 13, 10, 0.5)'
+            backgroundColor: '#020d0a',
+            opacity: isBgVideoLoaded ? 1 : 0,
+            transition: 'opacity 700ms ease'
           }}
           onLoadedMetadata={(e) => {
             const video = e.currentTarget;
+            setIsBgVideoLoaded(true);
             video.play().catch(err => console.log('Video autoplay failed:', err));
           }}
         >
@@ -359,6 +414,19 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
       </div>
 
       <style>{`
+        .inner-whisper-entry {
+          animation: journalEntryFadeIn 420ms ease-out both;
+        }
+
+        @keyframes journalEntryFadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
         .journal-title {
           animation: titleGlow 4s ease-in-out infinite;
         }
