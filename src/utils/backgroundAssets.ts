@@ -3,6 +3,8 @@
  * 提供三级兜底加载策略：品牌底色 → Poster封面 → 视频动画
  */
 
+import { isMeditationModeFromSearch } from './urlModeBootstrap';
+
 // 品牌底色 - 第一级兜底（瞬间显示）
 export const BRAND_COLORS = {
   primary: '#0A0A0F',      // 深邃黑
@@ -77,6 +79,9 @@ const preloadedPosters = new Set<string>();
  * 在 App.tsx 入口调用，确保首屏就绪
  */
 export function preloadBackgroundVideo(assetId: keyof typeof BACKGROUND_ASSETS): Promise<void> {
+  if (isMeditationModeFromSearch()) {
+    return Promise.resolve();
+  }
   return new Promise((resolve) => {
     const asset = BACKGROUND_ASSETS[assetId];
 
@@ -126,6 +131,10 @@ export function preloadBackgroundVideo(assetId: keyof typeof BACKGROUND_ASSETS):
  * 优先加载最常用的 golden_flow
  */
 export async function preloadCoreBackgrounds(): Promise<void> {
+  if (isMeditationModeFromSearch()) {
+    console.log('🧘 [Meditation] 跳过 preloadCoreBackgrounds（含 zen_vortex）');
+    return;
+  }
   // 优先级加载
   await preloadBackgroundVideo('golden_flow');
 

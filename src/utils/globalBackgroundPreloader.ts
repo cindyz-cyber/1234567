@@ -11,6 +11,7 @@
  */
 
 import { BACKGROUND_ASSETS } from './backgroundAssets';
+import { isMeditationModeFromSearch } from './urlModeBootstrap';
 
 interface PreloadLink {
   href: string;
@@ -149,6 +150,10 @@ class GlobalBackgroundPreloader {
    * 按优先级分批注入预加载链接（智能调度）
    */
   async startGlobalPreload(): Promise<void> {
+    if (isMeditationModeFromSearch()) {
+      console.log('🧘 [Meditation] 跳过全局 BACKGROUND_ASSETS 注入预加载');
+      return;
+    }
     const deviceType = isMobileDevice ? '移动端' : '桌面端';
     const networkType = isSlowConnection ? '慢速网络' : '正常网络';
     console.log(`🌐 全局预加载启动 [${deviceType}, ${networkType}]`);
@@ -202,6 +207,9 @@ export const globalBackgroundPreloader = new GlobalBackgroundPreloader();
  * 在 App 入口调用此函数
  */
 export async function initializeGlobalBackgroundPreload(): Promise<void> {
+  if (isMeditationModeFromSearch()) {
+    return Promise.resolve();
+  }
   return globalBackgroundPreloader.startGlobalPreload();
 }
 

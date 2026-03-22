@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import NamingRitual from './NamingRitual';
 import { flowPath, useFlowMode } from '../hooks/useFlowMode';
 import { useUrlMode } from '../context/urlModeContext';
+import { isMeditationModeFromSearch } from '../utils/urlModeBootstrap';
 
 /**
  * 默认：起名引导页。
@@ -19,7 +20,9 @@ export default function MarketingFlowEntry() {
       ? new URLSearchParams(window.location.search).get('mode')
       : null;
 
+  /** 原生 window 优先（第一道门岗），再合并 Router / Context */
   const isMeditation =
+    isMeditationModeFromSearch() ||
     modeFromWindow === 'meditation' ||
     rrMode === 'meditation' ||
     liveWinMode === 'meditation';

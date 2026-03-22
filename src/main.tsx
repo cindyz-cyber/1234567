@@ -9,6 +9,8 @@ import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
 import { initializeVideoPreload } from './utils/videoPreloader';
 import { initializeGlobalBackgroundPreload } from './utils/globalBackgroundPreloader';
+import { isMeditationModeFromSearch } from './utils/urlModeBootstrap';
+import { initializeMeditationAssetsPreload } from './utils/meditationAssetsPreload';
 
 // Kin 计算引擎自检：启动时必须通过三个断言测试
 function validateKinEngine() {
@@ -60,15 +62,19 @@ function validateKinEngine() {
 // 启动时初始化
 validateKinEngine();
 
-// 🌐 全局背景预加载控制中心（最高优先级）
-initializeGlobalBackgroundPreload().catch(err => {
-  console.warn('全局背景预加载失败（非致命）:', err);
-});
-
-// 在后台静默预加载视频（双重保险）
-initializeVideoPreload().catch(err => {
-  console.warn('视频预加载失败（非致命）:', err);
-});
+// 🌐 预加载：必须先读 window.location.search，冥想模式不加载 golden_flow / zen_vortex 等默认素材
+if (isMeditationModeFromSearch()) {
+  initializeMeditationAssetsPreload().catch((err) => {
+    console.warn('冥想素材预加载失败（非致命）:', err);
+  });
+} else {
+  initializeGlobalBackgroundPreload().catch((err) => {
+    console.warn('全局背景预加载失败（非致命）:', err);
+  });
+  initializeVideoPreload().catch((err) => {
+    console.warn('视频预加载失败（非致命）:', err);
+  });
+}
 
 // 注册 Service Worker 用于视频离线缓存
 if ('serviceWorker' in navigator) {

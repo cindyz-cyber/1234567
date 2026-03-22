@@ -4,6 +4,7 @@
  */
 
 import { BACKGROUND_ASSETS } from './backgroundAssets';
+import { isMeditationModeFromSearch } from './urlModeBootstrap';
 
 interface PreloadStatus {
   assetId: string;
@@ -120,6 +121,10 @@ class VideoPreloadService {
    * 按优先级顺序加载
    */
   async preloadAllVideos(): Promise<void> {
+    if (isMeditationModeFromSearch()) {
+      console.log('🧘 [Meditation] 跳过 videoPreloader 默认批次（zen_vortex 等）');
+      return;
+    }
     console.log('🎬 开始预加载背景视频...');
 
     // 第一优先级：golden_flow（起名页、主背景）
@@ -186,6 +191,9 @@ export const videoPreloader = new VideoPreloadService();
  * 在 App 入口调用此函数
  */
 export async function initializeVideoPreload(): Promise<void> {
+  if (isMeditationModeFromSearch()) {
+    return Promise.resolve();
+  }
   return videoPreloader.preloadAllVideos();
 }
 // 兼容性导出：确保无论 main.tsx 怎么叫，都能找到它
