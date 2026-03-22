@@ -11,6 +11,7 @@ import {
 import { cancelAllBackgroundPreloads } from '../utils/globalBackgroundPreloader';
 import { resolveMeditationActive } from '../utils/meditationFlow';
 import { DIALOGUE_PORTAL_VIDEO_URL } from '../constants/dialogueAmbient';
+import { withCacheBust } from '../utils/cacheBustUrl';
 /** 生产环境由 Vite 处理为带 hash 的 URL（如 /assets/meditation_bg-xxxxx.mp4），随 base 相对根路径加载 */
 import meditationBgVideoUrl from '../assets/meditation_bg.mp4';
 /** 生产环境：/assets/音频冥想引导2.0-<hash>.mp3 */
@@ -66,6 +67,8 @@ export default function GoldenTransition({
   const [fadeOut, setFadeOut] = useState(false);
   /** 手动点「留下智慧」时用较短淡出，与自动 10s 转场区分 */
   const [manualExit, setManualExit] = useState(false);
+  /** 冥想素材单次挂载内稳定的时间戳，避免 <video> src 每帧变化 */
+  const meditationMediaCacheBust = useRef(Date.now());
   const audioInstanceRef = useRef<HTMLAudioElement | null>(null);
   const isInitializingRef = useRef(false);
   const transitionCompletedRef = useRef(false);
@@ -111,9 +114,9 @@ export default function GoldenTransition({
     ? backgroundMusicUrl
     : backgroundVideoUrl || defaultVideoUrl;
 
-  /** 不修改 effectiveVideoUrl；冥想模式另选一路径 */
+  /** 不修改 effectiveVideoUrl；冥想模式另选一路径，并强制 ?v= 绕过 HTTP 缓存 */
   const backgroundVideoSrcForPlayer = isMeditationActive
-    ? meditationBgVideoUrl
+    ? withCacheBust(meditationBgVideoUrl, meditationMediaCacheBust.current)
     : effectiveVideoUrl;
 
   const goToDialogueOrComplete = () => {
@@ -152,7 +155,10 @@ export default function GoldenTransition({
 
       try {
         if (isMeditationActive) {
-          const instance = await createAndPlayAudioFromExplicitSrc(meditationGuideAudioUrl, 0.4);
+          const instance = await createAndPlayAudioFromExplicitSrc(
+            withCacheBust(meditationGuideAudioUrl, meditationMediaCacheBust.current),
+            0.4
+          );
           audioInstanceRef.current = instance;
         } else if (globalAudio) {
           await playAudioFromZero(globalAudio);

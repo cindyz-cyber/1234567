@@ -6,6 +6,14 @@ export function getModeFromWindowSearch(): string | null {
   return new URLSearchParams(window.location.search).get('mode');
 }
 
+/**
+ * 与产品约定一致：URL 中含 `meditation` 即视为冥想模式（含 `?mode=meditation`）。
+ */
+export function isMeditationUrlNativeIncludes(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.location.search.includes('meditation');
+}
+
 export function isMeditationModeFromSearch(): boolean {
-  return getModeFromWindowSearch() === 'meditation';
+  return isMeditationUrlNativeIncludes();
 }

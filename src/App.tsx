@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { isMeditationUrlNativeIncludes } from './utils/urlModeBootstrap';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import {
   UrlModeContext,
   type UrlModeContextValue,
 } from './context/urlModeContext';
-import { isMeditationModeFromSearch } from './utils/urlModeBootstrap';
 import MarketingFlowEntry from './components/MarketingFlowEntry';
 import HomePage from './components/HomePage';
 import EmotionScan from './components/EmotionScan';
@@ -68,16 +68,18 @@ function UrlModeProvider({ children }: { children: ReactNode }) {
 
 function App() {
   const renderModeLogged = useRef(false);
+  const nativeMeditation =
+    typeof window !== 'undefined' && window.location.search.includes('meditation');
+
   if (!renderModeLogged.current) {
     renderModeLogged.current = true;
     console.log(
       '🔥 最终确定的渲染模式:',
-      isMeditationModeFromSearch() ? 'MEDITATION' : 'DEFAULT'
+      nativeMeditation ? 'MEDITATION' : 'DEFAULT'
     );
   }
 
-  return (
-    <UrlModeProvider>
+  const routes = (
       <Routes>
         {/* Marketing / public linear flow */}
         <Route path="/" element={<MarketingFlowEntry />} />
@@ -100,6 +102,20 @@ function App() {
 
         <Route path="*" element={<NavigateToHomePreserveSearch />} />
       </Routes>
+  );
+
+  /** 原生 URL 门岗：不经由中间 State，避免与 SW 缓存的旧壳耦合 */
+  return (
+    <UrlModeProvider>
+      {isMeditationUrlNativeIncludes() ? (
+        <div data-app-shell="meditation" className="contents">
+          {routes}
+        </div>
+      ) : (
+        <div data-app-shell="default" className="contents">
+          {routes}
+        </div>
+      )}
     </UrlModeProvider>
   );
 }

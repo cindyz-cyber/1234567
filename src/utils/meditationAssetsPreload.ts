@@ -18,8 +18,12 @@ export async function initializeMeditationAssetsPreload(): Promise<void> {
     '🧘 [Meditation] 仅预加载冥想素材（已跳过 golden_flow / zen_vortex 等默认背景预加载）'
   );
 
-  injectPreload(meditationBgUrl, 'video');
-  injectPreload(meditationGuideAudioUrl, 'fetch');
+  const bust = Date.now();
+  const videoBusted = `${meditationBgUrl}${meditationBgUrl.includes('?') ? '&' : '?'}v=${bust}`;
+  const audioBusted = `${meditationGuideAudioUrl}${meditationGuideAudioUrl.includes('?') ? '&' : '?'}v=${bust}`;
+
+  injectPreload(videoBusted, 'video');
+  injectPreload(audioBusted, 'fetch');
 
   // 轻量预热视频解码管道（静音、不插入 DOM）
   try {
@@ -27,7 +31,7 @@ export async function initializeMeditationAssetsPreload(): Promise<void> {
     v.preload = 'auto';
     v.muted = true;
     v.playsInline = true;
-    v.src = meditationBgUrl;
+    v.src = videoBusted;
     v.load();
   } catch (e) {
     console.warn('冥想背景视频预热失败（非致命）:', e);

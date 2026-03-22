@@ -11,6 +11,7 @@ import { initializeVideoPreload } from './utils/videoPreloader';
 import { initializeGlobalBackgroundPreload } from './utils/globalBackgroundPreloader';
 import { isMeditationModeFromSearch } from './utils/urlModeBootstrap';
 import { initializeMeditationAssetsPreload } from './utils/meditationAssetsPreload';
+import { purgeServiceWorkersForMeditationEntry } from './main/meditationSwPurge';
 
 // Kin 计算引擎自检：启动时必须通过三个断言测试
 function validateKinEngine() {
@@ -59,46 +60,55 @@ function validateKinEngine() {
   }
 }
 
-// 启动时初始化
-validateKinEngine();
+async function bootstrap() {
+  const willReload = await purgeServiceWorkersForMeditationEntry();
+  if (willReload) return;
 
-// 🌐 预加载：必须先读 window.location.search，冥想模式不加载 golden_flow / zen_vortex 等默认素材
-if (isMeditationModeFromSearch()) {
-  initializeMeditationAssetsPreload().catch((err) => {
-    console.warn('冥想素材预加载失败（非致命）:', err);
-  });
-} else {
-  initializeGlobalBackgroundPreload().catch((err) => {
-    console.warn('全局背景预加载失败（非致命）:', err);
-  });
-  initializeVideoPreload().catch((err) => {
-    console.warn('视频预加载失败（非致命）:', err);
-  });
+  validateKinEngine();
+
+  if (isMeditationModeFromSearch()) {
+    await initializeMeditationAssetsPreload().catch((err) => {
+      console.warn('冥想素材预加载失败（非致命）:', err);
+    });
+  } else {
+    initializeGlobalBackgroundPreload().catch((err) => {
+      console.warn('全局背景预加载失败（非致命）:', err);
+    });
+    initializeVideoPreload().catch((err) => {
+      console.warn('视频预加载失败（非致命）:', err);
+    });
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      if (typeof window !== 'undefined' && window.location.search.includes('meditation')) {
+        console.log('🧘 [Meditation] 已跳过 Service Worker 注册（无缓存策略）');
+        return;
+      }
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('✅ Service Worker 注册成功:', registration.scope);
+        })
+        .catch((err) => {
+          console.warn('⚠️  Service Worker 注册失败（非致命）:', err);
+        });
+    });
+  }
+
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/share/journal" element={<ShareJournal />} />
+          <Route path="/share/:sceneId" element={<ShareJournal />} />
+          <Route path="/admin/share-config" element={<ShareConfigAdmin />} />
+          <Route path="/admin/page-content" element={<PageContentAdmin />} />
+          <Route path="/*" element={<App />} />
+        </Routes>
+      </BrowserRouter>
+    </StrictMode>
+  );
 }
 
-// 注册 Service Worker 用于视频离线缓存
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('✅ Service Worker 注册成功:', registration.scope);
-      })
-      .catch(err => {
-        console.warn('⚠️  Service Worker 注册失败（非致命）:', err);
-      });
-  });
-}
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/share/journal" element={<ShareJournal />} />
-        <Route path="/share/:sceneId" element={<ShareJournal />} />
-        <Route path="/admin/share-config" element={<ShareConfigAdmin />} />
-        <Route path="/admin/page-content" element={<PageContentAdmin />} />
-        <Route path="/*" element={<App />} />
-      </Routes>
-    </BrowserRouter>
-  </StrictMode>
-);
+void bootstrap();
