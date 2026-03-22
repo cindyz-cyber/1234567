@@ -3,6 +3,12 @@ import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  /** 部署在域名根路径时使用 `/`；若挂在子目录需改为 `'/子路径/'` */
+  base: '/',
+  /** 默认 `assets`，构建后冥想音视频为 `/assets/*-hash.ext`（由源码 `import` 保证） */
+  build: {
+    assetsDir: 'assets',
+  },
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
