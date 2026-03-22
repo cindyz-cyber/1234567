@@ -7,7 +7,6 @@ import ShareConfigAdmin from './components/ShareConfigAdmin.tsx';
 import PageContentAdmin from './components/PageContentAdmin.tsx';
 import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
-import { runEntryPreload } from './main/runEntryPreload';
 import { purgeServiceWorkersForMeditationEntry } from './main/meditationSwPurge';
 
 // Kin 计算引擎自检：启动时必须通过三个断言测试
@@ -63,16 +62,11 @@ async function bootstrap() {
 
   validateKinEngine();
 
-  await runEntryPreload().catch((err) => {
-    console.warn('入口预加载失败（非致命）:', err);
-  });
+  // 预加载已移至 DefaultView 挂载后（runEntryPreload），此处禁止在 React 之前拉取默认视频。
 
+  /* 临时关闭 Service Worker，避免拦截静态资源请求
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      if (typeof window !== 'undefined' && window.location.search.includes('meditation')) {
-        console.log('🧘 [Meditation] 已跳过 Service Worker 注册（无缓存策略）');
-        return;
-      }
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
@@ -83,6 +77,7 @@ async function bootstrap() {
         });
     });
   }
+  */
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

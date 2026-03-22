@@ -3,7 +3,7 @@
  */
 export function isMeditationModeFromSearch(search: string): boolean {
   if (!search) return false;
-  if (search.includes('meditation')) return true;
+  if (search.includes('mode=meditation')) return true;
   return new URLSearchParams(search).get('mode') === 'meditation';
 }
 

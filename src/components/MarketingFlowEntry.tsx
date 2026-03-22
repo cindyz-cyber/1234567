@@ -9,7 +9,7 @@ import { flowPath, useFlowMode } from '../hooks/useFlowMode';
 export default function MarketingFlowEntry() {
   const { flowBase } = useFlowMode();
 
-  if (typeof window !== 'undefined' && window.location.search.includes('meditation')) {
+  if (typeof window !== 'undefined' && window.location.search.includes('mode=meditation')) {
     const search = window.location.search || '?mode=meditation';
     return (
       <Navigate to={`${flowPath(flowBase, '/transition')}${search}`} replace />

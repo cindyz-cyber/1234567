@@ -5,7 +5,7 @@ const RELOAD_FLAG = 'meditation_sw_purge_reload_done_v1';
 
 export async function purgeServiceWorkersForMeditationEntry(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
-  if (!window.location.search.includes('meditation')) return false;
+  if (!window.location.search.includes('mode=meditation')) return false;
 
   if (!('serviceWorker' in navigator)) {
     return false;

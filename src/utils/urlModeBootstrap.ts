@@ -11,7 +11,7 @@ export function getModeFromWindowSearch(): string | null {
  */
 export function isMeditationUrlNativeIncludes(): boolean {
   if (typeof window === 'undefined') return false;
-  return window.location.search.includes('meditation');
+  return window.location.search.includes('mode=meditation');
 }
 
 export function isMeditationModeFromSearch(): boolean {

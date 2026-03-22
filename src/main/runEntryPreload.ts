@@ -1,15 +1,14 @@
 /**
- * 入口预加载：必须先读 window.location.search，再决定分支。
- * 冥想分支绝不静态/动态加载 videoPreloader（含 zen_vortex）或全局 BACKGROUND_ASSETS 注入链。
+ * 仅用于默认营销漏斗：在 DefaultView 挂载后调用。
+ * 若 URL 为冥想模式，严禁启动 GlobalBackgroundPreloader / videoPreloader（含 zen_vortex）。
  */
 export async function runEntryPreload(): Promise<void> {
   if (typeof window === 'undefined') return;
 
-  const isMeditation = window.location.search.includes('meditation');
-
-  if (isMeditation) {
-    const { initializeMeditationAssetsPreload } = await import('../utils/meditationAssetsPreload');
-    await initializeMeditationAssetsPreload();
+  if (window.location.search.includes('mode=meditation')) {
+    console.log(
+      '[Preload] 跳过 GlobalBackgroundPreloader / videoPreloader（冥想模式，禁用 zen_vortex 等默认视频）'
+    );
     return;
   }
 
