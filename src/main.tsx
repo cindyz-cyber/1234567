@@ -9,8 +9,22 @@ import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
 import { purgeServiceWorkersForMeditationEntry } from './main/meditationSwPurge';
 
-/** 在 root.render 之前判定：冥想模式严禁走默认漏斗与全局预加载逻辑 */
 const isMeditation = window.location.search.includes('mode=meditation');
+
+/** 非冥想模式：在 window load 后注册 `/sw.js` */
+function registerServiceWorker(): void {
+  if (!('serviceWorker' in navigator)) return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        console.log('✅ Service Worker 注册成功:', registration.scope);
+      })
+      .catch((err) => {
+        console.warn('⚠️  Service Worker 注册失败（非致命）:', err);
+      });
+  });
+}
 
 // Kin 计算引擎自检：启动时必须通过三个断言测试
 function validateKinEngine() {
@@ -63,29 +77,21 @@ async function bootstrap() {
   const willReload = await purgeServiceWorkersForMeditationEntry();
   if (willReload) return;
 
-  // 冥想模式：不执行 Kin 自检，且不引入/初始化 GlobalBackgroundPreloader（预加载仅在 DefaultView 内 lazy + runEntryPreload）
-  if (!isMeditation) {
+  if (isMeditation) {
+    try {
+      const { cancelAllBackgroundPreloads } = await import('./utils/globalBackgroundPreloader');
+      cancelAllBackgroundPreloads();
+    } catch (e) {
+      console.warn('[Meditation] GlobalBackgroundPreloader 注销失败（非致命）:', e);
+    }
+    console.log('冥想模式启动：跳过 Service Worker 和全局预加载');
+  } else {
     validateKinEngine();
+    registerServiceWorker();
   }
 
-  // 预加载已移至 DefaultView 挂载后（runEntryPreload）；冥想 URL 不会挂载 DefaultView，故不会触发入口预加载。
-
-  /* 临时关闭 Service Worker，避免拦截静态资源请求
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          console.log('✅ Service Worker 注册成功:', registration.scope);
-        })
-        .catch((err) => {
-          console.warn('⚠️  Service Worker 注册失败（非致命）:', err);
-        });
-    });
-  }
-  */
-
-  createRoot(document.getElementById('root')!).render(
+  const root = createRoot(document.getElementById('root')!);
+  root.render(
     <StrictMode>
       <BrowserRouter>
         <Routes>
@@ -93,7 +99,7 @@ async function bootstrap() {
           <Route path="/share/:sceneId" element={<ShareJournal />} />
           <Route path="/admin/share-config" element={<ShareConfigAdmin />} />
           <Route path="/admin/page-content" element={<PageContentAdmin />} />
-          <Route path="/*" element={<App />} />
+          <Route path="/*" element={<App isMeditation={isMeditation} />} />
         </Routes>
       </BrowserRouter>
     </StrictMode>
