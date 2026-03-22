@@ -11,11 +11,8 @@ import {
 import { cancelAllBackgroundPreloads } from '../utils/globalBackgroundPreloader';
 import { resolveMeditationActive } from '../utils/meditationFlow';
 import { DIALOGUE_PORTAL_VIDEO_URL } from '../constants/dialogueAmbient';
+import { MEDITATION_BG_MP4, MEDITATION_GUIDE_MP3 } from '../constants/meditationMedia';
 import { withCacheBust } from '../utils/cacheBustUrl';
-/** 生产环境由 Vite 处理为带 hash 的 URL（如 /assets/meditation_bg-xxxxx.mp4），随 base 相对根路径加载 */
-import meditationBgVideoUrl from '../assets/meditation_bg.mp4';
-/** 生产环境：/assets/音频冥想引导2.0-<hash>.mp3 */
-import meditationGuideAudioUrl from '../assets/音频冥想引导2.0.mp3';
 
 interface GoldenTransitionProps {
   userName?: string;
@@ -90,8 +87,9 @@ export default function GoldenTransition({
     isMeditationActive,
   };
 
-  /** 预加载下一页对话背景视频，减少路由切换时的背景跳闪 */
+  /** 预加载下一页对话背景视频（冥想模式不注入，避免与 meditation_bg 争抢） */
   useEffect(() => {
+    if (isMeditationActive) return;
     const link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'video';
@@ -105,7 +103,7 @@ export default function GoldenTransition({
         /* ignore */
       }
     };
-  }, []);
+  }, [isMeditationActive]);
 
   const defaultVideoUrl =
     'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
@@ -114,9 +112,9 @@ export default function GoldenTransition({
     ? backgroundMusicUrl
     : backgroundVideoUrl || defaultVideoUrl;
 
-  /** 不修改 effectiveVideoUrl；冥想模式另选一路径，并强制 ?v= 绕过 HTTP 缓存 */
+  /** 不修改 effectiveVideoUrl；冥想模式使用常量路径 + ?v= 绕过 HTTP 缓存 */
   const backgroundVideoSrcForPlayer = isMeditationActive
-    ? withCacheBust(meditationBgVideoUrl, meditationMediaCacheBust.current)
+    ? withCacheBust(MEDITATION_BG_MP4, meditationMediaCacheBust.current)
     : effectiveVideoUrl;
 
   const goToDialogueOrComplete = () => {
@@ -156,7 +154,7 @@ export default function GoldenTransition({
       try {
         if (isMeditationActive) {
           const instance = await createAndPlayAudioFromExplicitSrc(
-            withCacheBust(meditationGuideAudioUrl, meditationMediaCacheBust.current),
+            withCacheBust(MEDITATION_GUIDE_MP3, meditationMediaCacheBust.current),
             0.4
           );
           audioInstanceRef.current = instance;

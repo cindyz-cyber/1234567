@@ -7,10 +7,7 @@ import ShareConfigAdmin from './components/ShareConfigAdmin.tsx';
 import PageContentAdmin from './components/PageContentAdmin.tsx';
 import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
-import { initializeVideoPreload } from './utils/videoPreloader';
-import { initializeGlobalBackgroundPreload } from './utils/globalBackgroundPreloader';
-import { isMeditationModeFromSearch } from './utils/urlModeBootstrap';
-import { initializeMeditationAssetsPreload } from './utils/meditationAssetsPreload';
+import { runEntryPreload } from './main/runEntryPreload';
 import { purgeServiceWorkersForMeditationEntry } from './main/meditationSwPurge';
 
 // Kin 计算引擎自检：启动时必须通过三个断言测试
@@ -66,18 +63,9 @@ async function bootstrap() {
 
   validateKinEngine();
 
-  if (isMeditationModeFromSearch()) {
-    await initializeMeditationAssetsPreload().catch((err) => {
-      console.warn('冥想素材预加载失败（非致命）:', err);
-    });
-  } else {
-    initializeGlobalBackgroundPreload().catch((err) => {
-      console.warn('全局背景预加载失败（非致命）:', err);
-    });
-    initializeVideoPreload().catch((err) => {
-      console.warn('视频预加载失败（非致命）:', err);
-    });
-  }
+  await runEntryPreload().catch((err) => {
+    console.warn('入口预加载失败（非致命）:', err);
+  });
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

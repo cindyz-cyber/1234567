@@ -1,37 +1,31 @@
 /**
- * 冥想模式专用预加载：仅 hint meditation_bg.mp4 + 引导 mp3，不触碰 golden_flow / zen_vortex 等默认表。
+ * 冥想模式专用预加载：仅在 URL 含 meditation 时执行，且只注入冥想背景视频一条。
  */
-import meditationBgUrl from '../assets/meditation_bg.mp4';
-import meditationGuideAudioUrl from '../assets/音频冥想引导2.0.mp3';
-
-function injectPreload(href: string, as: 'video' | 'fetch') {
-  const link = document.createElement('link');
-  link.rel = 'preload';
-  link.href = href;
-  link.as = as;
-  link.crossOrigin = 'anonymous';
-  document.head.appendChild(link);
-}
+import { MEDITATION_BG_MP4 } from '../constants/meditationMedia';
 
 export async function initializeMeditationAssetsPreload(): Promise<void> {
-  console.log(
-    '🧘 [Meditation] 仅预加载冥想素材（已跳过 golden_flow / zen_vortex 等默认背景预加载）'
-  );
+  if (typeof window === 'undefined' || !window.location.search.includes('meditation')) {
+    return;
+  }
 
   const bust = Date.now();
-  const videoBusted = `${meditationBgUrl}${meditationBgUrl.includes('?') ? '&' : '?'}v=${bust}`;
-  const audioBusted = `${meditationGuideAudioUrl}${meditationGuideAudioUrl.includes('?') ? '&' : '?'}v=${bust}`;
+  const href = `${MEDITATION_BG_MP4}${MEDITATION_BG_MP4.includes('?') ? '&' : '?'}v=${bust}`;
 
-  injectPreload(videoBusted, 'video');
-  injectPreload(audioBusted, 'fetch');
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'video';
+  link.href = href;
+  link.crossOrigin = 'anonymous';
+  document.head.appendChild(link);
 
-  // 轻量预热视频解码管道（静音、不插入 DOM）
+  console.log('预加载注入: meditation_bg.mp4');
+
   try {
     const v = document.createElement('video');
     v.preload = 'auto';
     v.muted = true;
     v.playsInline = true;
-    v.src = videoBusted;
+    v.src = href;
     v.load();
   } catch (e) {
     console.warn('冥想背景视频预热失败（非致命）:', e);

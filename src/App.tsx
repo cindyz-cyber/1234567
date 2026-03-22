@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { isMeditationUrlNativeIncludes } from './utils/urlModeBootstrap';
-import { Routes, Route, useLocation } from 'react-router-dom';
 import {
   UrlModeContext,
   type UrlModeContextValue,
 } from './context/urlModeContext';
+import { flowPath, useFlowMode } from './hooks/useFlowMode';
 import MarketingFlowEntry from './components/MarketingFlowEntry';
 import HomePage from './components/HomePage';
 import EmotionScan from './components/EmotionScan';
@@ -14,6 +15,18 @@ import HigherSelfDialogue from './components/HigherSelfDialogue';
 import BookOfAnswers from './components/BookOfAnswers';
 import ShareJournal from './components/ShareJournal';
 import NavigateToHomePreserveSearch from './components/NavigateToHomePreserveSearch';
+
+/**
+ * 冥想模式下禁止挂载起名/首页/情绪/日记等默认背景页，统一重定向到过渡页。
+ */
+function MeditationSkipToTransition() {
+  const { flowBase } = useFlowMode();
+  const q =
+    typeof window !== 'undefined' && window.location.search
+      ? window.location.search
+      : '?mode=meditation';
+  return <Navigate to={`${flowPath(flowBase, '/transition')}${q}`} replace />;
+}
 
 /**
  * 监听 `window.location.search`（含 popstate + React Router 导航后再次读取 window），
@@ -66,6 +79,60 @@ function UrlModeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** 默认漏斗：含起名、首页、情绪、日记等（会加载 PortalBackground / 默认素材） */
+function DefaultAppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<MarketingFlowEntry />} />
+      <Route path="/home" element={<HomePage />} />
+      <Route path="/emotions" element={<EmotionScan />} />
+      <Route path="/journal" element={<InnerWhisperJournal />} />
+      <Route path="/transition" element={<GoldenTransition />} />
+      <Route path="/dialogue" element={<HigherSelfDialogue />} />
+      <Route path="/answers" element={<BookOfAnswers />} />
+      <Route path="/share" element={<ShareJournal />} />
+
+      <Route path="/app" element={<MarketingFlowEntry />} />
+      <Route path="/app/home" element={<HomePage />} />
+      <Route path="/app/emotions" element={<EmotionScan />} />
+      <Route path="/app/journal" element={<InnerWhisperJournal />} />
+      <Route path="/app/transition" element={<GoldenTransition />} />
+      <Route path="/app/dialogue" element={<HigherSelfDialogue />} />
+      <Route path="/app/answers" element={<BookOfAnswers />} />
+
+      <Route path="*" element={<NavigateToHomePreserveSearch />} />
+    </Routes>
+  );
+}
+
+/**
+ * 冥想漏斗：不注册 HomePage / EmotionScan / InnerWhisperJournal，避免默认背景组件挂载。
+ */
+function MeditationAppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<MarketingFlowEntry />} />
+      <Route path="/app" element={<MarketingFlowEntry />} />
+      <Route path="/transition" element={<GoldenTransition />} />
+      <Route path="/app/transition" element={<GoldenTransition />} />
+      <Route path="/dialogue" element={<HigherSelfDialogue />} />
+      <Route path="/app/dialogue" element={<HigherSelfDialogue />} />
+      <Route path="/answers" element={<BookOfAnswers />} />
+      <Route path="/app/answers" element={<BookOfAnswers />} />
+      <Route path="/share" element={<ShareJournal />} />
+
+      <Route path="/home" element={<MeditationSkipToTransition />} />
+      <Route path="/app/home" element={<MeditationSkipToTransition />} />
+      <Route path="/emotions" element={<MeditationSkipToTransition />} />
+      <Route path="/app/emotions" element={<MeditationSkipToTransition />} />
+      <Route path="/journal" element={<MeditationSkipToTransition />} />
+      <Route path="/app/journal" element={<MeditationSkipToTransition />} />
+
+      <Route path="*" element={<NavigateToHomePreserveSearch />} />
+    </Routes>
+  );
+}
+
 function App() {
   const renderModeLogged = useRef(false);
   const nativeMeditation =
@@ -79,41 +146,15 @@ function App() {
     );
   }
 
-  const routes = (
-      <Routes>
-        {/* Marketing / public linear flow */}
-        <Route path="/" element={<MarketingFlowEntry />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/emotions" element={<EmotionScan />} />
-        <Route path="/journal" element={<InnerWhisperJournal />} />
-        <Route path="/transition" element={<GoldenTransition />} />
-        <Route path="/dialogue" element={<HigherSelfDialogue />} />
-        <Route path="/answers" element={<BookOfAnswers />} />
-        <Route path="/share" element={<ShareJournal />} />
-
-        {/* Internal app shell — same components & UX, paths prefixed with /app */}
-        <Route path="/app" element={<MarketingFlowEntry />} />
-        <Route path="/app/home" element={<HomePage />} />
-        <Route path="/app/emotions" element={<EmotionScan />} />
-        <Route path="/app/journal" element={<InnerWhisperJournal />} />
-        <Route path="/app/transition" element={<GoldenTransition />} />
-        <Route path="/app/dialogue" element={<HigherSelfDialogue />} />
-        <Route path="/app/answers" element={<BookOfAnswers />} />
-
-        <Route path="*" element={<NavigateToHomePreserveSearch />} />
-      </Routes>
-  );
-
-  /** 原生 URL 门岗：不经由中间 State，避免与 SW 缓存的旧壳耦合 */
   return (
     <UrlModeProvider>
       {isMeditationUrlNativeIncludes() ? (
         <div data-app-shell="meditation" className="contents">
-          {routes}
+          <MeditationAppRoutes />
         </div>
       ) : (
         <div data-app-shell="default" className="contents">
-          {routes}
+          <DefaultAppRoutes />
         </div>
       )}
     </UrlModeProvider>
