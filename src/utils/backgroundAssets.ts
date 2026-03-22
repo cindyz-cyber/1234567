@@ -132,7 +132,7 @@ export function preloadBackgroundVideo(assetId: keyof typeof BACKGROUND_ASSETS):
  */
 export async function preloadCoreBackgrounds(): Promise<void> {
   if (isMeditationModeFromSearch()) {
-    console.log('🧘 [Meditation] 跳过 preloadCoreBackgrounds（含 zen_vortex）');
+    console.log('🧘 [Meditation] 跳过 preloadCoreBackgrounds');
     return;
   }
   // 优先级加载

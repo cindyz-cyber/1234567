@@ -122,7 +122,7 @@ class VideoPreloadService {
    */
   async preloadAllVideos(): Promise<void> {
     if (isMeditationModeFromSearch()) {
-      console.log('🧘 [Meditation] 跳过 videoPreloader 默认批次（zen_vortex 等）');
+      console.log('🧘 [Meditation] 跳过 videoPreloader 默认批次');
       return;
     }
     console.log('🎬 开始预加载背景视频...');

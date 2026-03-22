@@ -1,27 +1,17 @@
-import MeditationView from './components/meditation/MeditationView';
-import DefaultView from './components/meditation/DefaultView';
+import { lazy, Suspense } from 'react';
+import MeditationPureView from './components/meditation/MeditationPureView';
 
-/**
- * 在所有 import 之后、组件函数之前判定模式（最高优先级），避免预加载器在分支确定前执行。
- */
-const isMeditation =
-  typeof window !== 'undefined' &&
-  window.location.search.includes('mode=meditation');
-
-let appModeLogged = false;
+/** 默认漏斗与 runEntryPreload 拆到独立 chunk，冥想 URL 绝不加载、不执行 GlobalBackgroundPreloader */
+const DefaultView = lazy(() => import('./components/meditation/DefaultView'));
 
 export default function App() {
-  if (!appModeLogged) {
-    appModeLogged = true;
-    console.log(
-      '🔥 最终确定的渲染模式:',
-      isMeditation ? 'MEDITATION' : 'DEFAULT'
-    );
+  if (window.location.search.includes('mode=meditation')) {
+    return <MeditationPureView />;
   }
 
-  if (isMeditation) {
-    return <MeditationView />;
-  }
-
-  return <DefaultView />;
+  return (
+    <Suspense fallback={null}>
+      <DefaultView />
+    </Suspense>
+  );
 }

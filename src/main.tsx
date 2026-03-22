@@ -9,6 +9,9 @@ import './index.css';
 import { calculateKin } from './utils/mayaCalendar';
 import { purgeServiceWorkersForMeditationEntry } from './main/meditationSwPurge';
 
+/** 在 root.render 之前判定：冥想模式严禁走默认漏斗与全局预加载逻辑 */
+const isMeditation = window.location.search.includes('mode=meditation');
+
 // Kin 计算引擎自检：启动时必须通过三个断言测试
 function validateKinEngine() {
   const tests = [
@@ -60,9 +63,12 @@ async function bootstrap() {
   const willReload = await purgeServiceWorkersForMeditationEntry();
   if (willReload) return;
 
-  validateKinEngine();
+  // 冥想模式：不执行 Kin 自检，且不引入/初始化 GlobalBackgroundPreloader（预加载仅在 DefaultView 内 lazy + runEntryPreload）
+  if (!isMeditation) {
+    validateKinEngine();
+  }
 
-  // 预加载已移至 DefaultView 挂载后（runEntryPreload），此处禁止在 React 之前拉取默认视频。
+  // 预加载已移至 DefaultView 挂载后（runEntryPreload）；冥想 URL 不会挂载 DefaultView，故不会触发入口预加载。
 
   /* 临时关闭 Service Worker，避免拦截静态资源请求
   if ('serviceWorker' in navigator) {
