@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { useState, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { supabase } from '../lib/supabase';
@@ -9,6 +9,7 @@ import { isVideoUrl } from '../utils/audioManager';
 import { shareBackgroundPreloader } from '../utils/shareBackgroundPreloader';
 import { getPageContent } from '../utils/pageContentService';
 import { loadPageVisibility, getNextVisiblePage, type PageName } from '../utils/pageVisibilityService';
+import { isMeditationModeFromSearch } from '../utils/meditationFlow';
 
 // 🚀 代码分割：懒加载非首屏组件
 const EmotionScan = lazy(() => import('./EmotionScan'));
@@ -50,6 +51,12 @@ interface JournalState {
 export default function ShareJournal() {
   // 🔥 路径参数抓取（必须在所有 hooks 最前面）
   const { sceneId } = useParams<{ sceneId?: string }>();
+
+  /** ?mode=meditation 时过渡页使用冥想素材；未带参数时行为与原先一致 */
+  const meditationModeFromUrl = useMemo(
+    () => (typeof window !== 'undefined' ? isMeditationModeFromSearch(window.location.search) : false),
+    []
+  );
 
   const [currentStep, setCurrentStep] = useState<JournalStep>('naming');
   const [config, setConfig] = useState<H5ShareConfig | null>(null);
@@ -818,6 +825,7 @@ export default function ShareJournal() {
               globalAudio={audioToPass}
               isMusicVideo={isMusicVideo}
               autoAdvance={false}
+              meditationMode={meditationModeFromUrl}
             />
           </Suspense>
         );

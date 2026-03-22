@@ -2,12 +2,19 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { flowPath, useFlowMode } from '../hooks/useFlowMode';
 import {
+  createAndPlayAudioFromExplicitSrc,
   createAndPlayAudioFromZero,
   isVideoUrl,
   playAudioFromZero,
   stopAllAudio,
 } from '../utils/audioManager';
 import { cancelAllBackgroundPreloads } from '../utils/globalBackgroundPreloader';
+import { resolveMeditationActive } from '../utils/meditationFlow';
+import { DIALOGUE_PORTAL_VIDEO_URL } from '../constants/dialogueAmbient';
+/** 生产环境由 Vite 处理为带 hash 的 URL（如 /assets/meditation_bg-xxxxx.mp4），随 base 相对根路径加载 */
+import meditationBgVideoUrl from '../assets/meditation_bg.mp4';
+/** 生产环境：/assets/音频冥想引导2.0-<hash>.mp3 */
+import meditationGuideAudioUrl from '../assets/音频冥想引导2.0.mp3';
 
 interface GoldenTransitionProps {
   userName?: string;
@@ -18,6 +25,8 @@ interface GoldenTransitionProps {
   globalAudio?: HTMLAudioElement | null;
   isMusicVideo?: boolean;
   autoAdvance?: boolean;
+  /** ShareJournal 等：由父组件根据 URL 传入，与 state / query 合并判断 */
+  meditationMode?: boolean;
 }
 
 export default function GoldenTransition({
@@ -29,6 +38,7 @@ export default function GoldenTransition({
   globalAudio,
   isMusicVideo = false,
   autoAdvance = true,
+  meditationMode: meditationModeProp = false,
 }: GoldenTransitionProps) {
   const navigate = useNavigate();
   const { flowBase } = useFlowMode();
@@ -39,16 +49,60 @@ export default function GoldenTransition({
     emotions?: string[];
     bodyStates?: string[];
     journalContent?: string;
+    meditationMode?: boolean;
   } | null;
   const userName = propUserName ?? routeState?.userName ?? '';
   const higherSelfName = propHigherSelfName ?? routeState?.higherSelfName ?? '';
 
+  const isMeditationActive = resolveMeditationActive({
+    search: location.search,
+    stateMeditation: routeState?.meditationMode,
+    propMeditation: meditationModeProp,
+  });
+
+  /** 冥想引流：仅手动按钮进入高我对话，禁用倒计时自动跳转 */
+  const meditationManualOnly = isMeditationActive;
+
   const [fadeOut, setFadeOut] = useState(false);
-  const [showButton, setShowButton] = useState(false);
-  const [currentBackgroundMusic, setCurrentBackgroundMusic] = useState<HTMLAudioElement | null>(null);
+  /** 手动点「留下智慧」时用较短淡出，与自动 10s 转场区分 */
+  const [manualExit, setManualExit] = useState(false);
   const audioInstanceRef = useRef<HTMLAudioElement | null>(null);
   const isInitializingRef = useRef(false);
   const transitionCompletedRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
+  const transitionNavRef = useRef({
+    userName,
+    higherSelfName,
+    routeState,
+    flowBase,
+    isMeditationActive,
+  });
+  transitionNavRef.current = {
+    userName,
+    higherSelfName,
+    routeState,
+    flowBase,
+    isMeditationActive,
+  };
+
+  /** 预加载下一页对话背景视频，减少路由切换时的背景跳闪 */
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'video';
+    link.href = DIALOGUE_PORTAL_VIDEO_URL;
+    link.crossOrigin = 'anonymous';
+    document.head.appendChild(link);
+    return () => {
+      try {
+        if (link.parentNode) document.head.removeChild(link);
+      } catch {
+        /* ignore */
+      }
+    };
+  }, []);
 
   const defaultVideoUrl =
     'https://cdn.midjourney.com/video/b84b7c1b-df4c-415a-915f-eb3a46e28f88/1.mp4';
@@ -56,6 +110,33 @@ export default function GoldenTransition({
   const effectiveVideoUrl = isMediaUrlVideo
     ? backgroundMusicUrl
     : backgroundVideoUrl || defaultVideoUrl;
+
+  /** 不修改 effectiveVideoUrl；冥想模式另选一路径 */
+  const backgroundVideoSrcForPlayer = isMeditationActive
+    ? meditationBgVideoUrl
+    : effectiveVideoUrl;
+
+  const goToDialogueOrComplete = () => {
+    transitionCompletedRef.current = true;
+    setManualExit(true);
+    setFadeOut(true);
+    const nav = transitionNavRef.current;
+    const nextState = {
+      ...nav.routeState,
+      userName: nav.userName,
+      higherSelfName: nav.higherSelfName,
+      journalContent: nav.routeState?.journalContent,
+      meditationMode: true as const,
+    };
+    const handoffMs = 480;
+    window.setTimeout(() => {
+      if (onCompleteRef.current) {
+        onCompleteRef.current(audioInstanceRef.current);
+      } else {
+        navigate(flowPath(nav.flowBase, '/dialogue'), { state: nextState });
+      }
+    }, handoffMs);
+  };
 
   useEffect(() => {
     stopAllAudio();
@@ -70,34 +151,38 @@ export default function GoldenTransition({
       isInitializingRef.current = true;
 
       try {
-        if (globalAudio) {
+        if (isMeditationActive) {
+          const instance = await createAndPlayAudioFromExplicitSrc(meditationGuideAudioUrl, 0.4);
+          audioInstanceRef.current = instance;
+        } else if (globalAudio) {
           await playAudioFromZero(globalAudio);
           audioInstanceRef.current = globalAudio;
-          setCurrentBackgroundMusic(globalAudio);
         } else if (!isMediaUrlVideo) {
           const audioUrl = backgroundMusicUrl || '';
           const cacheBustedUrl = audioUrl ? `${audioUrl}?t=${Date.now()}` : '';
           const instance = await createAndPlayAudioFromZero(cacheBustedUrl);
           audioInstanceRef.current = instance;
-          if (instance) setCurrentBackgroundMusic(instance);
         }
       } finally {
         isInitializingRef.current = false;
       }
 
-      if (autoAdvance) {
+      const runAutoTimers = autoAdvance && !meditationManualOnly;
+      if (runAutoTimers) {
         fadeOutTimer = window.setTimeout(() => setFadeOut(true), transitionDuration - 1000);
         completeTimer = window.setTimeout(() => {
           transitionCompletedRef.current = true;
-          if (onComplete) {
-            onComplete(audioInstanceRef.current);
+          const nav = transitionNavRef.current;
+          if (onCompleteRef.current) {
+            onCompleteRef.current(audioInstanceRef.current);
           } else {
-            navigate(flowPath(flowBase, '/dialogue'), {
+            navigate(flowPath(nav.flowBase, '/dialogue'), {
               state: {
-                ...routeState,
-                userName,
-                higherSelfName,
-                journalContent: routeState?.journalContent,
+                ...nav.routeState,
+                userName: nav.userName,
+                higherSelfName: nav.higherSelfName,
+                journalContent: nav.routeState?.journalContent,
+                meditationMode: nav.isMeditationActive || nav.routeState?.meditationMode,
               },
             });
           }
@@ -119,25 +204,43 @@ export default function GoldenTransition({
         audioInstanceRef.current = null;
       }
     };
-    // 仅挂载时执行一次，避免重复触发导致双音/跳秒
-  }, []);
+  }, [
+    isMeditationActive,
+    meditationManualOnly,
+    autoAdvance,
+    location.search,
+    navigate,
+    globalAudio,
+    backgroundMusicUrl,
+    backgroundVideoUrl,
+    isMediaUrlVideo,
+  ]);
 
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden"
-      style={{ opacity: fadeOut ? 0 : 1, transition: 'opacity 2s ease' }}
+      style={{
+        opacity: fadeOut ? 0 : 1,
+        transition: manualExit ? 'opacity 0.45s ease' : 'opacity 2s ease',
+      }}
     >
       <div className="fixed inset-0 w-full h-full z-[-1] bg-[#020d0a]">
         <video
           autoPlay
           loop
-          muted={!isMusicVideo}
+          muted={isMeditationActive ? true : !isMusicVideo}
           playsInline
           className="w-full h-full object-cover opacity-60"
         >
-          <source src={effectiveVideoUrl} type="video/mp4" />
+          <source src={backgroundVideoSrcForPlayer} type="video/mp4" />
         </video>
       </div>
+
+      {isMeditationActive && (
+        <div className="meditation-welcome-overlay pointer-events-none">
+          进入 Cindy 的冥想空间
+        </div>
+      )}
 
       {/* 1:1 with HomePage.tsx golden sphere (divine-aura + divine-golden-tree + golden-particle) */}
       <div className="flex flex-col items-center gap-8 z-10 w-full max-w-xl">
@@ -160,17 +263,60 @@ export default function GoldenTransition({
           </div>
         </div>
 
-        <div className="text-center">
-          <p className="text-[#F7E7CE] text-lg tracking-[0.4em] mb-4">
-            带着问题，闭上眼， 打开心。。。
-          </p>
-          <p className="text-[#F7E7CE] opacity-70 tracking-[0.3em]">
-            正在连接你的 {higherSelfName}
-          </p>
-        </div>
+        {!isMeditationActive && (
+          <div className="text-center">
+            <p className="text-[#F7E7CE] text-lg tracking-[0.4em] mb-4">
+              带着问题，闭上眼， 打开心。。。
+            </p>
+            <p className="text-[#F7E7CE] opacity-70 tracking-[0.3em]">
+              正在连接你的 {higherSelfName}
+            </p>
+          </div>
+        )}
       </div>
 
+      {meditationManualOnly && (
+        <div className="fixed bottom-[max(1.5rem,6vh)] left-0 right-0 z-30 flex justify-center px-6 pointer-events-auto">
+          <button
+            type="button"
+            onClick={goToDialogueOrComplete}
+            className="px-10 sm:px-14 py-3.5 rounded-full backdrop-blur-xl bg-white/10 border border-white/30 text-[#F7E7CE] text-sm sm:text-[15px] tracking-[0.28em] sm:tracking-[0.35em] shadow-[0_8px_40px_rgba(0,0,0,0.4)] hover:bg-white/16 hover:border-white/45 active:scale-[0.98] transition-all duration-300 font-light max-w-[min(92vw,420px)] w-full sm:w-auto text-center"
+          >
+            点击留下智慧
+          </button>
+        </div>
+      )}
+
       <style>{`
+        .meditation-welcome-overlay {
+          position: fixed;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 20;
+          max-width: 90vw;
+          text-align: center;
+          font-size: 1.25rem;
+          font-weight: 300;
+          letter-spacing: 0.35em;
+          color: rgba(247, 231, 206, 0.95);
+          text-shadow:
+            0 0 24px rgba(247, 231, 206, 0.5),
+            0 2px 12px rgba(0, 0, 0, 0.85);
+          animation: meditationWelcomeFadeIn 2.2s ease-out both;
+        }
+
+        @keyframes meditationWelcomeFadeIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -46%);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+          }
+        }
+
         .divine-golden-tree {
           width: 280px;
           height: 280px;

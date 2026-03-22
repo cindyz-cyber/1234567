@@ -4,6 +4,7 @@ import { flowPath, useFlowMode } from '../hooks/useFlowMode';
 import { warmupAudioContext } from '../utils/audioManager';
 import PortalBackground from './PortalBackground';
 import posterImage from '../assets/0_1_640_N.webp';
+import { resolveMeditationActive } from '../utils/meditationFlow';
 
 interface HomePageProps {
   userName?: string;
@@ -15,9 +16,13 @@ export default function HomePage({ userName: propUserName, higherSelfName: propH
   const navigate = useNavigate();
   const { flowBase } = useFlowMode();
   const location = useLocation();
-  const state = location.state as { userName?: string; higherSelfName?: string } | null;
+  const state = location.state as { userName?: string; higherSelfName?: string; meditationMode?: boolean } | null;
   const userName = propUserName ?? state?.userName ?? '';
   const higherSelfName = propHigherSelfName ?? state?.higherSelfName ?? '';
+  const meditationMode = resolveMeditationActive({
+    search: location.search,
+    stateMeditation: state?.meditationMode,
+  });
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
 
   const handleCircleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -42,7 +47,7 @@ export default function HomePage({ userName: propUserName, higherSelfName: propH
       if (onStartJourney) {
         onStartJourney();
       } else {
-        navigate(flowPath(flowBase, '/emotions'), { state: { userName, higherSelfName } });
+        navigate(flowPath(flowBase, '/emotions'), { state: { userName, higherSelfName, meditationMode } });
       }
     }, 400);
   };

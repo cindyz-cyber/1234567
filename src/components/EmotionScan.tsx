@@ -71,7 +71,11 @@ export default function EmotionScan({ onNext, onBack }: EmotionScanProps) {
   const navigate = useNavigate();
   const { flowBase } = useFlowMode();
   const location = useLocation();
-  const routeState = location.state as { userName?: string; higherSelfName?: string } | null;
+  const routeState = location.state as {
+    userName?: string;
+    higherSelfName?: string;
+    meditationMode?: boolean;
+  } | null;
 
   const handleNavigateNext = (emotions: string[], bodyStates: string[], journalContentFromWriting?: string) => {
     if (onNext) {

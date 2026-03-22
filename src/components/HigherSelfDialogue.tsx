@@ -5,6 +5,8 @@ import { Volume2, VolumeX, ChevronLeft } from 'lucide-react';
 import GoldButton from './GoldButton';
 import PortalBackground from './PortalBackground';
 import posterImage from '../assets/0_1_640_N.webp';
+import { DIALOGUE_PORTAL_VIDEO_URL } from '../constants/dialogueAmbient';
+import { getActiveBackgroundAudio } from '../utils/audioManager';
 
 interface HigherSelfDialogueProps {
   userName?: string;
@@ -25,6 +27,7 @@ export default function HigherSelfDialogue({ userName: propUserName, higherSelfN
     emotions?: string[];
     bodyStates?: string[];
     journalContent?: string;
+    meditationMode?: boolean;
   } | null;
   const userName = propUserName ?? routeState?.userName ?? '';
   const higherSelfName = propHigherSelfName ?? routeState?.higherSelfName ?? '';
@@ -37,6 +40,17 @@ export default function HigherSelfDialogue({ userName: propUserName, higherSelfN
   const [rippleTriggered, setRippleTriggered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  /** 挂载时衔接 Golden Transition 正在播放的 BGM（location.state 无法传递 HTMLAudioElement） */
+  useEffect(() => {
+    const fromProps = incomingBackgroundMusic ?? null;
+    const fromManager = getActiveBackgroundAudio();
+    const el = fromProps ?? fromManager;
+    if (el) {
+      setBackgroundMusic(el);
+      setIsMusicPlaying(!el.paused);
+    }
+  }, [incomingBackgroundMusic]);
 
   useEffect(() => {
     if (response.length > displayedResponse.length) {
@@ -86,10 +100,17 @@ export default function HigherSelfDialogue({ userName: propUserName, higherSelfN
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
+    <div
+      className="min-h-screen flex flex-col relative overflow-hidden dialogue-page-root"
+      style={{
+        /* 与 PortalBackground 底层色一致，首帧即铺满，避免视频未解码时的透明/白闪 */
+        background: 'linear-gradient(135deg, #0a1e1a 0%, #0f1a28 50%, #0a1520 100%)',
+      }}
+    >
       <PortalBackground
-        videoSrc="https://sipwtljnvzicgexlngyc.supabase.co/storage/v1/object/public/videos/backgrounds/fe2rqfs27y-1772615676760.mp4"
-        posterImg="/assets/ecb075f8800e9ca0b7ffce2ee54c75ac.jpg"
+        videoSrc={DIALOGUE_PORTAL_VIDEO_URL}
+        posterImg={posterImage}
+        className="dialogue-portal-bg"
       />
 
       <div className="portal-video-container" style={{ display: 'none' }}>

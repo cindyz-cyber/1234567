@@ -20,6 +20,8 @@ export default function PortalBackground({
     const video = videoRef.current;
     if (!video) return;
 
+    video.load();
+
     const cleanup = applyIOSVideoFix(video);
 
     const playVideo = async () => {
@@ -33,7 +35,7 @@ export default function PortalBackground({
     playVideo();
 
     return cleanup;
-  }, []);
+  }, [videoSrc, posterImg]);
 
   return (
     <div

@@ -34,6 +34,7 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
     emotions?: string[];
     bodyStates?: string[];
     journalContentFromWriting?: string;
+    meditationMode?: boolean;
   } | null;
   const effectiveEmotions = emotions.length > 0 ? emotions : (routeState?.emotions ?? []);
   const effectiveBodyStates = bodyStates.length > 0 ? bodyStates : (routeState?.bodyStates ?? []);

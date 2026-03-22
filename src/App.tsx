@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import NamingRitual from './components/NamingRitual';
+import MarketingFlowEntry from './components/MarketingFlowEntry';
 import HomePage from './components/HomePage';
 import EmotionScan from './components/EmotionScan';
 import InnerWhisperJournal from './components/InnerWhisperJournal';
@@ -12,7 +12,7 @@ function App() {
   return (
     <Routes>
       {/* Marketing / public linear flow */}
-      <Route path="/" element={<NamingRitual />} />
+      <Route path="/" element={<MarketingFlowEntry />} />
       <Route path="/home" element={<HomePage />} />
       <Route path="/emotions" element={<EmotionScan />} />
       <Route path="/journal" element={<InnerWhisperJournal />} />
@@ -22,7 +22,7 @@ function App() {
       <Route path="/share" element={<ShareJournal />} />
 
       {/* Internal app shell — same components & UX, paths prefixed with /app */}
-      <Route path="/app" element={<NamingRitual />} />
+      <Route path="/app" element={<MarketingFlowEntry />} />
       <Route path="/app/home" element={<HomePage />} />
       <Route path="/app/emotions" element={<EmotionScan />} />
       <Route path="/app/journal" element={<InnerWhisperJournal />} />
