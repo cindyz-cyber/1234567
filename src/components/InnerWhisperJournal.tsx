@@ -1,8 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Mic, MicOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { flowPath, useFlowMode } from '../hooks/useFlowMode';
+import {
+  initWeChatJssdk,
+  isWeChatInAppBrowser,
+  wx,
+} from '../utils/wechatWeixinJssdk';
 import GoldButton from './GoldButton';
 
 interface InnerWhisperJournalProps {
@@ -37,18 +42,76 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
   const [isSaving, setIsSaving] = useState(false);
   const [isBgVideoLoaded, setIsBgVideoLoaded] = useState(false);
   const [pulseIntensity, setPulseIntensity] = useState(0);
+  const [wxSdkReady, setWxSdkReady] = useState(false);
+  const [wxSdkError, setWxSdkError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isListeningRef = useRef(false);
 
+  const isWeChat = useMemo(() => isWeChatInAppBrowser(), []);
+
+  const translateWeChatVoiceToText = useCallback((localId: string) => {
+    wx.translateVoice({
+      localId,
+      isShowProgressTips: 1,
+      success: (res: { translateResult?: string }) => {
+        const text = res.translateResult || '';
+        if (text) {
+          setJournalText((prev) => prev + text);
+        }
+      },
+      fail: (err: unknown) => {
+        console.error('❌ [WeChat] translateVoice failed:', err);
+        alert('微信语音转文字失败，请重试');
+      },
+      complete: () => {
+        setIsListening(false);
+        isListeningRef.current = false;
+      },
+    });
+  }, []);
+
+  /** 微信浏览器：组件加载时请求 /api/wechat-config 并 wx.config */
   useEffect(() => {
+    if (!isWeChat) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        await initWeChatJssdk();
+        if (cancelled) return;
+        setWxSdkReady(true);
+        setWxSdkError(null);
+        wx.onVoiceRecordEnd({
+          complete: (res: { localId: string }) => {
+            translateWeChatVoiceToText(res.localId);
+          },
+        });
+        console.log('✅ [InnerWhisperJournal] 微信 JSSDK 已就绪（录音）');
+      } catch (e) {
+        console.error('❌ [InnerWhisperJournal] 微信 JSSDK 初始化失败:', e);
+        if (!cancelled) {
+          setWxSdkReady(false);
+          setWxSdkError(e instanceof Error ? e.message : String(e));
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isWeChat, translateWeChatVoiceToText]);
+
+  /** 非微信：Web Speech API（与原先逻辑一致，避免依赖 isListening 反复挂载） */
+  useEffect(() => {
+    if (isWeChat) return;
+
     console.group('🎤 [InnerWhisperJournal] 语音识别初始化');
     console.log('🔍 检测浏览器支持...');
-    console.log('  - webkitSpeechRecognition:', 'webkitSpeechRecognition' in window);
-    console.log('  - SpeechRecognition:', 'SpeechRecognition' in window);
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      console.log('✅ 浏览器支持语音识别 API');
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const SpeechRecognition =
+        (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
 
       try {
         recognitionRef.current = new SpeechRecognition();
@@ -56,95 +119,57 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
         recognitionRef.current.interimResults = true;
         recognitionRef.current.lang = 'zh-CN';
 
-        console.log('✅ 语音识别对象创建成功');
-        console.log('📊 配置:');
-        console.log('  - continuous:', recognitionRef.current.continuous);
-        console.log('  - interimResults:', recognitionRef.current.interimResults);
-        console.log('  - lang:', recognitionRef.current.lang);
-
-        recognitionRef.current.onstart = () => {
-          console.log('🎙️ [Speech] 语音识别已启动');
-        };
-
         recognitionRef.current.onresult = (event: any) => {
-          console.log('📝 [Speech] 收到识别结果');
-          let interimTranscript = '';
           let finalTranscript = '';
-
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
               finalTranscript += transcript;
-            } else {
-              interimTranscript += transcript;
             }
           }
-
-          console.log('  - 临时结果:', interimTranscript);
-          console.log('  - 最终结果:', finalTranscript);
-
           if (finalTranscript) {
-            console.log('✅ 将最终结果添加到文本框:', finalTranscript);
-            setJournalText(prev => prev + finalTranscript);
+            setJournalText((prev) => prev + finalTranscript);
           }
         };
 
         recognitionRef.current.onerror = (event: any) => {
-          console.error('❌ [Speech] 语音识别错误:', event.error);
-          console.error('❌ 错误详情:', event);
-
-          if (event.error === 'no-speech') {
-            console.log('💡 未检测到语音，继续监听...');
-            return;
-          }
-
+          if (event.error === 'no-speech') return;
           if (event.error === 'not-allowed') {
-            console.error('❌ 麦克风权限被拒绝');
             alert('麦克风权限被拒绝\n\n请在浏览器设置中允许麦克风权限，然后刷新页面重试。');
           }
-
           setIsListening(false);
+          isListeningRef.current = false;
         };
 
         recognitionRef.current.onend = () => {
-          console.log('🛑 [Speech] 语音识别已结束');
-          console.log('  - isListening 状态:', isListening);
-
-          if (isListening) {
-            console.log('🔄 [Speech] 自动重启语音识别...');
+          if (isListeningRef.current && recognitionRef.current) {
             try {
-              recognitionRef.current?.start();
-              console.log('✅ [Speech] 重启成功');
-            } catch (e) {
-              console.error('❌ [Speech] 重启失败:', e);
+              recognitionRef.current.start();
+            } catch {
               setIsListening(false);
+              isListeningRef.current = false;
             }
           }
         };
-
-        console.log('✅ 所有事件监听器已设置');
       } catch (err) {
         console.error('❌ 创建语音识别对象失败:', err);
       }
     } else {
       console.warn('⚠️ 浏览器不支持语音识别 API');
-      console.warn('💡 建议使用 Chrome、Edge 或 Safari 浏览器');
     }
 
     console.groupEnd();
 
     return () => {
       if (recognitionRef.current) {
-        console.log('🧹 [InnerWhisperJournal] 清理语音识别对象');
         try {
           recognitionRef.current.stop();
-          console.log('✅ 语音识别已停止');
-        } catch (e) {
-          console.error('❌ 停止语音识别失败:', e);
+        } catch {
+          /* ignore */
         }
       }
     };
-  }, [isListening]);
+  }, [isWeChat]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -159,42 +184,65 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
   }, [isListening]);
 
   const toggleVoiceInput = async () => {
-    console.group('🎤 [InnerWhisperJournal] 喇叭按钮点击');
-    console.log('📍 当前状态 isListening:', isListening);
-    console.log('📍 recognitionRef.current:', recognitionRef.current ? '已初始化' : 'null');
-    console.log('📍 浏览器支持检测:');
-    console.log('  - webkitSpeechRecognition:', 'webkitSpeechRecognition' in window);
-    console.log('  - SpeechRecognition:', 'SpeechRecognition' in window);
-    console.groupEnd();
+    /** 微信内置浏览器：使用 JSSDK 录音，避免 Web Speech / 网络超时问题 */
+    if (isWeChat) {
+      if (!wxSdkReady) {
+        alert(
+          wxSdkError
+            ? `微信语音未就绪：${wxSdkError}\n请确认已配置 /api/wechat-config 并重新打开页面`
+            : '微信语音正在初始化，请稍候再试…'
+        );
+        return;
+      }
+
+      if (isListening) {
+        wx.stopRecord({
+          success: (res: { localId: string }) => {
+            translateWeChatVoiceToText(res.localId);
+          },
+          fail: (err: unknown) => {
+            console.error('❌ [WeChat] stopRecord failed:', err);
+            setIsListening(false);
+            isListeningRef.current = false;
+            alert('停止录音失败，请重试');
+          },
+        });
+      } else {
+        wx.startRecord({
+          success: () => {
+            setIsListening(true);
+            isListeningRef.current = true;
+          },
+          fail: (err: unknown) => {
+            console.error('❌ [WeChat] startRecord failed:', err);
+            alert('开始录音失败，请检查微信录音权限');
+          },
+        });
+      }
+      return;
+    }
 
     if (!recognitionRef.current) {
-      console.error('❌ 语音识别未初始化');
       alert('您的浏览器不支持语音输入功能\n\n建议使用:\n- Chrome 浏览器\n- Edge 浏览器\n- Safari 浏览器');
       return;
     }
 
     if (isListening) {
-      console.log('🛑 停止语音识别...');
       try {
         recognitionRef.current.stop();
         setIsListening(false);
-        console.log('✅ 语音识别已停止');
+        isListeningRef.current = false;
       } catch (e) {
         console.error('❌ 停止语音识别失败:', e);
         setIsListening(false);
+        isListeningRef.current = false;
       }
     } else {
-      console.log('🎙️ 启动语音识别...');
       try {
         await recognitionRef.current.start();
         setIsListening(true);
-        console.log('✅ 语音识别已启动');
-        console.log('💡 请开始说话，识别结果会自动填入文本框');
+        isListeningRef.current = true;
       } catch (e) {
-        console.error('❌ 启动语音识别失败:', e);
-        console.error('❌ 错误类型:', e instanceof Error ? e.message : String(e));
-
-        // 更详细的错误提示
         let errorMessage = '无法启动语音识别\n\n';
         if (e instanceof Error && e.message.includes('not-allowed')) {
           errorMessage += '原因：麦克风权限被拒绝\n\n';
@@ -206,13 +254,8 @@ export default function InnerWhisperJournal({ emotions = [], bodyStates = [], on
           errorMessage += '原因：语音识别已经在运行\n\n';
           errorMessage += '解决方法：请刷新页面重试';
         } else {
-          errorMessage += '原因：' + (e instanceof Error ? e.message : String(e)) + '\n\n';
-          errorMessage += '建议：\n';
-          errorMessage += '1. 检查麦克风权限\n';
-          errorMessage += '2. 确保使用 Chrome/Edge/Safari 浏览器\n';
-          errorMessage += '3. 刷新页面重试';
+          errorMessage += '原因：' + (e instanceof Error ? e.message : String(e));
         }
-
         alert(errorMessage);
       }
     }

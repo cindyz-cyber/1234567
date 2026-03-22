@@ -71,7 +71,7 @@ export default function HomePage({ userName: propUserName, higherSelfName: propH
 
       <button
         onClick={handleResetToNaming}
-        className="absolute top-4 right-4 z-40 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg backdrop-blur-sm border border-white/20 transition-all pointer-events-auto"
+        className="hidden absolute top-4 right-4 z-40 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg backdrop-blur-sm border border-white/20 transition-all pointer-events-auto"
       >
         重新起名
       </button>
